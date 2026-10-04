@@ -8,9 +8,9 @@ export const BRAND = {
   name: "Cota",
   line: "Cortinas y persianas para espacios que trabajan",
   city: "Arequipa",
-  phone: "+51 54 281 440",
-  email: "proyectos@cota.pe",
-  address: "Av. Ejército 710, Yanahuara, Arequipa",
+  phone: "+51 900 000 000 (demo)",
+  email: "hola@ejemplo.pe",
+  address: "Dirección de demostración, Arequipa",
 };
 
 export const TYPE_LABELS: Record<string, string> = {
@@ -66,7 +66,7 @@ export const SECTORS = [
 export const CASE_STUDIES = [
   {
     slug: "colegio-san-lazaro",
-    name: "Colegio particular San Lázaro",
+    name: "Colegio Los Álamos",
     place: "Cercado, Arequipa",
     sector: "Educación",
     size: "Pequeño",
@@ -79,7 +79,7 @@ export const CASE_STUDIES = [
   },
   {
     slug: "instituto-misti",
-    name: "Instituto tecnológico Misti",
+    name: "Instituto Horizonte",
     place: "Cayma, Arequipa",
     sector: "Educación",
     size: "Mediano",
@@ -92,7 +92,7 @@ export const CASE_STUDIES = [
   },
   {
     slug: "universidad-sede-norte",
-    name: "Universidad privada, sede norte",
+    name: "Universidad del Valle Sur (ficticia)",
     place: "Cerro Colorado, Arequipa",
     sector: "Educación",
     size: "Grande",
@@ -105,7 +105,7 @@ export const CASE_STUDIES = [
   },
   {
     slug: "oficinas-umacollo",
-    name: "Oficinas de un estudio contable",
+    name: "Estudio Contable Nogal (ficticio)",
     place: "Yanahuara, Arequipa",
     sector: "Oficinas",
     size: "Pequeño",

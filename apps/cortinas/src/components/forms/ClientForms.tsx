@@ -26,7 +26,7 @@ export function RegisterForm({ next }: { next?: string }) {
   return (
     <form action={action} className="grid gap-6 sm:grid-cols-2">
       <input type="hidden" name="next" value={next ?? "/cliente"} />
-      <div className="sm:col-span-2"><TextField label="Institución o empresa" name="company" error={f.company} placeholder="I.E.P. Santa Rosa de Lima" /></div>
+      <div className="sm:col-span-2"><TextField label="Institución o empresa" name="company" error={f.company} placeholder="Colegio Los Álamos" /></div>
       <TextField label="RUC" name="ruc" inputMode="numeric" maxLength={11} error={f.ruc} placeholder="20456789123" />
       <TextField label="Teléfono" name="phone" error={f.phone} placeholder="959 214 780" />
       <div className="sm:col-span-2"><TextField label="Nombre de contacto" name="name" error={f.name} autoComplete="name" /></div>
@@ -54,7 +54,7 @@ export function NewProjectForm() {
         {DISTRICTS.map((d) => <option key={d}>{d}</option>)}
         <option>Otro (fuera de Arequipa)</option>
       </SelectField>
-      <div className="md:col-span-2"><TextField label="Dirección de la obra" name="address" error={f.address} placeholder="Calle Los Arces 220" /></div>
+      <div className="md:col-span-2"><TextField label="Dirección de la obra" name="address" error={f.address} placeholder="Dirección de la obra" /></div>
       <div><button disabled={pending} className={button}>{pending ? "Creando…" : "Crear y abrir"}</button></div>
     </form>
   );

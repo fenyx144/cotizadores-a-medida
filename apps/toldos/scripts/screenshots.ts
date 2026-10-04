@@ -74,7 +74,7 @@ async function main() {
   // 5. Solicitar visita con foto
   await page.goto(`${BASE}/solicitar-visita`, { waitUntil: "networkidle" });
   await page.getByLabel("Distrito").selectOption("Cayma");
-  await page.getByLabel("Dirección").fill("Calle Misti 140, Cayma");
+  await page.getByLabel("Dirección").fill("Dirección de demostración 1, Cayma");
   await page.getByLabel("Fecha preferida").fill(nextWeekday());
   await page.getByLabel("Nombre").fill("Ana Medina (demo)");
   await page.getByLabel("Correo electrónico").fill("ana@example.pe");

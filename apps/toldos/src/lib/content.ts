@@ -5,8 +5,8 @@
 export const BRAND = {
   name: "SunShade",
   tagline: "Toldos y pérgolas a medida",
-  phone: "+51 54 123 456",
-  email: "hola@sunshade.example",
+  phone: "+51 900 000 000 (demo)",
+  email: "hola@ejemplo.pe",
   city: "Arequipa",
 };
 
@@ -39,7 +39,7 @@ export const TESTIMONIALS = [
   },
   {
     quote: "Ocho mesas más en la terraza que antes no usábamos a mediodía. Se pagó en una temporada.",
-    name: "Café El Tambo",
+    name: "Café La Terraza (ficticio)",
     place: "Yanahuara",
     detail: "Dos retráctiles de 5 m",
   },

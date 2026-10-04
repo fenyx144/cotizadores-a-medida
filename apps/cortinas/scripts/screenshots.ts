@@ -52,9 +52,9 @@ async function main() {
   await page.goto(`${BASE}/particulares`, { waitUntil: "networkidle" });
   await page.getByLabel("Nombre").fill("Lucía Torres");
   await page.getByLabel("Teléfono").fill("987 111 222");
-  await page.getByLabel("Correo").fill(`lucia${Date.now()}@correo.pe`);
+  await page.getByLabel("Correo").fill(`lucia${Date.now()}@ejemplo.pe`);
   await page.getByLabel("Distrito").fill("Yanahuara");
-  await page.getByLabel("Dirección").fill("Calle Misti 140");
+  await page.getByLabel("Dirección").fill("Dirección de demostración 2");
   await page.getByRole("button", { name: "Agregar ventana" }).click();
   await page.getByLabel("Ambiente").nth(1).fill("Sala");
   await shot(page, "05-particulares", false);
@@ -100,7 +100,7 @@ async function main() {
   await page.getByRole("button", { name: "Salir" }).click();
 
   // --- Flujo completo con un cliente nuevo -------------------------------------
-  const email = `compras${Date.now()}@colegio.pe`;
+  const email = `compras${Date.now()}@ejemplo.pe`;
   await page.goto(`${BASE}/cliente/registro`, { waitUntil: "networkidle" });
   await page.getByLabel("Institución o empresa").fill("Colegio Prueba Headless");
   await page.getByLabel("RUC").fill("20600011122");

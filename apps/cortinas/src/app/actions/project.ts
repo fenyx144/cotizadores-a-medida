@@ -340,7 +340,7 @@ export async function sendProject(projectId: number) {
     await getDb().update(schema.projects).set({ status: "enviado", sentAt: new Date() }).where(eq(schema.projects.id, projectId));
     const windows = data.lines.reduce((s, l) => s + l.quantity, 0);
     await sendEmail({
-      to: process.env.NOTIFY_EMAIL || "proyectos@cota.pe",
+      to: process.env.NOTIFY_EMAIL || "hola@ejemplo.pe",
       subject: `Nuevo proyecto ${data.project.reference}: ${data.project.name}`,
       html: `<p>${data.client.company || data.client.name} envió <b>${data.project.name}</b> con ${windows} cortinas.</p>`,
     });

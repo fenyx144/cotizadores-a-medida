@@ -69,6 +69,6 @@ export async function submitQuickQuote(input: QuickInput): Promise<{ error?: str
       await db.insert(schema.lines).values({ projectId: project.id, locationId: loc.id, label: `V${i + 1}`, width: r.width, height: r.height, quantity: r.quantity, sortOrder: i, status: "configurada", ...priced });
     }
   }
-  await sendEmail({ to: process.env.NOTIFY_EMAIL || "proyectos@cota.pe", subject: `Cotización rápida ${reference}`, html: `<p>${d.name} (${d.phone}) · ${d.district}</p>` });
+  await sendEmail({ to: process.env.NOTIFY_EMAIL || "hola@ejemplo.pe", subject: `Cotización rápida ${reference}`, html: `<p>${d.name} (${d.phone}) · ${d.district}</p>` });
   redirect(`/particulares/gracias?ref=${reference}`);
 }

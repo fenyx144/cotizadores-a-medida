@@ -128,13 +128,13 @@ async function main() {
   const clients = await db
     .insert(schema.clients)
     .values([
-      { email: "cliente@demo.com", name: "María Fernanda Quispe", company: "Asociación Educativa Santa Rosa", ruc: "20456789123", phone: "959 214 780", passwordHash: pass, kind: "empresa" },
-      { email: "logistica@cea.edu.pe", name: "Jorge Medina Cáceres", company: "Corporación Educativa Arequipa S.A.C.", ruc: "20601234571", phone: "054 271 330", passwordHash: pass, kind: "empresa" },
-      { email: "administracion@losandes.pe", name: "Rosa Huamaní", company: "Policlínico Los Andes E.I.R.L.", ruc: "20498765431", phone: "958 112 904", passwordHash: pass, kind: "empresa" },
-      { email: "oficina@valdivia.pe", name: "Carlos Valdivia", company: "Estudio Contable Valdivia & Asociados", ruc: "20512345670", phone: "974 330 118", passwordHash: pass, kind: "empresa" },
-      { email: "infraestructura@udelsur.edu.pe", name: "Ing. Patricia Linares", company: "Universidad del Sur (ficticia)", ruc: "20111222333", phone: "054 600 200", passwordHash: pass, kind: "empresa" },
-      { email: "lucia.paredes@gmail.com", name: "Lucía Paredes", phone: "987 654 321", kind: "particular" },
-      { email: "compras@lospinos.edu.pe", name: "Elena Rojas", company: "Colegio Los Pinos", ruc: "20555666777", phone: "959 000 112", passwordHash: pass, kind: "empresa" },
+      { email: "cliente@demo.com", name: "María Demo", company: "Colegio Los Álamos (ficticio)", ruc: "20000000011", phone: "+51 900 000 001", passwordHash: pass, kind: "empresa" },
+      { email: "logistica@ejemplo.pe", name: "Jorge Demo", company: "Instituto Horizonte (ficticio)", ruc: "20000000022", phone: "+51 900 000 002", passwordHash: pass, kind: "empresa" },
+      { email: "salud@ejemplo.pe", name: "Rosa Demo", company: "Centro Médico Ejemplo (ficticio)", ruc: "20000000033", phone: "+51 900 000 003", passwordHash: pass, kind: "empresa" },
+      { email: "oficina@ejemplo.pe", name: "Carlos Demo", company: "Estudio Contable Nogal (ficticio)", ruc: "20000000044", phone: "+51 900 000 004", passwordHash: pass, kind: "empresa" },
+      { email: "infraestructura@ejemplo.pe", name: "Patricia Demo", company: "Universidad del Valle Sur (ficticia)", ruc: "20000000055", phone: "+51 900 000 005", passwordHash: pass, kind: "empresa" },
+      { email: "lucia@ejemplo.pe", name: "Lucía Demo", phone: "+51 900 000 006", kind: "particular" },
+      { email: "compras@ejemplo.pe", name: "Elena Demo", company: "Colegio Las Acacias (ficticio)", ruc: "20000000066", phone: "+51 900 000 007", passwordHash: pass, kind: "empresa" },
     ])
     .returning();
 
@@ -168,7 +168,7 @@ async function main() {
   // --- Proyecto principal: colegio mediano con plano ---------------------
   const demo = clients[0];
   const main = await createProject({
-    clientId: demo.id, name: "Pabellón A — cortinas para aulas", status: "borrador", district: "Cayma", address: "Calle Los Arces 220, Cayma", days: 3,
+    clientId: demo.id, name: "Pabellón A — cortinas para aulas", status: "borrador", district: "Cayma", address: "Dirección de demostración 1, Cayma", days: 3,
     notes: "Instalación en vacaciones de medio año (julio). Aulas con proyector: 101, 105 y 110.",
   });
   const planMeta = JSON.parse(await readFile("assets-src/planos/plano-pabellon-a.json", "utf8")) as {
@@ -203,17 +203,17 @@ async function main() {
 
   // Segundo proyecto del mismo cliente: pide medición en obra.
   await createProject({
-    clientId: demo.id, name: "Pabellón B — medición en obra", status: "enviado", district: "Cayma", address: "Calle Los Arces 220, Cayma", days: 1,
-    measurementRequest: { approxWindows: 36, address: "Calle Los Arces 220, Cayma (ingreso por portón 2)", district: "Cayma", preferredDate: "2026-10-10" },
+    clientId: demo.id, name: "Pabellón B — medición en obra", status: "enviado", district: "Cayma", address: "Dirección de demostración 1, Cayma", days: 1,
+    measurementRequest: { approxWindows: 36, address: "Dirección de demostración 1, Cayma (portón 2)", district: "Cayma", preferredDate: "2026-10-10" },
   });
 
   // --- Otros proyectos para el tablero del admin --------------------------
-  const p2 = await createProject({ clientId: clients[1].id, name: "Sede Cayma — aulas del segundo piso", status: "enviado", district: "Cayma", address: "Av. Bolognesi 1020", days: 2 });
+  const p2 = await createProject({ clientId: clients[1].id, name: "Sede Cayma — aulas del segundo piso", status: "enviado", district: "Cayma", address: "Dirección de demostración 2", days: 2 });
   await addRooms(p2.id, "Sede Cayma", "Piso 2", [
     ...Array.from({ length: 8 }, (_, i) => ({ room: `Aula ${201 + i}`, qty: 3, line: configured("roller-screen", 170, 150) })),
   ]);
 
-  const p3 = await createProject({ clientId: clients[4].id, name: "Auditorio y pabellón C", status: "en_revision", district: "Cerro Colorado", address: "Av. Aviación 4500", days: 6 });
+  const p3 = await createProject({ clientId: clients[4].id, name: "Auditorio y pabellón C", status: "en_revision", district: "Cerro Colorado", address: "Dirección de demostración 3", days: 6 });
   await addRooms(p3.id, "Pabellón C", "Piso 1", [
     { room: "Auditorio", qty: 8, line: configured("roller-gran-formato", 420, 480, { drive: "sensor" }) },
     ...Array.from({ length: 12 }, (_, i) => ({ room: `Aula C-${101 + i}`, qty: 4, line: configured("roller-screen", 180, 160) })),
@@ -225,14 +225,14 @@ async function main() {
   await db.update(schema.lines).set({ status: "observada" }).where(sql`id = ${audLine.id}`);
   await db.insert(schema.lineComments).values({ lineId: audLine.id, author: "Equipo Cota", role: "admin", body: "4,80 m de alto supera el tubo de 70 mm con screen. Proponemos dividir en dos paños de 2,10 m." });
 
-  const p4 = await createProject({ clientId: clients[2].id, name: "Consultorios del piso 2", status: "cotizado", sector: "salud", district: "José Luis Bustamante y Rivero", address: "Av. Dolores 312", days: 12 });
+  const p4 = await createProject({ clientId: clients[2].id, name: "Consultorios del piso 2", status: "cotizado", sector: "salud", district: "José Luis Bustamante y Rivero", address: "Dirección de demostración 4", days: 12 });
   await addRooms(p4.id, "Local principal", "Piso 2", [
     ...Array.from({ length: 6 }, (_, i) => ({ room: `Consultorio ${i + 1}`, qty: 1, line: configured("vertical-pvc", 160, 140) })),
     { room: "Sala de espera", qty: 3, line: configured("vertical-pvc", 240, 180) },
     { room: "Tópico", qty: 2, line: configured("roller-blackout", 120, 140, { fabric: "Blanco" }) },
   ]);
 
-  const p5 = await createProject({ clientId: clients[3].id, name: "Oficinas Yanahuara", status: "ganado", sector: "oficinas", district: "Yanahuara", address: "Calle Jerusalén 801, of. 302", days: 30 });
+  const p5 = await createProject({ clientId: clients[3].id, name: "Oficinas Yanahuara", status: "ganado", sector: "oficinas", district: "Yanahuara", address: "Dirección de demostración 5, of. 302", days: 30 });
   await addRooms(p5.id, "Oficina 302", "Piso 3", [
     { room: "Planta libre", qty: 10, line: configured("doble-roller", 150, 170, { fabric: "Lino" }) },
     { room: "Sala de reuniones 1", qty: 3, line: configured("doble-roller", 150, 170, { fabric: "Lino", drive: "motor" }) },
@@ -240,11 +240,11 @@ async function main() {
   ]);
 
   await createProject({
-    clientId: clients[5].id, name: "Departamento en Sachaca", status: "enviado", kind: "particular", sector: "vivienda", district: "Sachaca", address: "Urb. Villa Sachaca D-14", days: 0,
-    measurementRequest: { approxWindows: 6, address: "Urb. Villa Sachaca D-14", district: "Sachaca" },
+    clientId: clients[5].id, name: "Departamento en Sachaca", status: "enviado", kind: "particular", sector: "vivienda", district: "Sachaca", address: "Dirección de demostración 6", days: 0,
+    measurementRequest: { approxWindows: 6, address: "Dirección de demostración 6", district: "Sachaca" },
   });
 
-  const p7 = await createProject({ clientId: clients[6].id, name: "Primaria — reposición", status: "perdido", district: "Paucarpata", address: "Av. Kennedy 1450", days: 45 });
+  const p7 = await createProject({ clientId: clients[6].id, name: "Primaria — reposición", status: "perdido", district: "Paucarpata", address: "Dirección de demostración 7", days: 45 });
   await addRooms(p7.id, "Primaria", "Piso 1", Array.from({ length: 10 }, (_, i) => ({ room: `Aula ${i + 1}`, qty: 3, line: configured("roller-screen", 160, 150, { fabric: "Blanco gris" }) })));
 
   console.log("Listo: catálogo, 7 clientes, 8 proyectos (Pabellón A con plano y 50 ventanas).");

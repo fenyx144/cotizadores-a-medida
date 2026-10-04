@@ -182,9 +182,9 @@ const bx = W - 1500, by = H - 470, bw = 1300, bh = 330;
 svg(`<rect x="${bx}" y="${by}" width="${bw}" height="${bh}" fill="#fbfbf9" stroke="${INK}" stroke-width="2.5"/>`);
 svg(`<line x1="${bx}" y1="${by + 120}" x2="${bx + bw}" y2="${by + 120}" stroke="${INK}" stroke-width="1.2"/>`);
 svg(`<line x1="${bx + 860}" y1="${by + 120}" x2="${bx + 860}" y2="${by + bh}" stroke="${INK}" stroke-width="1.2"/>`);
-svg(`<text x="${bx + 30}" y="${by + 55}" font-family="${FONT}" font-size="44" fill="${INK}">I.E.P. SANTA ROSA DE LIMA — PABELLÓN A</text>`);
+svg(`<text x="${bx + 30}" y="${by + 55}" font-family="${FONT}" font-size="44" fill="${INK}">COLEGIO LOS ÁLAMOS (FICTICIO) — PABELLÓN A</text>`);
 svg(`<text x="${bx + 30}" y="${by + 100}" font-family="${FONT}" font-size="30" fill="${THIN}">Planta primer piso · Arquitectura · Distribución</text>`);
-const rows = [["UBICACIÓN", "Cayma, Arequipa"], ["ESCALA", "1:100 (impresión A1)"], ["FECHA", "Agosto 2026"]];
+const rows = [["UBICACIÓN", "Dirección de demostración, Arequipa"], ["ESCALA", "1:100 (impresión A1)"], ["FECHA", "Agosto 2026"]];
 rows.forEach(([k, v], i) => {
   svg(`<text x="${bx + 30}" y="${by + 170 + i * 52}" font-family="${MONO}" font-size="22" fill="${THIN}">${k}</text>`);
   svg(`<text x="${bx + 250}" y="${by + 170 + i * 52}" font-family="${FONT}" font-size="30" fill="${INK}">${v}</text>`);
