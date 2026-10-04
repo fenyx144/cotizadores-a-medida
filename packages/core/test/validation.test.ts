@@ -1,27 +1,28 @@
 import { describe, expect, it } from "vitest";
-import { findZone, normalizePostalCode, quoteRequestSchema, toDateKey, validateVisitDate } from "../src/validation";
+import { findZone, quoteRequestSchema, RUC_REGEX, toDateKey, validateVisitDate } from "../src/validation";
 import { monthGrid } from "../src/calendar";
 import { homography, project } from "../src/perspective";
 
 const zones = [
-  { name: "Amsterdam", postalFrom: 1000, postalTo: 1109, active: true },
-  { name: "Utrecht", postalFrom: 3500, postalTo: 3585, active: true },
-  { name: "Inactiva", postalFrom: 9000, postalTo: 9999, active: false },
+  { name: "Yanahuara", active: true },
+  { name: "José Luis Bustamante y Rivero", active: true },
+  { name: "Socabaya", active: false },
 ];
 
-describe("códigos postales y zonas", () => {
-  it("normaliza el formato", () => {
-    expect(normalizePostalCode("1012ab")).toBe("1012 AB");
-    expect(normalizePostalCode(" 3511 cd ")).toBe("3511 CD");
+describe("zonas de servicio (distritos)", () => {
+  it("encuentra el distrito sin importar tildes ni mayúsculas", () => {
+    expect(findZone("yanahuara", zones)?.name).toBe("Yanahuara");
+    expect(findZone("Jose Luis Bustamante y Rivero", zones)?.name).toBe("José Luis Bustamante y Rivero");
   });
-  it("encuentra la zona correcta", () => {
-    expect(findZone("1012 AB", zones)?.name).toBe("Amsterdam");
-    expect(findZone("3511CD", zones)?.name).toBe("Utrecht");
+  it("devuelve null fuera de zona, con zona inactiva o vacío", () => {
+    expect(findZone("Mollendo", zones)).toBeNull();
+    expect(findZone("Socabaya", zones)).toBeNull();
+    expect(findZone("  ", zones)).toBeNull();
   });
-  it("devuelve null fuera de zona, con zona inactiva o formato inválido", () => {
-    expect(findZone("2000 AB", zones)).toBeNull();
-    expect(findZone("9100 AB", zones)).toBeNull();
-    expect(findZone("12345", zones)).toBeNull();
+  it("valida el RUC peruano", () => {
+    expect(RUC_REGEX.test("20123456789")).toBe(true);
+    expect(RUC_REGEX.test("12345678901")).toBe(false);
+    expect(RUC_REGEX.test("2012345678")).toBe(false);
   });
 });
 
@@ -42,12 +43,11 @@ describe("formulario de solicitud", () => {
   future.setDate(future.getDate() + 3);
   if (future.getDay() === 0) future.setDate(future.getDate() + 1);
   const valid = {
-    name: "Marieke de Vries",
-    email: "marieke@example.nl",
-    phone: "+31 6 1234 5678",
-    postalCode: "1012 AB",
-    address: "Prinsengracht 12",
-    city: "Amsterdam",
+    name: "Lucía Paredes",
+    email: "lucia@example.pe",
+    phone: "+51 959 123 456",
+    district: "Yanahuara",
+    address: "Av. Ejército 101",
     preferredDate: toDateKey(future),
     preferredSlot: "manana",
     message: "",
@@ -57,11 +57,11 @@ describe("formulario de solicitud", () => {
   it("acepta datos válidos", () => {
     expect(quoteRequestSchema.safeParse(valid).success).toBe(true);
   });
-  it("marca email, teléfono, código postal y consentimiento", () => {
-    const r = quoteRequestSchema.safeParse({ ...valid, email: "no", phone: "12", postalCode: "AB12", consent: false });
+  it("marca email, teléfono, distrito y consentimiento", () => {
+    const r = quoteRequestSchema.safeParse({ ...valid, email: "no", phone: "12", district: "", consent: false });
     expect(r.success).toBe(false);
     const paths = r.error!.issues.map((i) => i.path[0]);
-    expect(paths).toEqual(expect.arrayContaining(["email", "phone", "postalCode", "consent"]));
+    expect(paths).toEqual(expect.arrayContaining(["email", "phone", "district", "consent"]));
   });
 });
 

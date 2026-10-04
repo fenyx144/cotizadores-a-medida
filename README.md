@@ -27,7 +27,7 @@ Zod · pnpm workspaces · Vitest · Playwright (capturas / prueba E2E).
 | Pruébalo en tu casa | `/pruebalo` | Subes una foto, arrastras 4 esquinas (perspectiva) y descargas la composición. Todo en el navegador |
 | Asistente | `/asistente` | 3 preguntas → recomienda modelos |
 | Muestrario | `/muestrario` | Lonas por colección, vista previa puesta |
-| Solicitar visita | `/solicitar-visita` | Diseño guardado, fotos, CP validado contra zonas, fecha, contacto. Sin cuenta |
+| Solicitar visita | `/solicitar-visita` | Diseño guardado, fotos, distrito validado contra las zonas de servicio, fecha, contacto. Sin cuenta |
 | Admin | `/admin` | Tablero de leads por estado + filtros, ficha con notas y fotos, calendario de visitas, PDF, CRUD de catálogo, reglas de precio y zonas |
 
 Acceso demo al panel: **demo@demo.com / demo1234** (se muestra en la página de login).
@@ -127,7 +127,7 @@ En Vercel el disco no es persistente, así que en producción **R2 es obligatori
 ```
 packages/core/src
 ├── pricing.ts          Motor de precios y reglas de medidas (puro, testeado)
-├── validation.ts       Esquemas Zod: formulario, CP neerlandés, zonas, fechas
+├── validation.ts       Esquemas Zod: formulario, distritos/zonas, RUC, fechas
 ├── perspective.ts      Homografía: CSS matrix3d + deformación en canvas
 ├── db/schema.ts        Tablas (genéricas: sirven para toldos y cortinas)
 ├── db/client.ts        Conexión Postgres (local o Neon)
@@ -172,5 +172,6 @@ apps/toldos/src
 - El panel tiene un único rol (admin). No hay recuperación de contraseña ni gestión de usuarios.
 - Sin migraciones versionadas: se usa `drizzle-kit push` (cómodo para una demo; en un
   proyecto real, `drizzle-kit generate` + `migrate`).
-- Las zonas usan rangos numéricos de código postal neerlandés (4 cifras).
+- Las zonas de servicio son distritos (Arequipa en la demo); se comparan por nombre, sin tildes.
+- Precios en soles (S/), orientativos e IGV incluido.
 - Algunas fotos son de terrazas de cafés; ver `CREDITS.md`.

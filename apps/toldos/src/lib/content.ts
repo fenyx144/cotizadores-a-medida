@@ -5,9 +5,9 @@
 export const BRAND = {
   name: "SunShade",
   tagline: "Toldos y pérgolas a medida",
-  phone: "+31 20 123 45 67",
+  phone: "+51 54 123 456",
   email: "hola@sunshade.example",
-  city: "Haarlem",
+  city: "Arequipa",
 };
 
 /** Foto ambiente por tipo de modelo. */
@@ -32,28 +32,28 @@ export function projectionLabel(type: string) {
 
 export const TESTIMONIALS = [
   {
-    quote: "Comemos fuera de mayo a septiembre. Con el sensor ni lo pensamos: si sopla, se recoge solo.",
-    name: "Marieke y Tom",
-    place: "Casa adosada, Haarlem",
-    detail: "Cofre de 4,5 m, lona Lino",
+    quote: "Con el sol de Arequipa la terraza era imposible después de las once. Ahora almorzamos fuera casi todos los días.",
+    name: "Lucía y Martín",
+    place: "Casa en Cayma",
+    detail: "Cofre de 4,5 m, lona Lino · S/ 1,250",
   },
   {
-    quote: "Doce mesas más en la terraza que antes no podíamos usar a mediodía. Se pagó en un verano.",
-    name: "Café De Linde",
-    place: "Utrecht",
+    quote: "Ocho mesas más en la terraza que antes no usábamos a mediodía. Se pagó en una temporada.",
+    name: "Café El Tambo",
+    place: "Yanahuara",
     detail: "Dos retráctiles de 5 m",
   },
   {
-    quote: "Vinieron, midieron y en tres semanas estaba puesta. Ni una sorpresa en la factura.",
-    name: "Joris",
-    place: "Ático, Amersfoort",
+    quote: "Vinieron, midieron y en dos semanas estaba puesta. Ni una sorpresa en el precio.",
+    name: "Jorge",
+    place: "Azotea, Cerro Colorado",
     detail: "Pérgola de 4 × 3 m",
   },
 ];
 
 /** Cifras modestas y creíbles. */
 export const FIGURES = [
-  { value: "340", label: "terrazas instaladas desde 2014" },
-  { value: "4,8", label: "de media en 126 reseñas" },
-  { value: "3 sem.", label: "plazo habitual de montaje" },
+  { value: "260", label: "terrazas instaladas desde 2016" },
+  { value: "4,8", label: "de media en 94 reseñas" },
+  { value: "2 sem.", label: "plazo habitual de montaje" },
 ];

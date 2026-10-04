@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { asc, eq } from "drizzle-orm";
-import { DRIVE_LABELS, formatEuro, formatMeters } from "@portafolio/core/pricing";
+import { DRIVE_LABELS, formatMoney, formatMeters } from "@portafolio/core/pricing";
 import { LEAD_STATUSES, LEAD_STATUS_LABELS, SLOT_LABELS } from "@portafolio/core/leads";
 import { getDb, schema } from "@/lib/db";
 import { TYPE_LABELS, projectionLabel } from "@/lib/content";
@@ -67,7 +67,7 @@ export default async function LeadDetail({ params }: { params: Promise<{ id: str
                   <Row k="Lona" v={c.fabricName} />
                   <Row k="Estructura" v={c.frameColorName} />
                   <Row k="Accionamiento" v={DRIVE_LABELS[c.drive]} />
-                  <Row k="Orientativo" v={lead.estimatedPrice ? `desde ${formatEuro(lead.estimatedPrice)}` : "—"} />
+                  <Row k="Orientativo" v={lead.estimatedPrice ? `desde ${formatMoney(lead.estimatedPrice)}` : "—"} />
                 </dl>
               </div>
             ) : (
@@ -107,8 +107,8 @@ export default async function LeadDetail({ params }: { params: Promise<{ id: str
             <dl className="divide-y divide-line border-y border-line text-sm">
               <Row k="Teléfono" v={<a href={`tel:${lead.phone}`} className="underline underline-offset-4">{lead.phone}</a>} />
               <Row k="Correo" v={<a href={`mailto:${lead.email}`} className="underline underline-offset-4">{lead.email}</a>} />
-              <Row k="Dirección" v={`${lead.address}, ${lead.postalCode} ${lead.city}`} />
-              <Row k="Zona" v={lead.zoneName ?? "—"} />
+              <Row k="Dirección" v={lead.address} />
+              <Row k="Distrito" v={lead.district} />
             </dl>
           </section>
 

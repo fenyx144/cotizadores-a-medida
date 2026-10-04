@@ -1,7 +1,7 @@
 /** Exporta un lead a PDF (ficha para llevar a la visita). */
 import { eq } from "drizzle-orm";
 import { buildPdf } from "@portafolio/core/pdf";
-import { DRIVE_LABELS, formatEuro, formatMeters } from "@portafolio/core/pricing";
+import { DRIVE_LABELS, formatMoney, formatMeters } from "@portafolio/core/pricing";
 import { LEAD_STATUS_LABELS, SLOT_LABELS, type LeadStatus } from "@portafolio/core/leads";
 import { getDb, schema } from "@/lib/db";
 import { getSession } from "@/lib/session";
@@ -15,14 +15,14 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   if (!lead) return new Response("No encontrado", { status: 404 });
   const notes = await db.select().from(schema.leadNotes).where(eq(schema.leadNotes.leadId, id));
   const c = lead.configuration;
-  const fmtDate = (d: Date) => d.toLocaleString("es-ES", { dateStyle: "long", timeStyle: "short", timeZone: "Europe/Amsterdam" });
+  const fmtDate = (d: Date) => d.toLocaleString("es-ES", { dateStyle: "long", timeStyle: "short", timeZone: "America/Lima" });
 
   const pdf = await buildPdf({
     brand: "SunShade · Toldos y pérgolas a medida",
     title: `Solicitud ${lead.reference}`,
     subtitle: `Recibida el ${fmtDate(lead.createdAt)} · Estado: ${LEAD_STATUS_LABELS[lead.status as LeadStatus]}`,
     sections: [
-      { heading: "Cliente", rows: [["Nombre", lead.name], ["Teléfono", lead.phone], ["Correo", lead.email], ["Dirección", `${lead.address}, ${lead.postalCode} ${lead.city}`], ["Zona", lead.zoneName ?? "-"]] },
+      { heading: "Cliente", rows: [["Nombre", lead.name], ["Teléfono", lead.phone], ["Correo", lead.email], ["Dirección", lead.address], ["Distrito", lead.district]] },
       {
         heading: "Visita",
         rows: [
@@ -39,7 +39,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
               ["Lona", c.fabricName],
               ["Estructura", c.frameColorName],
               ["Accionamiento", DRIVE_LABELS[c.drive]],
-              ["Precio orientativo", lead.estimatedPrice ? `desde ${formatEuro(lead.estimatedPrice)}` : "-"],
+              ["Precio orientativo", lead.estimatedPrice ? `desde ${formatMoney(lead.estimatedPrice)}` : "-"],
             ],
           }
         : { heading: "Diseño", rows: [["", "Sin diseño previo"]] },

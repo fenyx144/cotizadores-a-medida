@@ -4,7 +4,7 @@
  */
 import Link from "next/link";
 import { and, desc, eq, ilike, or, sql, type SQL } from "drizzle-orm";
-import { formatEuro, formatMeters } from "@portafolio/core/pricing";
+import { formatMoney, formatMeters } from "@portafolio/core/pricing";
 import { LEAD_STATUSES, LEAD_STATUS_LABELS } from "@portafolio/core/leads";
 import { getDb, schema } from "@/lib/db";
 import { TYPE_LABELS } from "@/lib/content";
@@ -15,7 +15,7 @@ export default async function LeadsBoard({ searchParams }: { searchParams: Promi
   const L = schema.leads;
 
   const filters: SQL[] = [];
-  if (q) filters.push(or(ilike(L.name, `%${q}%`), ilike(L.email, `%${q}%`), ilike(L.reference, `%${q}%`), ilike(L.city, `%${q}%`))!);
+  if (q) filters.push(or(ilike(L.name, `%${q}%`), ilike(L.email, `%${q}%`), ilike(L.reference, `%${q}%`), ilike(L.district, `%${q}%`))!);
   if (zona) filters.push(eq(L.zoneName, zona));
   if (tipo) filters.push(sql`${L.configuration}->>'modelType' = ${tipo}`);
 
@@ -33,9 +33,9 @@ export default async function LeadsBoard({ searchParams }: { searchParams: Promi
           <p className="mt-1 text-sm text-muted">{leads.length} {filtered ? "con estos filtros" : "en total"}</p>
         </div>
         <form className="flex flex-wrap items-end gap-4 text-sm">
-          <input name="q" defaultValue={q} placeholder="Buscar nombre, ciudad, referencia…" className="w-64 border-b border-line bg-transparent py-1.5 focus:border-ink focus:outline-none" />
+          <input name="q" defaultValue={q} placeholder="Buscar nombre, distrito, referencia…" className="w-64 border-b border-line bg-transparent py-1.5 focus:border-ink focus:outline-none" />
           <select name="zona" defaultValue={zona} className="border-b border-line bg-transparent py-1.5">
-            <option value="">Todas las zonas</option>
+            <option value="">Todos los distritos</option>
             {zones.filter((z) => z.name).map((z) => <option key={z.name} value={z.name!}>{z.name}</option>)}
           </select>
           <select name="tipo" defaultValue={tipo} className="border-b border-line bg-transparent py-1.5">
@@ -61,14 +61,14 @@ export default async function LeadsBoard({ searchParams }: { searchParams: Promi
                   <li key={l.id} className="border-b border-line/70">
                     <Link href={`/admin/leads/${l.id}`} className="group block py-4">
                       <p className="font-serif text-lg leading-tight group-hover:underline group-hover:underline-offset-4">{l.name}</p>
-                      <p className="mt-1 text-xs text-muted">{l.reference} · {l.city}</p>
+                      <p className="mt-1 text-xs text-muted">{l.reference} · {l.district}</p>
                       {l.configuration && (
                         <p className="mt-2 text-sm">
                           {l.configuration.modelName} · {formatMeters(l.configuration.width)} × {formatMeters(l.configuration.projection)}
                         </p>
                       )}
                       <p className="mt-1 flex justify-between text-xs text-muted">
-                        <span>{l.estimatedPrice ? formatEuro(l.estimatedPrice) : "Sin diseño"}</span>
+                        <span>{l.estimatedPrice ? formatMoney(l.estimatedPrice) : "Sin diseño"}</span>
                         <span>{l.createdAt.toLocaleDateString("es-ES", { day: "numeric", month: "short" })}</span>
                       </p>
                     </Link>

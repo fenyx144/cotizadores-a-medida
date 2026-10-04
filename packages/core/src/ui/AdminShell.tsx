@@ -49,7 +49,7 @@ export function AdminShell({
                       <li key={item.href}>
                         <Link
                           href={item.href}
-                          className={`block py-1 text-sm transition-colors ${active ? "text-ink underline decoration-terracotta underline-offset-4" : "text-muted hover:text-ink"}`}
+                          className={`block py-1 text-sm transition-colors ${active ? "text-ink underline decoration-accent underline-offset-4" : "text-muted hover:text-ink"}`}
                         >
                           {item.label}
                         </Link>

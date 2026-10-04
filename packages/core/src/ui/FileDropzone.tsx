@@ -85,7 +85,7 @@ export function FileDropzone({
         {hint && <span className="mt-1 block text-sm text-muted">{hint}</span>}
       </button>
       <input ref={inputRef} type="file" accept={accept.join(",")} multiple hidden onChange={(e) => add(e.target.files)} />
-      {error && <p className="mt-2 text-sm text-terracotta">{error}</p>}
+      {error && <p className="mt-2 text-sm text-danger">{error}</p>}
       {previews.length > 0 && (
         <ul className="mt-4 flex flex-wrap gap-3">
           {previews.map((src, i) => (

@@ -45,7 +45,7 @@ export function SwatchBook({ fabrics }: { fabrics: Catalog["fabrics"] }) {
           <dl className="divide-y divide-line text-sm">
             <div className="flex justify-between py-2.5"><dt className="text-muted">Colección</dt><dd>{selected.collection}</dd></div>
             <div className="flex justify-between py-2.5"><dt className="text-muted">Tejido</dt><dd>Acrílico tintado en masa, 300 g/m²</dd></div>
-            <div className="flex justify-between py-2.5"><dt className="text-muted">Suplemento</dt><dd>{selected.surchargePerM2 ? `${selected.surchargePerM2} € / m²` : "Sin suplemento"}</dd></div>
+            <div className="flex justify-between py-2.5"><dt className="text-muted">Suplemento</dt><dd>{selected.surchargePerM2 ? `S/ ${selected.surchargePerM2} por m²` : "Sin suplemento"}</dd></div>
           </dl>
           <Link href={`/configurador?lona=${selected.id}`} className="mt-8 inline-block bg-ink px-6 py-3 text-paper transition-colors hover:bg-terracotta">Usar esta lona</Link>
           <p className="mt-4 text-sm text-muted">¿Prefieres tocarla? Llevamos el muestrario físico a la visita.</p>

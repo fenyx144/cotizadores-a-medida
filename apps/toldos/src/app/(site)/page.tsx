@@ -4,7 +4,7 @@
  */
 import Image from "next/image";
 import Link from "next/link";
-import { formatEuro } from "@portafolio/core/pricing";
+import { formatMoney } from "@portafolio/core/pricing";
 import { getCatalog } from "@/lib/catalog";
 import { fromPrice } from "@/lib/price";
 import { FIGURES, TESTIMONIALS, TYPE_IMAGES, TYPE_LABELS } from "@/lib/content";
@@ -31,7 +31,7 @@ export default async function HomePage() {
       {/* ---------- Hero ---------- */}
       <section className="mx-auto grid max-w-[1320px] gap-10 px-5 pb-20 pt-10 md:grid-cols-12 md:px-10 md:pt-10">
         <div className="flex flex-col justify-end md:col-span-5 md:pb-10">
-          <p className="animate-rise text-sm text-muted">Toldos y pérgolas a medida · Noord-Holland y Utrecht</p>
+          <p className="animate-rise text-sm text-muted">Toldos y pérgolas a medida · Arequipa</p>
           <h1 className="animate-rise mt-6 text-[2.9rem] leading-[1.02] [animation-delay:80ms] md:text-[4.6rem]">
             La sombra que tu terraza estaba esperando.
           </h1>
@@ -53,7 +53,7 @@ export default async function HomePage() {
           </div>
           <figcaption className="mt-3 flex justify-between text-sm text-muted">
             <span>Retráctil Brisa, lona Oliva</span>
-            <span>Haarlem</span>
+            <span>Cayma, Arequipa</span>
           </figcaption>
         </figure>
       </section>
@@ -89,7 +89,7 @@ export default async function HomePage() {
                   <h3 className="text-2xl">
                     {m.name} <span className="text-base text-muted">· {TYPE_LABELS[m.type]}</span>
                   </h3>
-                  <span className="text-sm text-muted">desde {formatEuro(fromPrice(m, catalog))}</span>
+                  <span className="text-sm text-muted">desde {formatMoney(fromPrice(m, catalog))}</span>
                 </div>
                 <p className="mt-3 max-w-md text-muted transition-colors group-hover:text-ink">{m.tagline}</p>
               </Link>

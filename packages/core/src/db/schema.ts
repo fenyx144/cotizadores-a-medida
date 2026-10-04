@@ -15,6 +15,10 @@ export const productModels = pgTable("product_models", {
   tagline: text("tagline").notNull().default(""),
   description: text("description").notNull().default(""),
   image: text("image").notNull().default(""),
+  // Campos extra para catálogos con filtros (los usa la app de cortinas).
+  material: text("material").notNull().default(""),
+  uses: text("uses").notNull().default(""), // lista separada por comas: "educacion,oficinas"
+  gallery: jsonb("gallery").$type<string[]>().notNull().default([]),
   minWidth: integer("min_width").notNull(),
   maxWidth: integer("max_width").notNull(),
   minProjection: integer("min_projection").notNull(),
@@ -34,6 +38,8 @@ export const fabrics = pgTable("fabrics", {
   pattern: text("pattern").notNull().default("liso"), // liso | rayas
   stripeHex: text("stripe_hex"),
   surchargePerM2: integer("surcharge_per_m2").notNull().default(0),
+  // Tipos de producto en los que se puede usar (separados por comas). Vacío = todos.
+  types: text("types").notNull().default(""),
   active: boolean("active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
 });
@@ -59,12 +65,13 @@ export const priceRules = pgTable("price_rules", {
   active: boolean("active").notNull().default(true),
 });
 
+/** Zona de servicio: un distrito (o comuna, municipio...) donde hacemos visitas. */
 export const serviceZones = pgTable("service_zones", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  postalFrom: integer("postal_from").notNull(),
-  postalTo: integer("postal_to").notNull(),
+  city: text("city").notNull().default(""),
   active: boolean("active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
 });
 
 export const leads = pgTable("leads", {
@@ -74,9 +81,8 @@ export const leads = pgTable("leads", {
   name: text("name").notNull(),
   email: text("email").notNull(),
   phone: text("phone").notNull(),
-  postalCode: text("postal_code").notNull(),
+  district: text("district").notNull(),
   address: text("address").notNull(),
-  city: text("city").notNull(),
   zoneName: text("zone_name"),
   preferredDate: date("preferred_date", { mode: "string" }).notNull(),
   preferredSlot: text("preferred_slot").notNull(),

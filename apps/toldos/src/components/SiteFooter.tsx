@@ -7,7 +7,7 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-[1320px] gap-10 px-5 py-14 md:grid-cols-12 md:px-10">
         <div className="md:col-span-5">
           <p className="font-serif text-3xl">SunShade</p>
-          <p className="mt-3 max-w-xs text-muted">Toldos y pérgolas a medida. Medimos, fabricamos y montamos desde {BRAND.city}.</p>
+          <p className="mt-3 max-w-xs text-muted">Toldos y pérgolas a medida. Medimos, fabricamos y montamos en {BRAND.city}.</p>
         </div>
         <div className="text-sm md:col-span-3">
           <p className="text-muted">Contacto</p>

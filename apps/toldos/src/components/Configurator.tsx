@@ -7,7 +7,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { calculatePrice, clampToStep, DRIVE_LABELS, formatEuro, formatMeters, validateDimensions, type Configuration, type Drive } from "@portafolio/core/pricing";
+import { calculatePrice, clampToStep, DRIVE_LABELS, formatMoney, formatMeters, validateDimensions, type Configuration, type Drive } from "@portafolio/core/pricing";
 import type { Catalog } from "@/lib/catalog";
 import { saveConfig, useSavedConfig } from "@/lib/saved-config";
 import { projectionLabel, TYPE_LABELS } from "@/lib/content";
@@ -81,7 +81,7 @@ export function Configurator({ catalog, params }: { catalog: Catalog; params: { 
               <p className="text-sm text-muted">Precio orientativo, instalación incluida</p>
               <p className="font-serif text-5xl" aria-live="polite">
                 <span className="text-2xl text-muted">desde </span>
-                {formatEuro(price.total)}
+                {formatMoney(price.total)}
               </p>
             </div>
             <button onClick={() => setShowBreakdown(!showBreakdown)} className="link-grow text-sm text-muted">
@@ -93,7 +93,7 @@ export function Configurator({ catalog, params }: { catalog: Catalog; params: { 
               {price.lines.map((l) => (
                 <li key={l.label} className="flex justify-between border-b border-line/60 py-1.5">
                   <span className="text-muted">{l.label}</span>
-                  <span>{formatEuro(l.amount)}</span>
+                  <span>{formatMoney(l.amount)}</span>
                 </li>
               ))}
               <li className="pt-2 text-xs text-muted">El precio final se confirma tras la visita de medición.</li>
@@ -110,7 +110,7 @@ export function Configurator({ catalog, params }: { catalog: Catalog; params: { 
               <button
                 key={m.id}
                 onClick={() => selectModel(m.id)}
-                className={`bg-paper p-4 text-left transition-colors ${m.id === config.modelId ? "bg-paper-deep" : "hover:bg-paper-deep/50"}`}
+                className={`bg-paper p-4 text-left transition-colors last:odd:col-span-2 ${m.id === config.modelId ? "bg-paper-deep" : "hover:bg-paper-deep/50"}`}
                 aria-pressed={m.id === config.modelId}
               >
                 <span className="block font-serif text-xl">{m.name}</span>

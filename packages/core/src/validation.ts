@@ -4,29 +4,29 @@
  */
 import { z } from "zod";
 
-/** Código postal neerlandés: 4 cifras + 2 letras, ej. "1012 AB". */
-export const POSTAL_CODE_REGEX = /^[1-9][0-9]{3}\s?[A-Za-z]{2}$/;
-
-/** Normaliza "1012ab" -> "1012 AB". */
-export function normalizePostalCode(raw: string): string {
-  const clean = raw.replace(/\s+/g, "").toUpperCase();
-  return clean.length === 6 ? `${clean.slice(0, 4)} ${clean.slice(4)}` : raw.trim().toUpperCase();
-}
-
-/** Zona de servicio: un rango de códigos postales (parte numérica). */
-export interface ZoneRange {
+/** Zona de servicio: un distrito activo, administrable desde el panel. */
+export interface ZoneLike {
   name: string;
-  postalFrom: number;
-  postalTo: number;
   active: boolean;
 }
 
-/** Devuelve la zona que cubre el código postal, o null si está fuera. */
-export function findZone<T extends ZoneRange>(postalCode: string, zones: T[]): T | null {
-  if (!POSTAL_CODE_REGEX.test(postalCode.trim())) return null;
-  const digits = Number(postalCode.trim().slice(0, 4));
-  return zones.find((z) => z.active && digits >= z.postalFrom && digits <= z.postalTo) ?? null;
+/** Quita tildes y mayúsculas para comparar nombres ("Yanahuara" == "yanahuara"). */
+export function normalizeName(value: string): string {
+  return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
 }
+
+/** Devuelve la zona activa con ese nombre de distrito, o null si no trabajamos allí. */
+export function findZone<T extends ZoneLike>(district: string, zones: T[]): T | null {
+  const target = normalizeName(district);
+  if (!target) return null;
+  return zones.find((z) => z.active && normalizeName(z.name) === target) ?? null;
+}
+
+/** Teléfono genérico: 7 a 15 dígitos, con + inicial, espacios o guiones opcionales. */
+export const PHONE_REGEX = /^\+?[0-9][0-9\s-]{6,16}$/;
+
+/** RUC peruano: 11 dígitos que empiezan por 10, 15, 17 o 20. */
+export const RUC_REGEX = /^(10|15|17|20)\d{9}$/;
 
 /** Fecha YYYY-MM-DD en hora local (evita líos de zona horaria con toISOString). */
 export function toDateKey(d: Date): string {
@@ -66,13 +66,9 @@ export const configurationSchema = z.object({
 export const quoteRequestSchema = z.object({
   name: z.string().trim().min(2, "Escribe tu nombre."),
   email: z.email("Revisa el correo electrónico."),
-  phone: z
-    .string()
-    .trim()
-    .regex(/^\+?[0-9\s-]{8,16}$/, "Revisa el teléfono."),
-  postalCode: z.string().trim().regex(POSTAL_CODE_REGEX, "Formato: 1234 AB."),
+  phone: z.string().trim().regex(PHONE_REGEX, "Revisa el teléfono."),
+  district: z.string().trim().min(2, "Elige tu distrito."),
   address: z.string().trim().min(3, "Necesitamos la dirección para la visita."),
-  city: z.string().trim().min(2, "Escribe tu localidad."),
   preferredDate: z.string().refine((v) => validateVisitDate(v) === null, {
     error: (issue) => validateVisitDate(String(issue.input)) ?? "Fecha no válida.",
   }),

@@ -28,5 +28,5 @@ export function toPricingRule(r: typeof schema.priceRules.$inferSelect): Pricing
 
 export async function getZones() {
   const db = getDb();
-  return db.select().from(schema.serviceZones).orderBy(asc(schema.serviceZones.postalFrom));
+  return db.select().from(schema.serviceZones).orderBy(asc(schema.serviceZones.sortOrder), asc(schema.serviceZones.name));
 }

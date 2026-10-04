@@ -16,6 +16,9 @@
   --color-terracotta: #b4552f;
   --color-olive: #5e6236;
   --color-sand: #d4bf9a;
+  /* Nombres semánticos que usan los componentes de packages/core */
+  --color-accent: #b4552f;
+  --color-danger: #b4552f;
 
   --font-serif: var(--font-fraunces), Georgia, serif;
   --font-sans: var(--font-instrument), system-ui, sans-serif;

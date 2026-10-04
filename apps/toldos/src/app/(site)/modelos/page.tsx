@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { formatEuro, formatMeters } from "@portafolio/core/pricing";
+import { formatMoney, formatMeters } from "@portafolio/core/pricing";
 import { getCatalog } from "@/lib/catalog";
 import { fromPrice } from "@/lib/price";
 import { projectionLabel, TYPE_IMAGES, TYPE_LABELS } from "@/lib/content";
@@ -36,7 +36,7 @@ export default async function ModelosPage() {
                 <dl className="mt-8 divide-y divide-line border-y border-line text-sm">
                   <div className="flex justify-between py-2.5"><dt className="text-muted">Ancho</dt><dd>{formatMeters(m.minWidth)} – {formatMeters(m.maxWidth)}</dd></div>
                   <div className="flex justify-between py-2.5"><dt className="text-muted">{projectionLabel(m.type)}</dt><dd>{formatMeters(m.minProjection)} – {formatMeters(m.maxProjection)}</dd></div>
-                  <div className="flex justify-between py-2.5"><dt className="text-muted">Precio orientativo</dt><dd>desde {formatEuro(fromPrice(m, catalog))}</dd></div>
+                  <div className="flex justify-between py-2.5"><dt className="text-muted">Precio orientativo</dt><dd>desde {formatMoney(fromPrice(m, catalog))}</dd></div>
                 </dl>
                 <Link href={`/configurador?modelo=${m.slug}`} className="mt-8 inline-block bg-ink px-6 py-3 text-paper transition-colors hover:bg-terracotta">
                   Configurar {m.name}

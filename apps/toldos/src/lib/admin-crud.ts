@@ -41,8 +41,8 @@ const resources: Record<string, CrudResource> = {
   },
   zones: {
     table: schema.serviceZones,
-    orderBy: schema.serviceZones.postalFrom,
-    schema: z.object({ name: z.string().min(2), postalFrom: z.number().int().min(1000).max(9999), postalTo: z.number().int().min(1000).max(9999), active: z.boolean() }),
+    orderBy: schema.serviceZones.sortOrder,
+    schema: z.object({ name: z.string().min(2), city: z.string(), sortOrder: z.number().int(), active: z.boolean() }),
   },
 };
 

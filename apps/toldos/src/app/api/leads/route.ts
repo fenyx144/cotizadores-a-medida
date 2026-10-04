@@ -5,8 +5,8 @@
  * lead -> avisar por email.
  */
 import { eq } from "drizzle-orm";
-import { calculatePrice, DRIVE_LABELS, formatEuro, validateDimensions } from "@portafolio/core/pricing";
-import { fieldErrors, findZone, normalizePostalCode, quoteRequestSchema } from "@portafolio/core/validation";
+import { calculatePrice, DRIVE_LABELS, formatMoney, validateDimensions } from "@portafolio/core/pricing";
+import { fieldErrors, findZone, quoteRequestSchema } from "@portafolio/core/validation";
 import { getStorage, makeKey, MAX_UPLOAD_FILES, validateUpload } from "@portafolio/core/storage";
 import { sendEmail } from "@portafolio/core/email";
 import { leadReference } from "@portafolio/core/leads";
@@ -28,8 +28,8 @@ export async function POST(req: Request) {
   const data = parsed.data;
 
   // Zona de servicio
-  const zone = findZone(data.postalCode, await getZones());
-  if (!zone) return Response.json({ error: "Fuera de zona", fields: { postalCode: "Todavía no llegamos a tu zona." } }, { status: 422 });
+  const zone = findZone(data.district, await getZones());
+  if (!zone) return Response.json({ error: "Fuera de zona", fields: { district: "Todavía no llegamos a tu distrito." } }, { status: 422 });
 
   // Configuración: validar contra el catálogo y recalcular el precio
   let configuration: LeadConfiguration | null = null;
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     .insert(schema.leads)
     .values({
       name: data.name, email: data.email, phone: data.phone,
-      postalCode: normalizePostalCode(data.postalCode), address: data.address, city: data.city,
+      district: zone.name, address: data.address,
       zoneName: zone.name, preferredDate: data.preferredDate, preferredSlot: data.preferredSlot,
       message: data.message, configuration, estimatedPrice,
     })
@@ -82,7 +82,7 @@ export async function POST(req: Request) {
 
   // Emails (si no hay clave de Resend, se muestran en consola)
   const summary = configuration
-    ? `${configuration.modelName}, ${configuration.width}×${configuration.projection} cm, lona ${configuration.fabricName}, ${DRIVE_LABELS[configuration.drive]}. Desde ${formatEuro(estimatedPrice ?? 0)}.`
+    ? `${configuration.modelName}, ${configuration.width}×${configuration.projection} cm, lona ${configuration.fabricName}, ${DRIVE_LABELS[configuration.drive]}. Desde ${formatMoney(estimatedPrice ?? 0)}.`
     : "Sin diseño previo.";
   await Promise.all([
     sendEmail({
@@ -93,7 +93,7 @@ export async function POST(req: Request) {
     sendEmail({
       to: process.env.NOTIFY_EMAIL || "ventas@sunshade.example",
       subject: `Nuevo lead ${reference} · ${zone.name}`,
-      html: `<p>${data.name} (${data.phone}) · ${data.postalCode} ${data.city}</p><p>${summary}</p>`,
+      html: `<p>${data.name} (${data.phone}) · ${data.address}, ${zone.name}</p><p>${summary}</p>`,
     }),
   ]);
 

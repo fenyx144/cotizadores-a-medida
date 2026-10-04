@@ -139,7 +139,7 @@ export function CrudManager({
                   ))}
                   <td className="whitespace-nowrap py-3 text-right">
                     <button onClick={() => { setErrors({}); setEditing({ ...row }); }} className="text-ink underline underline-offset-4">Editar</button>
-                    <button onClick={() => remove(row)} className="ml-4 text-muted hover:text-terracotta">Eliminar</button>
+                    <button onClick={() => remove(row)} className="ml-4 text-muted hover:text-danger">Eliminar</button>
                   </td>
                 </tr>
               ))}
@@ -177,10 +177,10 @@ export function CrudManager({
                   <input type={f.type} step={f.step} value={editing[f.name] == null ? "" : String(editing[f.name])} onChange={(e) => setEditing({ ...editing, [f.name]: e.target.value })} className="mt-1 w-full border-b border-line bg-transparent py-1" />
                 )}
                 {f.hint && <span className="mt-1 block text-xs text-muted">{f.hint}</span>}
-                {errors[f.name] && <span className="mt-1 block text-xs text-terracotta">{errors[f.name]}</span>}
+                {errors[f.name] && <span className="mt-1 block text-xs text-danger">{errors[f.name]}</span>}
               </label>
             ))}
-            {errors._ && <p className="text-sm text-terracotta">{errors._}</p>}
+            {errors._ && <p className="text-sm text-danger">{errors._}</p>}
             <div className="flex gap-4 pt-2">
               <button disabled={saving} className="bg-ink px-4 py-2 text-sm text-paper disabled:opacity-50">{saving ? "Guardando…" : "Guardar"}</button>
               <button type="button" onClick={() => setEditing(null)} className="text-sm text-muted underline underline-offset-4">Cancelar</button>

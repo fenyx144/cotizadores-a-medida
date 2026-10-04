@@ -177,11 +177,13 @@ export function calculatePrice(
   return { area, lines: rounded, total: Math.round(exact / 10) * 10 };
 }
 
-/** Formatea euros al estilo europeo: 1.234 € */
-export function formatEuro(amount: number): string {
-  // useGrouping "always": en español, Intl no separa los miles en números de 4 cifras (4570 -> 4.570).
-  const options = { style: "currency", currency: "EUR", maximumFractionDigits: 0, useGrouping: "always" } as unknown as Intl.NumberFormatOptions;
-  return new Intl.NumberFormat("es-ES", options).format(amount);
+/**
+ * Formatea un importe en soles peruanos: 1000 -> "S/ 1,000".
+ * El símbolo es configurable por si otra app necesita otra moneda.
+ */
+export function formatMoney(amount: number, symbol = "S/"): string {
+  const n = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(Math.round(amount));
+  return `${symbol} ${n}`;
 }
 
 /** Formatea centímetros como metros: 350 -> "3,50 m" */

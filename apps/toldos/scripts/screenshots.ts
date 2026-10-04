@@ -73,14 +73,12 @@ async function main() {
 
   // 5. Solicitar visita con foto
   await page.goto(`${BASE}/solicitar-visita`, { waitUntil: "networkidle" });
-  await page.getByLabel("Código postal").fill("2011 AB");
-  await page.getByText("Trabajamos en tu zona").waitFor();
-  await page.getByLabel("Localidad").fill("Haarlem");
-  await page.getByLabel("Calle y número").fill("Kleine Houtstraat 21");
+  await page.getByLabel("Distrito").selectOption("Cayma");
+  await page.getByLabel("Dirección").fill("Calle Misti 140, Cayma");
   await page.getByLabel("Fecha preferida").fill(nextWeekday());
-  await page.getByLabel("Nombre").fill("Eva Hoekstra (demo)");
-  await page.getByLabel("Correo electrónico").fill("eva@example.nl");
-  await page.getByLabel("Teléfono").fill("+31 6 1111 2222");
+  await page.getByLabel("Nombre").fill("Ana Medina (demo)");
+  await page.getByLabel("Correo electrónico").fill("ana@example.pe");
+  await page.getByLabel("Teléfono").fill("+51 959 111 222");
   await page.locator('input[type="file"]').setInputFiles(path.resolve(__dirname, "../assets-src/fachada-demo.jpg"));
   await page.locator('input[name="consent"]').check();
   await shot(page, "05-solicitar-visita", false);
@@ -94,7 +92,7 @@ async function main() {
   await page.goto(`${BASE}/asistente`, { waitUntil: "networkidle" });
   await page.getByText("En la terraza, pegada a la casa").click();
   await page.getByText("Bastante, casi todos los días").click();
-  await page.getByText("Entre 1.500 y 4.000 €").click();
+  await page.getByText("Entre S/ 800 y 1,500").click();
   await shot(page, "06-asistente", false);
   await page.goto(`${BASE}/muestrario`, { waitUntil: "networkidle" });
   await page.getByRole("button", { name: /Terracota/ }).click();
@@ -105,11 +103,11 @@ async function main() {
   await shot(page, "08-admin-login", false);
   await page.getByRole("button", { name: "Entrar" }).click();
   await page.waitForURL(`${BASE}/admin`);
-  await page.getByText("Eva Hoekstra (demo)").first().waitFor();
+  await page.getByText("Ana Medina (demo)").first().waitFor();
   await shot(page, "09-admin-solicitudes", false);
-  await page.getByText("Eva Hoekstra (demo)").first().click();
+  await page.getByText("Ana Medina (demo)").first().click();
   await page.waitForURL("**/admin/leads/**");
-  await page.locator('textarea[name="body"]').fill("Llamar el lunes por la mañana. Fachada de ladrillo.");
+  await page.locator('textarea[name="body"]').fill("Llamar el lunes por la mañana. Muro de sillar.");
   await page.getByRole("button", { name: "Añadir nota" }).click();
   await page.getByText("Llamar el lunes").waitFor();
   await shot(page, "10-admin-detalle");

@@ -32,9 +32,9 @@ const QUESTIONS: { key: keyof Answers; title: string; options: { value: string; 
     key: "budget",
     title: "¿Qué presupuesto tienes en mente?",
     options: [
-      { value: "ajustado", label: "Hasta 1.500 €", note: "" },
-      { value: "medio", label: "Entre 1.500 y 4.000 €", note: "" },
-      { value: "amplio", label: "Más de 4.000 €", note: "" },
+      { value: "ajustado", label: "Hasta S/ 800", note: "" },
+      { value: "medio", label: "Entre S/ 800 y 1,500", note: "" },
+      { value: "amplio", label: "Más de S/ 1,500", note: "" },
     ],
   },
 ];

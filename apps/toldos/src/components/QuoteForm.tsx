@@ -2,55 +2,30 @@
 /**
  * Formulario "Solicitar visita". No pide cuenta.
  * - Recupera el diseño guardado del configurador.
- * - Comprueba el código postal contra las zonas de servicio (API).
+ * - El distrito se elige de la lista de zonas de servicio (administrable).
  * - Valida con el mismo esquema Zod que el servidor.
  * - Envía todo (incluidas las fotos) como FormData a /api/leads.
  */
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { TextField, TextAreaField, SelectField } from "@portafolio/core/ui/Field";
 import { FileDropzone } from "@portafolio/core/ui/FileDropzone";
-import { calculatePrice, DRIVE_LABELS, formatEuro, formatMeters } from "@portafolio/core/pricing";
-import { fieldErrors, normalizePostalCode, quoteRequestSchema, toDateKey, POSTAL_CODE_REGEX } from "@portafolio/core/validation";
+import { calculatePrice, DRIVE_LABELS, formatMoney, formatMeters } from "@portafolio/core/pricing";
+import { fieldErrors, quoteRequestSchema, toDateKey } from "@portafolio/core/validation";
 import type { Catalog } from "@/lib/catalog";
 import { clearConfig, useSavedConfig } from "@/lib/saved-config";
 import { AwningPreview } from "./AwningPreview";
 
-/** Resultado de la comprobación de zona para un código postal concreto. */
-type ZoneResult = { cp: string; zone: string | null };
+const OTHER = "__otro";
 
-export function QuoteForm({ catalog }: { catalog: Catalog }) {
+export function QuoteForm({ catalog, zones }: { catalog: Catalog; zones: { id: number; name: string }[] }) {
   const router = useRouter();
   const config = useSavedConfig();
   const [files, setFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [zoneResult, setZoneResult] = useState<ZoneResult | null>(null);
-  const [postalCode, setPostalCode] = useState("");
+  const [district, setDistrict] = useState("");
   const [sending, setSending] = useState(false);
-
-  // Comprobamos la zona cuando el código postal tiene un formato válido
-  // (con una pequeña espera para no llamar a la API en cada tecla).
-  const cp = normalizePostalCode(postalCode);
-  const cpValid = POSTAL_CODE_REGEX.test(postalCode.trim());
-  useEffect(() => {
-    if (!cpValid) return;
-    const t = setTimeout(async () => {
-      const res = await fetch(`/api/zonas?cp=${encodeURIComponent(cp)}`);
-      const data = await res.json();
-      setZoneResult({ cp, zone: data.zone });
-    }, 350);
-    return () => clearTimeout(t);
-  }, [cp, cpValid]);
-
-  // Estado de la zona derivado (sin estado extra): idle, checking, ok u out.
-  const zone = !cpValid
-    ? { status: "idle" as const }
-    : zoneResult?.cp !== cp
-      ? { status: "checking" as const }
-      : zoneResult.zone
-        ? { status: "ok" as const, name: zoneResult.zone }
-        : { status: "out" as const };
 
   const model = config && catalog.models.find((m) => m.id === config.modelId);
   const fabric = config && catalog.fabrics.find((f) => f.id === config.fabricId);
@@ -70,9 +45,8 @@ export function QuoteForm({ catalog }: { catalog: Catalog }) {
       name: String(fd.get("name") ?? ""),
       email: String(fd.get("email") ?? ""),
       phone: String(fd.get("phone") ?? ""),
-      postalCode: normalizePostalCode(String(fd.get("postalCode") ?? "")),
+      district: district === OTHER ? "" : district,
       address: String(fd.get("address") ?? ""),
-      city: String(fd.get("city") ?? ""),
       preferredDate: String(fd.get("preferredDate") ?? ""),
       preferredSlot: String(fd.get("preferredSlot") ?? "manana"),
       message: String(fd.get("message") ?? ""),
@@ -82,7 +56,7 @@ export function QuoteForm({ catalog }: { catalog: Catalog }) {
 
     const parsed = quoteRequestSchema.safeParse(data);
     const errs = parsed.success ? {} : fieldErrors(parsed.error);
-    if (zone.status === "out") errs.postalCode = "Todavía no llegamos a tu zona. Escríbenos y lo vemos.";
+    if (district === OTHER) errs.district = "Por ahora solo visitamos estos distritos. Llámanos y lo vemos.";
     setErrors(errs);
     if (Object.keys(errs).length) {
       document.querySelector(`[name="${Object.keys(errs)[0]}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -121,7 +95,7 @@ export function QuoteForm({ catalog }: { catalog: Catalog }) {
                 <div className="flex justify-between py-2"><dt className="text-muted">Lona</dt><dd>{fabric.name}</dd></div>
                 <div className="flex justify-between py-2"><dt className="text-muted">Estructura</dt><dd>{frame.name}</dd></div>
                 <div className="flex justify-between py-2"><dt className="text-muted">Accionamiento</dt><dd>{DRIVE_LABELS[config.drive]}</dd></div>
-                <div className="flex justify-between py-2"><dt className="text-muted">Orientativo</dt><dd className="font-serif text-lg">desde {formatEuro(price ?? 0)}</dd></div>
+                <div className="flex justify-between py-2"><dt className="text-muted">Orientativo</dt><dd className="font-serif text-lg">desde {formatMoney(price ?? 0)}</dd></div>
               </dl>
               <Link href="/configurador" className="link-grow mt-3 inline-block text-sm text-muted">Cambiar diseño</Link>
             </>
@@ -138,20 +112,14 @@ export function QuoteForm({ catalog }: { catalog: Catalog }) {
       <div className="space-y-14 lg:col-span-7 lg:col-start-6">
         <fieldset className="grid gap-6 md:grid-cols-2">
           <legend className="mb-6 font-serif text-2xl">¿Dónde es?</legend>
-          <div>
-            <TextField label="Código postal" name="postalCode" placeholder="2011 AB" autoComplete="postal-code" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} error={errors.postalCode} />
-            {!errors.postalCode && zone.status !== "idle" && (
-              <p className={`mt-1 text-sm ${zone.status === "out" ? "text-terracotta" : "text-olive"}`}>
-                {zone.status === "checking" && "Comprobando…"}
-                {zone.status === "ok" && `Trabajamos en tu zona · ${zone.name}`}
-                {zone.status === "out" && "Todavía no llegamos a tu zona."}
-              </p>
-            )}
-          </div>
-          <TextField label="Localidad" name="city" autoComplete="address-level2" error={errors.city} />
-          <div className="md:col-span-2">
-            <TextField label="Calle y número" name="address" autoComplete="street-address" error={errors.address} />
-          </div>
+          <SelectField label="Distrito" name="district" value={district} onChange={(e) => setDistrict(e.target.value)} error={errors.district} hint="Arequipa">
+            <option value="" disabled>Elige tu distrito</option>
+            {zones.map((z) => (
+              <option key={z.id} value={z.name}>{z.name}</option>
+            ))}
+            <option value={OTHER}>Otro distrito</option>
+          </SelectField>
+          <TextField label="Dirección" name="address" autoComplete="street-address" placeholder="Calle, número y referencia" error={errors.address} />
         </fieldset>
 
         <fieldset className="grid gap-6 md:grid-cols-2">

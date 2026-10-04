@@ -14,7 +14,7 @@ export function FieldShell({ label, error, hint, children, htmlFor }: { label: s
         {label}
       </label>
       {children}
-      {error ? <p className="text-sm text-terracotta">{error}</p> : hint ? <p className="text-xs text-muted">{hint}</p> : null}
+      {error ? <p className="text-sm text-danger">{error}</p> : hint ? <p className="text-xs text-muted">{hint}</p> : null}
     </div>
   );
 }

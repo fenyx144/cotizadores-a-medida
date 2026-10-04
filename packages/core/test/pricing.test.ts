@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { areaM2, calculatePrice, clampToStep, validateDimensions, type PricingModel, type PricingRule } from "../src/pricing";
+import { areaM2, calculatePrice, clampToStep, formatMoney, validateDimensions, type PricingModel, type PricingRule } from "../src/pricing";
 
 const model: PricingModel = { id: 1, name: "Brisa", type: "retractil", minWidth: 200, maxWidth: 600, minProjection: 150, maxProjection: 350, basePrice: 690, pricePerM2: 85 };
 const rule = (r: Partial<PricingRule>): PricingRule => ({ id: 1, name: "Regla", kind: "fijo", amount: 0, drive: null, modelType: null, minArea: null, active: true, ...r });
@@ -69,5 +69,13 @@ describe("calculatePrice", () => {
     const rules = [rule({ name: "Instalación", amount: 200 }), rule({ id: 2, name: "IVA demo", kind: "porcentaje", amount: 10 })];
     const r = calculatePrice({ ...base, width: 400, projection: 300 }, { model, rules });
     expect(r.total).toBe(Math.round(((1710 + 200) * 1.1) / 10) * 10);
+  });
+});
+
+describe("formatMoney", () => {
+  it("formatea soles con separador de miles", () => {
+    expect(formatMoney(1000)).toBe("S/ 1,000");
+    expect(formatMoney(399.6)).toBe("S/ 400");
+    expect(formatMoney(12500)).toBe("S/ 12,500");
   });
 });
