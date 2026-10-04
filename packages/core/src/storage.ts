@@ -97,11 +97,58 @@ class S3Storage implements StorageDriver {
   }
 }
 
+/** Error con mensaje amable: no hay almacenamiento configurado (p. ej. Vercel sin R2). */
+export class StorageUnavailableError extends Error {
+  constructor() {
+    super("La subida de archivos no está disponible en esta demo. Puede continuar sin adjuntar archivos o escribirnos.");
+    this.name = "StorageUnavailableError";
+  }
+}
+
+/**
+ * Driver "sin almacenamiento": en Vercel el disco es de solo lectura, así que
+ * sin S3/R2 no podemos guardar nada. Leer devuelve null y subir lanza un error amable.
+ */
+class UnavailableStorage implements StorageDriver {
+  async put(): Promise<void> {
+    throw new StorageUnavailableError();
+  }
+  async get() {
+    return null;
+  }
+  async delete() {}
+}
+
 let instance: StorageDriver | null = null;
+
+/** ¿Se pueden guardar archivos? (S3/R2 configurado, o disco local fuera de Vercel). */
+export function isStorageAvailable(): boolean {
+  return !!process.env.S3_BUCKET || !process.env.VERCEL;
+}
 
 export function getStorage(): StorageDriver {
   if (instance) return instance;
   const bucket = process.env.S3_BUCKET;
-  instance = bucket ? new S3Storage(bucket) : new LocalStorage(process.env.UPLOAD_DIR || path.join(process.cwd(), ".data/uploads"));
+  if (bucket) instance = new S3Storage(bucket);
+  else if (process.env.VERCEL) instance = new UnavailableStorage();
+  else instance = new LocalStorage(process.env.UPLOAD_DIR || path.join(process.cwd(), ".data/uploads"));
   return instance;
+}
+
+/**
+ * Lee un archivo guardado y, si no está en el almacenamiento, lo busca como
+ * estático en `public/demo/<key>` de la propia app. Así los archivos del seed
+ * (p. ej. el plano de demostración) funcionan en Vercel aunque no haya R2.
+ */
+export async function getFileWithDemoFallback(key: string, origin: string): Promise<StoredFile | null> {
+  const stored = await getStorage().get(key);
+  if (stored) return stored;
+  if (!/^[\w\-./]+$/.test(key) || key.includes("..")) return null;
+  try {
+    const res = await fetch(new URL(`/demo/${key}`, origin));
+    if (!res.ok) return null;
+    return { body: new Uint8Array(await res.arrayBuffer()), contentType: res.headers.get("content-type") || "application/octet-stream" };
+  } catch {
+    return null;
+  }
 }

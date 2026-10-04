@@ -7,7 +7,7 @@ import { buildPdf, type PdfPlan } from "@portafolio/core/pdf";
 import { buildXlsx } from "@portafolio/core/xlsx";
 import { formatMeters, formatMoney } from "@portafolio/core/pricing";
 import { LINE_STATUS_COLORS, LINE_STATUS_LABELS, PROJECT_STATUS_LABELS, type LineStatus, type ProjectStatus } from "@portafolio/core/projects";
-import { getStorage } from "@portafolio/core/storage";
+import { getFileWithDemoFallback } from "@portafolio/core/storage";
 import { BRAND, DRIVE_LABELS } from "./content";
 import { locationName, projectSummary, type ProjectData } from "./project";
 
@@ -26,12 +26,12 @@ function rowsFor(data: ProjectData) {
   });
 }
 
-export async function projectPdf(data: ProjectData): Promise<Uint8Array> {
+export async function projectPdf(data: ProjectData, origin: string): Promise<Uint8Array> {
   const s = projectSummary(data);
   const rows = rowsFor(data);
   const plans: PdfPlan[] = [];
   for (const plan of data.plans) {
-    const file = await getStorage().get(plan.imageKey);
+    const file = await getFileWithDemoFallback(plan.imageKey, origin);
     if (!file) continue;
     plans.push({
       heading: `${plan.kind === "foto" ? "Foto" : "Plano"}: ${plan.name}`,

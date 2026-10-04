@@ -7,7 +7,7 @@
 import { eq } from "drizzle-orm";
 import { calculatePrice, DRIVE_LABELS, formatMoney, validateDimensions } from "@portafolio/core/pricing";
 import { fieldErrors, findZone, quoteRequestSchema } from "@portafolio/core/validation";
-import { getStorage, makeKey, MAX_UPLOAD_FILES, validateUpload } from "@portafolio/core/storage";
+import { getStorage, isStorageAvailable, makeKey, MAX_UPLOAD_FILES, StorageUnavailableError, validateUpload } from "@portafolio/core/storage";
 import { sendEmail } from "@portafolio/core/email";
 import { leadReference } from "@portafolio/core/leads";
 import type { LeadConfiguration } from "@portafolio/core/db/schema";
@@ -55,6 +55,8 @@ export async function POST(req: Request) {
   // Fotos
   const photos = form.getAll("photos").filter((f): f is File => f instanceof File && f.size > 0);
   if (photos.length > MAX_UPLOAD_FILES) return Response.json({ error: `Máximo ${MAX_UPLOAD_FILES} fotos.` }, { status: 422 });
+  // Sin almacenamiento (p. ej. Vercel sin R2): avisamos antes de crear el lead.
+  if (photos.length && !isStorageAvailable()) return Response.json({ error: new StorageUnavailableError().message, fields: { photos: "Quita las fotos para enviar la solicitud." } }, { status: 503 });
   for (const p of photos) {
     const err = validateUpload(p);
     if (err) return Response.json({ error: err }, { status: 422 });

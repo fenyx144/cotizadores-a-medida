@@ -10,7 +10,7 @@ import { z } from "zod";
 import { validateDimensions } from "@portafolio/core/pricing";
 import { nextLabel } from "@portafolio/core/projects";
 import { parseMeasurementFile, type ImportResult, type MeasurementRow } from "@portafolio/core/import";
-import { getStorage, makeKey } from "@portafolio/core/storage";
+import { getStorage, isStorageAvailable, makeKey, StorageUnavailableError } from "@portafolio/core/storage";
 import { sendEmail } from "@portafolio/core/email";
 import type { LineConfig } from "@portafolio/core/db/project-schema";
 import { getDb, schema } from "@/lib/db";
@@ -41,7 +41,7 @@ async function run(projectId: number, fn: () => Promise<number | void>): Promise
     const data = (await loadProject(projectId))!;
     return { ok: true, data, createdId: createdId ?? undefined };
   } catch (e) {
-    if (e instanceof ActionError) return { ok: false, error: e.message };
+    if (e instanceof ActionError || e instanceof StorageUnavailableError) return { ok: false, error: e.message };
     console.error(e);
     return { ok: false, error: "No se pudo guardar. Inténtelo de nuevo." };
   }
@@ -224,6 +224,7 @@ const MAX_PLAN_BYTES = 15 * 1024 * 1024;
 /** Sube un plano (o foto de una ubicación). Los PDF ya llegan convertidos a PNG desde el navegador. */
 export async function uploadPlan(projectId: number, formData: FormData) {
   return run(projectId, async () => {
+    if (!isStorageAvailable()) throw new StorageUnavailableError();
     const file = formData.get("file");
     if (!(file instanceof File) || file.size === 0) throw new ActionError("Elija un archivo.");
     if (!["image/png", "image/jpeg"].includes(file.type)) throw new ActionError("El plano debe ser PNG, JPG o PDF.");

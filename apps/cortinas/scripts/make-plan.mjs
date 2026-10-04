@@ -232,3 +232,6 @@ console.log(`Plano ${W}×${H}, ${windows.length} ventanas, PNG ${(png.length / 1
 
 // Recorte del plano para la portada (sección "Cotice sobre su plano").
 await sharp(png).extract({ left: 560, top: 300, width: 2000, height: 1150 }).resize(1400).webp({ quality: 82 }).toFile("public/img/plano-detalle.webp");
+
+// Copia estática para el seed: /demo/planos/demo-pabellon-a.png (funciona en Vercel sin R2).
+await writeFile("public/demo/planos/demo-pabellon-a.png", png);
