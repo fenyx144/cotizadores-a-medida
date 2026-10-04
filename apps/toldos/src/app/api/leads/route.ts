@@ -15,9 +15,10 @@ import { getDb, schema } from "@/lib/db";
 import { getCatalog, getZones } from "@/lib/catalog";
 
 export async function POST(req: Request) {
-  const form = await req.formData();
+  let form: FormData;
   let raw: unknown;
   try {
+    form = await req.formData();
     raw = JSON.parse(String(form.get("data") ?? "{}"));
   } catch {
     return Response.json({ error: "Datos no válidos" }, { status: 400 });

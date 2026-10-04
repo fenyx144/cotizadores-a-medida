@@ -15,9 +15,34 @@ import * as projectSchema from "./project-schema";
 // de las apps que las usan (cortinas); toldos simplemente no las consulta.
 const schema = { ...baseSchema, ...projectSchema };
 
+/**
+ * Limpia la URL tal como suele pegarse en el panel de Vercel: espacios, comillas,
+ * el prefijo `psql '...'` del snippet de Neon o `DATABASE_URL=`. También quita
+ * `channel_binding`, que postgres.js no necesita.
+ */
+export function normalizeDatabaseUrl(raw: string): string {
+  let url = raw.trim();
+  url = url.replace(/^DATABASE_URL\s*=\s*/, "").replace(/^psql\s+/, "").trim();
+  url = url.replace(/^['"]|['"]$/g, "").trim();
+  try {
+    const u = new URL(url);
+    u.searchParams.delete("channel_binding");
+    if (!u.searchParams.has("sslmode") && !/localhost|127\.0\.0\.1/.test(u.hostname)) u.searchParams.set("sslmode", "require");
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 function createDb(url: string) {
   // prepare: false es necesario con el pooler de Neon (PgBouncer).
-  return drizzle(postgres(url, { prepare: false, max: 5 }), { schema });
+  // En Vercel cada función es una instancia pequeña: 1 conexión basta y no
+  // agotamos el pooler; idle_timeout cierra conexiones de instancias dormidas.
+  const serverless = !!process.env.VERCEL;
+  return drizzle(
+    postgres(normalizeDatabaseUrl(url), { prepare: false, max: serverless ? 1 : 5, idle_timeout: serverless ? 20 : undefined, connect_timeout: 10 }),
+    { schema },
+  );
 }
 
 const globalForDb = globalThis as unknown as { __db?: ReturnType<typeof createDb> };
