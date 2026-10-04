@@ -1,0 +1,102 @@
+@import "tailwindcss";
+/* Tailwind también debe leer las clases usadas en el paquete compartido */
+@source "../../../../packages/core/src";
+
+/*
+ * Paleta de Cota: gris piedra, arena y un azul tinta como único acento.
+ * Los nombres (paper, ink, muted, line, accent, danger...) los usan también
+ * los componentes de packages/core; cada app solo cambia los valores.
+ */
+@theme {
+  --color-paper: #e9e7e2;
+  --color-paper-deep: #dedbd4;
+  --color-white-stone: #f3f2ef;
+  --color-ink: #16191d;
+  --color-muted: #5f646b;
+  --color-line: #c9c6be;
+  --color-sand: #d8cbb3;
+  --color-blue: #1f3a5f;
+  --color-olive: #1f3a5f;
+  --color-accent: #1f3a5f;
+  --color-danger: #a4472a;
+
+  --font-serif: var(--font-instrument-serif), Georgia, serif;
+  --font-sans: var(--font-plex-sans), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-weight: 400;
+}
+
+/* Títulos: serif fina, caja normal */
+h1, h2, h3, .font-serif {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: var(--color-sand);
+}
+
+/* Fondo técnico muy sutil: una retícula de 24 px, como papel milimetrado */
+.grid-paper {
+  background-image:
+    linear-gradient(to right, rgb(22 25 29 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(22 25 29 / 0.045) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.link-grow {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.4s ease;
+}
+.link-grow:hover {
+  background-size: 100% 1px;
+}
+
+.photo-zoom img {
+  transition: transform 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.photo-zoom:hover img {
+  transform: scale(1.025);
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .photo-zoom img { transition: none; }
+}
+
+input[type="range"] {
+  accent-color: var(--color-blue);
+}
+
+/* Leaflet: fondo neutro y tipografía de la marca */
+.leaflet-container {
+  background: var(--color-paper-deep);
+  font-family: var(--font-sans);
+}
+.plan-image {
+  image-rendering: auto;
+}

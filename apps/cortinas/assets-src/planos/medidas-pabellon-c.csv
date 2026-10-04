@@ -1,0 +1,7 @@
+edificio;piso;ambiente;codigo;ancho_cm;alto_cm;cantidad;producto;nota
+Pabellón C;Piso 2;Aula 201;;180;160;3;Roller Screen 5%;
+Pabellón C;Piso 2;Aula 202;;180;160;3;Roller Screen 5%;
+Pabellón C;Piso 2;Aula 203;;1,80;1,60;3;Roller Screen 5%;Medidas en metros
+Pabellón C;Piso 2;Laboratorio;;240;180;2;Roller Blackout;Proyector
+Pabellón C;Piso 2;Coordinación;;120;140;2;Persiana de aluminio 25 mm;
+Pabellón C;Piso 2;Depósito;;abc;140;1;;Fila con error a propósito

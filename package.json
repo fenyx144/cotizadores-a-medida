@@ -9,6 +9,9 @@
     "typecheck": "pnpm -r typecheck",
     "test": "pnpm -r test",
     "db:push": "pnpm --filter toldos db:push",
-    "db:seed": "pnpm --filter toldos db:seed"
+    "db:seed": "pnpm --filter toldos db:seed",
+    "dev:cortinas": "pnpm --filter cortinas dev",
+    "db:push:cortinas": "pnpm --filter cortinas db:push",
+    "db:seed:cortinas": "pnpm --filter cortinas db:seed"
   }
 }

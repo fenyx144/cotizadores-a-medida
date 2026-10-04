@@ -1,0 +1,785 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="4800" height="2600" viewBox="0 0 4800 2600">
+<rect width="4800" height="2600" fill="#f6f5f1"/>
+<rect x="60" y="60" width="4680" height="2480" fill="none" stroke="#22262b" stroke-width="3"/>
+<line x1="300" y1="350" x2="300" y2="1740" stroke="#6b7178" stroke-width="1.2" stroke-dasharray="28 8 4 8"/>
+<circle cx="300" cy="310" r="30" fill="none" stroke="#22262b" stroke-width="2"/>
+<text x="300" y="321" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" text-anchor="middle" fill="#22262b">A</text>
+<line x1="600" y1="350" x2="600" y2="1740" stroke="#6b7178" stroke-width="1.2" stroke-dasharray="28 8 4 8"/>
+<circle cx="600" cy="310" r="30" fill="none" stroke="#22262b" stroke-width="2"/>
+<text x="600" y="321" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" text-anchor="middle" fill="#22262b">B</text>
+<line x1="1050" y1="350" x2="1050" y2="1740" stroke="#6b7178" stroke-width="1.2" stroke-dasharray="28 8 4 8"/>
+<circle cx="1050" cy="310" r="30" fill="none" stroke="#22262b" stroke-width="2"/>
+<text x="1050" y="321" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" text-anchor="middle" fill="#22262b">C</text>
+<line x1="1500" y1="350" x2="1500" y2="1740" stroke="#6b7178" stroke-width="1.2" stroke-dasharray="28 8 4 8"/>
+<circle cx="1500" cy="310" r="30" fill="none" stroke="#22262b" stroke-width="2"/>
+<text x="1500" y="321" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" text-anchor="middle" fill="#22262b">D</text>
+<line x1="1950" y1="350" x2="1950" y2="1740" stroke="#6b7178" stroke-width="1.2" stroke-dasharray="28 8 4 8"/>
+<circle cx="1950" cy="310" r="30" fill="none" stroke="#22262b" stroke-width="2"/>
+<text x="1950" y="321" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" text-anchor="middle" fill="#22262b">E</text>
+<line x1="2400" y1="350" x2="2400" y2="1740" stroke="#6b7178" stroke-width="1.2" stroke-dasharray="28 8 4 8"/>
+<circle cx="2400" cy="310" r="30" fill="none" stroke="#22262b" stroke-width="2"/>
+<text x="2400" y="321" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" text-anchor="middle" fill="#22262b">F</text>
+<line x1="2850" y1="350" x2="2850" y2="1740" stroke="#6b7178" stroke-width="1.2" stroke-dasharray="28 8 4 8"/>
+<circle cx="2850" cy="310" r="30" fill="none" stroke="#22262b" stroke-width="2"/>
+<text x="2850" y="321" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" text-anchor="middle" fill="#22262b">G</text>
+<line x1="3300" y1="350" x2="3300" y2="1740" stroke="#6b7178" stroke-width="1.2" stroke-dasharray="28 8 4 8"/>
+<circle cx="3300" cy="310" r="30" fill="none" stroke="#22262b" stroke-width="2"/>
+<text x="3300" y="321" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" text-anchor="middle" fill="#22262b">H</text>
+<line x1="3750" y1="350" x2="3750" y2="1740" stroke="#6b7178" stroke-width="1.2" stroke-dasharray="28 8 4 8"/>
+<circle cx="3750" cy="310" r="30" fill="none" stroke="#22262b" stroke-width="2"/>
+<text x="3750" y="321" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" text-anchor="middle" fill="#22262b">I</text>
+<line x1="4200" y1="350" x2="4200" y2="1740" stroke="#6b7178" stroke-width="1.2" stroke-dasharray="28 8 4 8"/>
+<circle cx="4200" cy="310" r="30" fill="none" stroke="#22262b" stroke-width="2"/>
+<text x="4200" y="321" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" text-anchor="middle" fill="#22262b">J</text>
+<line x1="4500" y1="350" x2="4500" y2="1740" stroke="#6b7178" stroke-width="1.2" stroke-dasharray="28 8 4 8"/>
+<circle cx="4500" cy="310" r="30" fill="none" stroke="#22262b" stroke-width="2"/>
+<text x="4500" y="321" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" text-anchor="middle" fill="#22262b">K</text>
+<line x1="130" y1="520" x2="4670" y2="520" stroke="#6b7178" stroke-width="1.2" stroke-dasharray="28 8 4 8"/>
+<circle cx="90" cy="520" r="30" fill="none" stroke="#22262b" stroke-width="2"/>
+<text x="90" y="531" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" text-anchor="middle" fill="#22262b">1</text>
+<line x1="130" y1="970" x2="4670" y2="970" stroke="#6b7178" stroke-width="1.2" stroke-dasharray="28 8 4 8"/>
+<circle cx="90" cy="970" r="30" fill="none" stroke="#22262b" stroke-width="2"/>
+<text x="90" y="981" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" text-anchor="middle" fill="#22262b">2</text>
+<line x1="130" y1="1120" x2="4670" y2="1120" stroke="#6b7178" stroke-width="1.2" stroke-dasharray="28 8 4 8"/>
+<circle cx="90" cy="1120" r="30" fill="none" stroke="#22262b" stroke-width="2"/>
+<text x="90" y="1131" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" text-anchor="middle" fill="#22262b">3</text>
+<line x1="130" y1="1570" x2="4670" y2="1570" stroke="#6b7178" stroke-width="1.2" stroke-dasharray="28 8 4 8"/>
+<circle cx="90" cy="1570" r="30" fill="none" stroke="#22262b" stroke-width="2"/>
+<text x="90" y="1581" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" text-anchor="middle" fill="#22262b">4</text>
+<rect x="300" y="520" width="4200" height="1050" fill="#fbfbf9" stroke="none"/>
+<rect x="600" y="970" width="3600" height="150" fill="#f1f0ec"/>
+<rect x="300" y="520" width="4200" height="12.5" fill="#22262b"/>
+<rect x="300" y="1557.5" width="4200" height="12.5" fill="#22262b"/>
+<rect x="300" y="520" width="12.5" height="1050" fill="#22262b"/>
+<rect x="4487.5" y="520" width="12.5" height="1050" fill="#22262b"/>
+<rect x="600" y="964" width="3600" height="12" fill="#22262b"/>
+<rect x="600" y="1114" width="3600" height="12" fill="#22262b"/>
+<rect x="594" y="520" width="12" height="1050" fill="#22262b"/>
+<line x1="360" y1="670" x2="540" y2="670" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="684" x2="540" y2="684" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="698" x2="540" y2="698" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="712" x2="540" y2="712" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="726" x2="540" y2="726" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="740" x2="540" y2="740" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="754" x2="540" y2="754" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="768" x2="540" y2="768" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="782" x2="540" y2="782" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="796" x2="540" y2="796" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="810" x2="540" y2="810" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="824" x2="540" y2="824" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="838" x2="540" y2="838" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="852" x2="540" y2="852" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="866" x2="540" y2="866" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="880" x2="540" y2="880" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="894" x2="540" y2="894" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="908" x2="540" y2="908" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="922" x2="540" y2="922" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="936" x2="540" y2="936" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="950" x2="540" y2="950" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="360" y1="964" x2="540" y2="964" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="450" y1="670" x2="450" y2="964" stroke="#22262b" stroke-width="1.5"/>
+<text x="450" y="1400" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="34" text-anchor="middle" fill="#22262b">ESCALERA</text>
+<text x="450" y="1440" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="26" text-anchor="middle" fill="#6b7178">SS.HH. bajo escalera</text>
+<rect x="4194" y="520" width="12" height="1050" fill="#22262b"/>
+<line x1="4260" y1="670" x2="4440" y2="670" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="684" x2="4440" y2="684" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="698" x2="4440" y2="698" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="712" x2="4440" y2="712" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="726" x2="4440" y2="726" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="740" x2="4440" y2="740" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="754" x2="4440" y2="754" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="768" x2="4440" y2="768" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="782" x2="4440" y2="782" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="796" x2="4440" y2="796" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="810" x2="4440" y2="810" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="824" x2="4440" y2="824" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="838" x2="4440" y2="838" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="852" x2="4440" y2="852" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="866" x2="4440" y2="866" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="880" x2="4440" y2="880" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="894" x2="4440" y2="894" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="908" x2="4440" y2="908" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="922" x2="4440" y2="922" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="936" x2="4440" y2="936" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="950" x2="4440" y2="950" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4260" y1="964" x2="4440" y2="964" stroke="#6b7178" stroke-width="1.4"/>
+<line x1="4350" y1="670" x2="4350" y2="964" stroke="#22262b" stroke-width="1.5"/>
+<text x="4350" y="1400" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="34" text-anchor="middle" fill="#22262b">ESCALERA</text>
+<text x="4350" y="1440" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="26" text-anchor="middle" fill="#6b7178">SS.HH. bajo escalera</text>
+<rect x="630" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="630" y1="520" x2="630" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="720" y1="520" x2="720" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="630" y1="524.75" x2="720" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="630" y1="527.75" x2="720" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="780" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="780" y1="520" x2="780" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="870" y1="520" x2="870" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="780" y1="524.75" x2="870" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="780" y1="527.75" x2="870" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="930" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="930" y1="520" x2="930" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="1020" y1="520" x2="1020" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="930" y1="524.75" x2="1020" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="930" y1="527.75" x2="1020" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="985" y="963" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 985 970 L 985 925 A 45 45 0 0 0 1030 970" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="825" y="739" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="40" text-anchor="middle" fill="#22262b">AULA 101</text>
+<text x="825" y="779" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#6b7178">81.0 m²  NPT +0.15</text>
+<rect x="670" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="755" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="840" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="925" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="670" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="755" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="840" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="925" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="670" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="755" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="840" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="925" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1045" y="520" width="10" height="450" fill="#22262b"/>
+<rect x="1080" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="1080" y1="520" x2="1080" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="1170" y1="520" x2="1170" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="1080" y1="524.75" x2="1170" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1080" y1="527.75" x2="1170" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="1230" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="1230" y1="520" x2="1230" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="1320" y1="520" x2="1320" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="1230" y1="524.75" x2="1320" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1230" y1="527.75" x2="1320" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="1380" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="1380" y1="520" x2="1380" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="1470" y1="520" x2="1470" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="1380" y1="524.75" x2="1470" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1380" y1="527.75" x2="1470" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="1435" y="963" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 1435 970 L 1435 925 A 45 45 0 0 0 1480 970" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="1275" y="739" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="40" text-anchor="middle" fill="#22262b">AULA 102</text>
+<text x="1275" y="779" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#6b7178">81.0 m²  NPT +0.15</text>
+<rect x="1120" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1205" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1290" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1375" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1120" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1205" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1290" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1375" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1120" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1205" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1290" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1375" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1495" y="520" width="10" height="450" fill="#22262b"/>
+<rect x="1530" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="1530" y1="520" x2="1530" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="1620" y1="520" x2="1620" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="1530" y1="524.75" x2="1620" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1530" y1="527.75" x2="1620" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="1680" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="1680" y1="520" x2="1680" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="1770" y1="520" x2="1770" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="1680" y1="524.75" x2="1770" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1680" y1="527.75" x2="1770" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="1830" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="1830" y1="520" x2="1830" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="1920" y1="520" x2="1920" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="1830" y1="524.75" x2="1920" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1830" y1="527.75" x2="1920" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="1885" y="963" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 1885 970 L 1885 925 A 45 45 0 0 0 1930 970" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="1725" y="739" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="40" text-anchor="middle" fill="#22262b">AULA 103</text>
+<text x="1725" y="779" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#6b7178">81.0 m²  NPT +0.15</text>
+<rect x="1570" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1655" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1740" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1825" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1570" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1655" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1740" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1825" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1570" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1655" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1740" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1825" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1945" y="520" width="10" height="450" fill="#22262b"/>
+<rect x="1980" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="1980" y1="520" x2="1980" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="2070" y1="520" x2="2070" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="1980" y1="524.75" x2="2070" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1980" y1="527.75" x2="2070" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="2130" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="2130" y1="520" x2="2130" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="2220" y1="520" x2="2220" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="2130" y1="524.75" x2="2220" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="2130" y1="527.75" x2="2220" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="2280" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="2280" y1="520" x2="2280" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="2370" y1="520" x2="2370" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="2280" y1="524.75" x2="2370" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="2280" y1="527.75" x2="2370" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="2335" y="963" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 2335 970 L 2335 925 A 45 45 0 0 0 2380 970" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="2175" y="739" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="40" text-anchor="middle" fill="#22262b">AULA 104</text>
+<text x="2175" y="779" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#6b7178">81.0 m²  NPT +0.15</text>
+<rect x="2020" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2105" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2190" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2275" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2020" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2105" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2190" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2275" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2020" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2105" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2190" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2275" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2395" y="520" width="10" height="450" fill="#22262b"/>
+<rect x="2430" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="2430" y1="520" x2="2430" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="2520" y1="520" x2="2520" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="2430" y1="524.75" x2="2520" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="2430" y1="527.75" x2="2520" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="2580" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="2580" y1="520" x2="2580" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="2670" y1="520" x2="2670" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="2580" y1="524.75" x2="2670" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="2580" y1="527.75" x2="2670" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="2730" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="2730" y1="520" x2="2730" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="2820" y1="520" x2="2820" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="2730" y1="524.75" x2="2820" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="2730" y1="527.75" x2="2820" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="2785" y="963" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 2785 970 L 2785 925 A 45 45 0 0 0 2830 970" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="2625" y="739" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="40" text-anchor="middle" fill="#22262b">AULA 105</text>
+<text x="2625" y="779" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#6b7178">81.0 m²  NPT +0.15</text>
+<rect x="2470" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2555" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2640" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2725" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2470" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2555" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2640" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2725" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2470" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2555" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2640" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2725" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2845" y="520" width="10" height="450" fill="#22262b"/>
+<rect x="2880" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="2880" y1="520" x2="2880" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="2970" y1="520" x2="2970" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="2880" y1="524.75" x2="2970" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="2880" y1="527.75" x2="2970" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="3030" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="3030" y1="520" x2="3030" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="3120" y1="520" x2="3120" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="3030" y1="524.75" x2="3120" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3030" y1="527.75" x2="3120" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="3180" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="3180" y1="520" x2="3180" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="3270" y1="520" x2="3270" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="3180" y1="524.75" x2="3270" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3180" y1="527.75" x2="3270" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="3235" y="963" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 3235 970 L 3235 925 A 45 45 0 0 0 3280 970" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="3075" y="739" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="40" text-anchor="middle" fill="#22262b">AULA 106</text>
+<text x="3075" y="779" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#6b7178">81.0 m²  NPT +0.15</text>
+<rect x="2920" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3005" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3090" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3175" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2920" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3005" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3090" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3175" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2920" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3005" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3090" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3175" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3295" y="520" width="10" height="450" fill="#22262b"/>
+<rect x="3330" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="3330" y1="520" x2="3330" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="3420" y1="520" x2="3420" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="3330" y1="524.75" x2="3420" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3330" y1="527.75" x2="3420" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="3480" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="3480" y1="520" x2="3480" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="3570" y1="520" x2="3570" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="3480" y1="524.75" x2="3570" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3480" y1="527.75" x2="3570" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="3630" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="3630" y1="520" x2="3630" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="3720" y1="520" x2="3720" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="3630" y1="524.75" x2="3720" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3630" y1="527.75" x2="3720" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="3685" y="963" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 3685 970 L 3685 925 A 45 45 0 0 0 3730 970" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="3525" y="739" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="40" text-anchor="middle" fill="#22262b">AULA 107</text>
+<text x="3525" y="779" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#6b7178">81.0 m²  NPT +0.15</text>
+<rect x="3370" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3455" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3540" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3625" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3370" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3455" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3540" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3625" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3370" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3455" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3540" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3625" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3745" y="520" width="10" height="450" fill="#22262b"/>
+<rect x="3780" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="3780" y1="520" x2="3780" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="3870" y1="520" x2="3870" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="3780" y1="524.75" x2="3870" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3780" y1="527.75" x2="3870" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="3930" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="3930" y1="520" x2="3930" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="4020" y1="520" x2="4020" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="3930" y1="524.75" x2="4020" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3930" y1="527.75" x2="4020" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="4080" y="520" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="4080" y1="520" x2="4080" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="4170" y1="520" x2="4170" y2="532.5" stroke="#22262b" stroke-width="2"/>
+<line x1="4080" y1="524.75" x2="4170" y2="524.75" stroke="#22262b" stroke-width="1.4"/>
+<line x1="4080" y1="527.75" x2="4170" y2="527.75" stroke="#22262b" stroke-width="1.4"/>
+<rect x="4135" y="963" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 4135 970 L 4135 925 A 45 45 0 0 0 4180 970" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="3975" y="739" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="40" text-anchor="middle" fill="#22262b">AULA 108</text>
+<text x="3975" y="779" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#6b7178">81.0 m²  NPT +0.15</text>
+<rect x="3820" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3905" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3990" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="4075" y="590" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3820" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3905" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3990" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="4075" y="635" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3820" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3905" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3990" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="4075" y="680" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="630" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="630" y1="1557.5" x2="630" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="720" y1="1557.5" x2="720" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="630" y1="1562.25" x2="720" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="630" y1="1565.25" x2="720" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="780" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="780" y1="1557.5" x2="780" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="870" y1="1557.5" x2="870" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="780" y1="1562.25" x2="870" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="780" y1="1565.25" x2="870" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="930" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="930" y1="1557.5" x2="930" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="1020" y1="1557.5" x2="1020" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="930" y1="1562.25" x2="1020" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="930" y1="1565.25" x2="1020" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="985" y="1113" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 985 1120 L 985 1165 A 45 45 0 0 1 1030 1120" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="825" y="1339" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="40" text-anchor="middle" fill="#22262b">AULA 109</text>
+<text x="825" y="1379" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#6b7178">81.0 m²  NPT +0.15</text>
+<rect x="670" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="755" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="840" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="925" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="670" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="755" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="840" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="925" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="670" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="755" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="840" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="925" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1045" y="1120" width="10" height="450" fill="#22262b"/>
+<rect x="1080" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="1080" y1="1557.5" x2="1080" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="1170" y1="1557.5" x2="1170" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="1080" y1="1562.25" x2="1170" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1080" y1="1565.25" x2="1170" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="1230" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="1230" y1="1557.5" x2="1230" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="1320" y1="1557.5" x2="1320" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="1230" y1="1562.25" x2="1320" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1230" y1="1565.25" x2="1320" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="1380" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="1380" y1="1557.5" x2="1380" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="1470" y1="1557.5" x2="1470" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="1380" y1="1562.25" x2="1470" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1380" y1="1565.25" x2="1470" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="1435" y="1113" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 1435 1120 L 1435 1165 A 45 45 0 0 1 1480 1120" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="1275" y="1339" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="40" text-anchor="middle" fill="#22262b">AULA 110</text>
+<text x="1275" y="1379" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#6b7178">81.0 m²  NPT +0.15</text>
+<rect x="1120" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1205" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1290" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1375" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1120" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1205" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1290" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1375" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1120" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1205" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1290" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1375" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1495" y="1120" width="10" height="450" fill="#22262b"/>
+<rect x="1530" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="1530" y1="1557.5" x2="1530" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="1620" y1="1557.5" x2="1620" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="1530" y1="1562.25" x2="1620" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1530" y1="1565.25" x2="1620" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="1680" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="1680" y1="1557.5" x2="1680" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="1770" y1="1557.5" x2="1770" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="1680" y1="1562.25" x2="1770" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1680" y1="1565.25" x2="1770" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="1830" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="1830" y1="1557.5" x2="1830" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="1920" y1="1557.5" x2="1920" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="1830" y1="1562.25" x2="1920" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1830" y1="1565.25" x2="1920" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="1885" y="1113" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 1885 1120 L 1885 1165 A 45 45 0 0 1 1930 1120" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="1725" y="1339" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="40" text-anchor="middle" fill="#22262b">AULA 111</text>
+<text x="1725" y="1379" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#6b7178">81.0 m²  NPT +0.15</text>
+<rect x="1570" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1655" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1740" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1825" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1570" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1655" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1740" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1825" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1570" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1655" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1740" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1825" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="1945" y="1120" width="10" height="450" fill="#22262b"/>
+<rect x="1980" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="1980" y1="1557.5" x2="1980" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="2070" y1="1557.5" x2="2070" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="1980" y1="1562.25" x2="2070" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1980" y1="1565.25" x2="2070" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="2130" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="2130" y1="1557.5" x2="2130" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="2220" y1="1557.5" x2="2220" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="2130" y1="1562.25" x2="2220" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="2130" y1="1565.25" x2="2220" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="2280" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="2280" y1="1557.5" x2="2280" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="2370" y1="1557.5" x2="2370" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="2280" y1="1562.25" x2="2370" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="2280" y1="1565.25" x2="2370" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="2335" y="1113" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 2335 1120 L 2335 1165 A 45 45 0 0 1 2380 1120" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="2175" y="1339" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="40" text-anchor="middle" fill="#22262b">AULA 112</text>
+<text x="2175" y="1379" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#6b7178">81.0 m²  NPT +0.15</text>
+<rect x="2020" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2105" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2190" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2275" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2020" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2105" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2190" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2275" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2020" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2105" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2190" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2275" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2395" y="1120" width="10" height="450" fill="#22262b"/>
+<rect x="2430" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="2430" y1="1557.5" x2="2430" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="2520" y1="1557.5" x2="2520" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="2430" y1="1562.25" x2="2520" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="2430" y1="1565.25" x2="2520" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="2580" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="2580" y1="1557.5" x2="2580" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="2670" y1="1557.5" x2="2670" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="2580" y1="1562.25" x2="2670" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="2580" y1="1565.25" x2="2670" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="2730" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="2730" y1="1557.5" x2="2730" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="2820" y1="1557.5" x2="2820" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="2730" y1="1562.25" x2="2820" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="2730" y1="1565.25" x2="2820" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="2785" y="1113" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 2785 1120 L 2785 1165 A 45 45 0 0 1 2830 1120" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="2625" y="1339" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="40" text-anchor="middle" fill="#22262b">AULA 113</text>
+<text x="2625" y="1379" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#6b7178">81.0 m²  NPT +0.15</text>
+<rect x="2470" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2555" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2640" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2725" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2470" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2555" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2640" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2725" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2470" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2555" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2640" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2725" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2845" y="1120" width="10" height="450" fill="#22262b"/>
+<rect x="2880" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="2880" y1="1557.5" x2="2880" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="2970" y1="1557.5" x2="2970" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="2880" y1="1562.25" x2="2970" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="2880" y1="1565.25" x2="2970" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="3030" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="3030" y1="1557.5" x2="3030" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="3120" y1="1557.5" x2="3120" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="3030" y1="1562.25" x2="3120" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3030" y1="1565.25" x2="3120" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="3180" y="1557.5" width="90" height="12.5" fill="#fbfbf9"/>
+<line x1="3180" y1="1557.5" x2="3180" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="3270" y1="1557.5" x2="3270" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="3180" y1="1562.25" x2="3270" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3180" y1="1565.25" x2="3270" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="3235" y="1113" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 3235 1120 L 3235 1165 A 45 45 0 0 1 3280 1120" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="3075" y="1339" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="40" text-anchor="middle" fill="#22262b">AULA 114</text>
+<text x="3075" y="1379" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#6b7178">81.0 m²  NPT +0.15</text>
+<rect x="2920" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3005" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3090" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3175" y="1400" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2920" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3005" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3090" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3175" y="1445" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="2920" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3005" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3090" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3175" y="1490" width="60" height="25" fill="none" stroke="#b9bdc2" stroke-width="1.2"/>
+<rect x="3295" y="1120" width="10" height="450" fill="#22262b"/>
+<rect x="3326.25" y="1557.5" width="60" height="12.5" fill="#fbfbf9"/>
+<line x1="3326.25" y1="1557.5" x2="3326.25" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="3386.25" y1="1557.5" x2="3386.25" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="3326.25" y1="1562.25" x2="3386.25" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3326.25" y1="1565.25" x2="3386.25" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="3438.75" y="1557.5" width="60" height="12.5" fill="#fbfbf9"/>
+<line x1="3438.75" y1="1557.5" x2="3438.75" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="3498.75" y1="1557.5" x2="3498.75" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="3438.75" y1="1562.25" x2="3498.75" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3438.75" y1="1565.25" x2="3498.75" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="3460" y="1113" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 3460 1120 L 3460 1165 A 45 45 0 0 1 3505 1120" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="3412.5" y="1339" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="28" text-anchor="middle" fill="#22262b">DIRECCIÓN</text>
+<text x="3412.5" y="1379" font-family="DejaVu Sans Mono, monospace" font-size="20" text-anchor="middle" fill="#6b7178">40.5 m²</text>
+<rect x="3520" y="1120" width="10" height="450" fill="#22262b"/>
+<rect x="3551.25" y="1557.5" width="60" height="12.5" fill="#fbfbf9"/>
+<line x1="3551.25" y1="1557.5" x2="3551.25" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="3611.25" y1="1557.5" x2="3611.25" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="3551.25" y1="1562.25" x2="3611.25" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3551.25" y1="1565.25" x2="3611.25" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="3663.75" y="1557.5" width="60" height="12.5" fill="#fbfbf9"/>
+<line x1="3663.75" y1="1557.5" x2="3663.75" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="3723.75" y1="1557.5" x2="3723.75" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="3663.75" y1="1562.25" x2="3723.75" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3663.75" y1="1565.25" x2="3723.75" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="3685" y="1113" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 3685 1120 L 3685 1165 A 45 45 0 0 1 3730 1120" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="3637.5" y="1339" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="28" text-anchor="middle" fill="#22262b">SECRETARÍA</text>
+<text x="3637.5" y="1379" font-family="DejaVu Sans Mono, monospace" font-size="20" text-anchor="middle" fill="#6b7178">40.5 m²</text>
+<rect x="3745" y="1120" width="10" height="450" fill="#22262b"/>
+<rect x="3776.25" y="1557.5" width="60" height="12.5" fill="#fbfbf9"/>
+<line x1="3776.25" y1="1557.5" x2="3776.25" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="3836.25" y1="1557.5" x2="3836.25" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="3776.25" y1="1562.25" x2="3836.25" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3776.25" y1="1565.25" x2="3836.25" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="3888.75" y="1557.5" width="60" height="12.5" fill="#fbfbf9"/>
+<line x1="3888.75" y1="1557.5" x2="3888.75" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="3948.75" y1="1557.5" x2="3948.75" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="3888.75" y1="1562.25" x2="3948.75" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3888.75" y1="1565.25" x2="3948.75" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="3910" y="1113" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 3910 1120 L 3910 1165 A 45 45 0 0 1 3955 1120" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="3862.5" y="1339" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="28" text-anchor="middle" fill="#22262b">TÓPICO</text>
+<text x="3862.5" y="1379" font-family="DejaVu Sans Mono, monospace" font-size="20" text-anchor="middle" fill="#6b7178">40.5 m²</text>
+<rect x="3970" y="1120" width="10" height="450" fill="#22262b"/>
+<rect x="4001.25" y="1557.5" width="60" height="12.5" fill="#fbfbf9"/>
+<line x1="4001.25" y1="1557.5" x2="4001.25" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="4061.25" y1="1557.5" x2="4061.25" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="4001.25" y1="1562.25" x2="4061.25" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="4001.25" y1="1565.25" x2="4061.25" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="4113.75" y="1557.5" width="60" height="12.5" fill="#fbfbf9"/>
+<line x1="4113.75" y1="1557.5" x2="4113.75" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="4173.75" y1="1557.5" x2="4173.75" y2="1570" stroke="#22262b" stroke-width="2"/>
+<line x1="4113.75" y1="1562.25" x2="4173.75" y2="1562.25" stroke="#22262b" stroke-width="1.4"/>
+<line x1="4113.75" y1="1565.25" x2="4173.75" y2="1565.25" stroke="#22262b" stroke-width="1.4"/>
+<rect x="4135" y="1113" width="45" height="14" fill="#fbfbf9"/>
+<path d="M 4135 1120 L 4135 1165 A 45 45 0 0 1 4180 1120" fill="none" stroke="#6b7178" stroke-width="1.4"/>
+<text x="4087.5" y="1307" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="28" text-anchor="middle" fill="#22262b">SALA DE</text>
+<text x="4087.5" y="1339" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="28" text-anchor="middle" fill="#22262b">PROFESORES</text>
+<text x="4087.5" y="1379" font-family="DejaVu Sans Mono, monospace" font-size="20" text-anchor="middle" fill="#6b7178">40.5 m²</text>
+<text x="2400" y="1057" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="34" letter-spacing="6" text-anchor="middle" fill="#6b7178">PASILLO  ·  ANCHO 3.00 m</text>
+<line x1="300" y1="440" x2="600" y2="440" stroke="#22262b" stroke-width="1.4"/>
+<line x1="291" y1="449" x2="309" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="300" y1="420" x2="300" y2="460" stroke="#22262b" stroke-width="1"/>
+<line x1="591" y1="449" x2="609" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="600" y1="420" x2="600" y2="460" stroke="#22262b" stroke-width="1"/>
+<text x="450" y="428" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">6.00</text>
+<line x1="600" y1="440" x2="1050" y2="440" stroke="#22262b" stroke-width="1.4"/>
+<line x1="591" y1="449" x2="609" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="600" y1="420" x2="600" y2="460" stroke="#22262b" stroke-width="1"/>
+<line x1="1041" y1="449" x2="1059" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="1050" y1="420" x2="1050" y2="460" stroke="#22262b" stroke-width="1"/>
+<text x="825" y="428" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">9.00</text>
+<line x1="1050" y1="440" x2="1500" y2="440" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1041" y1="449" x2="1059" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="1050" y1="420" x2="1050" y2="460" stroke="#22262b" stroke-width="1"/>
+<line x1="1491" y1="449" x2="1509" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="1500" y1="420" x2="1500" y2="460" stroke="#22262b" stroke-width="1"/>
+<text x="1275" y="428" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">9.00</text>
+<line x1="1500" y1="440" x2="1950" y2="440" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1491" y1="449" x2="1509" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="1500" y1="420" x2="1500" y2="460" stroke="#22262b" stroke-width="1"/>
+<line x1="1941" y1="449" x2="1959" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="1950" y1="420" x2="1950" y2="460" stroke="#22262b" stroke-width="1"/>
+<text x="1725" y="428" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">9.00</text>
+<line x1="1950" y1="440" x2="2400" y2="440" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1941" y1="449" x2="1959" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="1950" y1="420" x2="1950" y2="460" stroke="#22262b" stroke-width="1"/>
+<line x1="2391" y1="449" x2="2409" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="2400" y1="420" x2="2400" y2="460" stroke="#22262b" stroke-width="1"/>
+<text x="2175" y="428" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">9.00</text>
+<line x1="2400" y1="440" x2="2850" y2="440" stroke="#22262b" stroke-width="1.4"/>
+<line x1="2391" y1="449" x2="2409" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="2400" y1="420" x2="2400" y2="460" stroke="#22262b" stroke-width="1"/>
+<line x1="2841" y1="449" x2="2859" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="2850" y1="420" x2="2850" y2="460" stroke="#22262b" stroke-width="1"/>
+<text x="2625" y="428" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">9.00</text>
+<line x1="2850" y1="440" x2="3300" y2="440" stroke="#22262b" stroke-width="1.4"/>
+<line x1="2841" y1="449" x2="2859" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="2850" y1="420" x2="2850" y2="460" stroke="#22262b" stroke-width="1"/>
+<line x1="3291" y1="449" x2="3309" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="3300" y1="420" x2="3300" y2="460" stroke="#22262b" stroke-width="1"/>
+<text x="3075" y="428" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">9.00</text>
+<line x1="3300" y1="440" x2="3750" y2="440" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3291" y1="449" x2="3309" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="3300" y1="420" x2="3300" y2="460" stroke="#22262b" stroke-width="1"/>
+<line x1="3741" y1="449" x2="3759" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="3750" y1="420" x2="3750" y2="460" stroke="#22262b" stroke-width="1"/>
+<text x="3525" y="428" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">9.00</text>
+<line x1="3750" y1="440" x2="4200" y2="440" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3741" y1="449" x2="3759" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="3750" y1="420" x2="3750" y2="460" stroke="#22262b" stroke-width="1"/>
+<line x1="4191" y1="449" x2="4209" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="4200" y1="420" x2="4200" y2="460" stroke="#22262b" stroke-width="1"/>
+<text x="3975" y="428" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">9.00</text>
+<line x1="4200" y1="440" x2="4500" y2="440" stroke="#22262b" stroke-width="1.4"/>
+<line x1="4191" y1="449" x2="4209" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="4200" y1="420" x2="4200" y2="460" stroke="#22262b" stroke-width="1"/>
+<line x1="4491" y1="449" x2="4509" y2="431" stroke="#22262b" stroke-width="2"/>
+<line x1="4500" y1="420" x2="4500" y2="460" stroke="#22262b" stroke-width="1"/>
+<text x="4350" y="428" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">6.00</text>
+<line x1="300" y1="240" x2="4500" y2="240" stroke="#22262b" stroke-width="1.4"/>
+<line x1="291" y1="249" x2="309" y2="231" stroke="#22262b" stroke-width="2"/>
+<line x1="300" y1="220" x2="300" y2="260" stroke="#22262b" stroke-width="1"/>
+<line x1="4491" y1="249" x2="4509" y2="231" stroke="#22262b" stroke-width="2"/>
+<line x1="4500" y1="220" x2="4500" y2="260" stroke="#22262b" stroke-width="1"/>
+<text x="2400" y="228" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">84.00 m</text>
+<line x1="300" y1="1660" x2="600" y2="1660" stroke="#22262b" stroke-width="1.4"/>
+<line x1="291" y1="1669" x2="309" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="300" y1="1640" x2="300" y2="1680" stroke="#22262b" stroke-width="1"/>
+<line x1="591" y1="1669" x2="609" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="600" y1="1640" x2="600" y2="1680" stroke="#22262b" stroke-width="1"/>
+<text x="450" y="1648" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">6.00</text>
+<line x1="600" y1="1660" x2="1050" y2="1660" stroke="#22262b" stroke-width="1.4"/>
+<line x1="591" y1="1669" x2="609" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="600" y1="1640" x2="600" y2="1680" stroke="#22262b" stroke-width="1"/>
+<line x1="1041" y1="1669" x2="1059" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="1050" y1="1640" x2="1050" y2="1680" stroke="#22262b" stroke-width="1"/>
+<text x="825" y="1648" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">9.00</text>
+<line x1="1050" y1="1660" x2="1500" y2="1660" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1041" y1="1669" x2="1059" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="1050" y1="1640" x2="1050" y2="1680" stroke="#22262b" stroke-width="1"/>
+<line x1="1491" y1="1669" x2="1509" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="1500" y1="1640" x2="1500" y2="1680" stroke="#22262b" stroke-width="1"/>
+<text x="1275" y="1648" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">9.00</text>
+<line x1="1500" y1="1660" x2="1950" y2="1660" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1491" y1="1669" x2="1509" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="1500" y1="1640" x2="1500" y2="1680" stroke="#22262b" stroke-width="1"/>
+<line x1="1941" y1="1669" x2="1959" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="1950" y1="1640" x2="1950" y2="1680" stroke="#22262b" stroke-width="1"/>
+<text x="1725" y="1648" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">9.00</text>
+<line x1="1950" y1="1660" x2="2400" y2="1660" stroke="#22262b" stroke-width="1.4"/>
+<line x1="1941" y1="1669" x2="1959" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="1950" y1="1640" x2="1950" y2="1680" stroke="#22262b" stroke-width="1"/>
+<line x1="2391" y1="1669" x2="2409" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="2400" y1="1640" x2="2400" y2="1680" stroke="#22262b" stroke-width="1"/>
+<text x="2175" y="1648" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">9.00</text>
+<line x1="2400" y1="1660" x2="2850" y2="1660" stroke="#22262b" stroke-width="1.4"/>
+<line x1="2391" y1="1669" x2="2409" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="2400" y1="1640" x2="2400" y2="1680" stroke="#22262b" stroke-width="1"/>
+<line x1="2841" y1="1669" x2="2859" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="2850" y1="1640" x2="2850" y2="1680" stroke="#22262b" stroke-width="1"/>
+<text x="2625" y="1648" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">9.00</text>
+<line x1="2850" y1="1660" x2="3300" y2="1660" stroke="#22262b" stroke-width="1.4"/>
+<line x1="2841" y1="1669" x2="2859" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="2850" y1="1640" x2="2850" y2="1680" stroke="#22262b" stroke-width="1"/>
+<line x1="3291" y1="1669" x2="3309" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="3300" y1="1640" x2="3300" y2="1680" stroke="#22262b" stroke-width="1"/>
+<text x="3075" y="1648" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">9.00</text>
+<line x1="3300" y1="1660" x2="3525" y2="1660" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3291" y1="1669" x2="3309" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="3300" y1="1640" x2="3300" y2="1680" stroke="#22262b" stroke-width="1"/>
+<line x1="3516" y1="1669" x2="3534" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="3525" y1="1640" x2="3525" y2="1680" stroke="#22262b" stroke-width="1"/>
+<text x="3412.5" y="1648" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">4.50</text>
+<line x1="3525" y1="1660" x2="3750" y2="1660" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3516" y1="1669" x2="3534" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="3525" y1="1640" x2="3525" y2="1680" stroke="#22262b" stroke-width="1"/>
+<line x1="3741" y1="1669" x2="3759" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="3750" y1="1640" x2="3750" y2="1680" stroke="#22262b" stroke-width="1"/>
+<text x="3637.5" y="1648" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">4.50</text>
+<line x1="3750" y1="1660" x2="3975" y2="1660" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3741" y1="1669" x2="3759" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="3750" y1="1640" x2="3750" y2="1680" stroke="#22262b" stroke-width="1"/>
+<line x1="3966" y1="1669" x2="3984" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="3975" y1="1640" x2="3975" y2="1680" stroke="#22262b" stroke-width="1"/>
+<text x="3862.5" y="1648" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">4.50</text>
+<line x1="3975" y1="1660" x2="4200" y2="1660" stroke="#22262b" stroke-width="1.4"/>
+<line x1="3966" y1="1669" x2="3984" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="3975" y1="1640" x2="3975" y2="1680" stroke="#22262b" stroke-width="1"/>
+<line x1="4191" y1="1669" x2="4209" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="4200" y1="1640" x2="4200" y2="1680" stroke="#22262b" stroke-width="1"/>
+<text x="4087.5" y="1648" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">4.50</text>
+<line x1="4200" y1="1660" x2="4500" y2="1660" stroke="#22262b" stroke-width="1.4"/>
+<line x1="4191" y1="1669" x2="4209" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="4200" y1="1640" x2="4200" y2="1680" stroke="#22262b" stroke-width="1"/>
+<line x1="4491" y1="1669" x2="4509" y2="1651" stroke="#22262b" stroke-width="2"/>
+<line x1="4500" y1="1640" x2="4500" y2="1680" stroke="#22262b" stroke-width="1"/>
+<text x="4350" y="1648" font-family="DejaVu Sans Mono, monospace" font-size="24" text-anchor="middle" fill="#22262b">6.00</text>
+<rect x="700" y="1820" width="1600" height="600" fill="none" stroke="#6b7178" stroke-width="1.6" stroke-dasharray="14 10"/>
+<text x="1500" y="2140" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="36" text-anchor="middle" fill="#6b7178">LOSA DEPORTIVA (referencial)</text>
+<circle cx="4420" cy="300" r="70" fill="none" stroke="#22262b" stroke-width="2"/>
+<path d="M 4420 205 L 4442 330 L 4420 310 L 4398 330 Z" fill="#22262b"/>
+<text x="4420" y="190" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="36" text-anchor="middle" fill="#22262b">N</text>
+<rect x="3300" y="2130" width="1300" height="330" fill="#fbfbf9" stroke="#22262b" stroke-width="2.5"/>
+<line x1="3300" y1="2250" x2="4600" y2="2250" stroke="#22262b" stroke-width="1.2"/>
+<line x1="4160" y1="2250" x2="4160" y2="2460" stroke="#22262b" stroke-width="1.2"/>
+<text x="3330" y="2185" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="44" fill="#22262b">I.E.P. SANTA ROSA DE LIMA — PABELLÓN A</text>
+<text x="3330" y="2230" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" fill="#6b7178">Planta primer piso · Arquitectura · Distribución</text>
+<text x="3330" y="2300" font-family="DejaVu Sans Mono, monospace" font-size="22" fill="#6b7178">UBICACIÓN</text>
+<text x="3550" y="2300" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" fill="#22262b">Cayma, Arequipa</text>
+<text x="3330" y="2352" font-family="DejaVu Sans Mono, monospace" font-size="22" fill="#6b7178">ESCALA</text>
+<text x="3550" y="2352" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" fill="#22262b">1:100 (impresión A1)</text>
+<text x="3330" y="2404" font-family="DejaVu Sans Mono, monospace" font-size="22" fill="#6b7178">FECHA</text>
+<text x="3550" y="2404" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="30" fill="#22262b">Agosto 2026</text>
+<text x="4190" y="2305" font-family="DejaVu Sans Mono, monospace" font-size="22" fill="#6b7178">LÁMINA</text>
+<text x="4190" y="2400" font-family="Archivo Narrow, DejaVu Sans, sans-serif" font-size="96" fill="#22262b">A-101</text>
+<rect x="300" y="2400" width="100" height="16" fill="#22262b" stroke="#22262b" stroke-width="1.5"/>
+<rect x="400" y="2400" width="100" height="16" fill="#fbfbf9" stroke="#22262b" stroke-width="1.5"/>
+<rect x="500" y="2400" width="100" height="16" fill="#22262b" stroke="#22262b" stroke-width="1.5"/>
+<rect x="600" y="2400" width="100" height="16" fill="#fbfbf9" stroke="#22262b" stroke-width="1.5"/>
+<rect x="700" y="2400" width="100" height="16" fill="#22262b" stroke="#22262b" stroke-width="1.5"/>
+<text x="300" y="2452" font-family="DejaVu Sans Mono, monospace" font-size="22" text-anchor="middle" fill="#22262b">0</text>
+<text x="400" y="2452" font-family="DejaVu Sans Mono, monospace" font-size="22" text-anchor="middle" fill="#22262b">2</text>
+<text x="500" y="2452" font-family="DejaVu Sans Mono, monospace" font-size="22" text-anchor="middle" fill="#22262b">4</text>
+<text x="600" y="2452" font-family="DejaVu Sans Mono, monospace" font-size="22" text-anchor="middle" fill="#22262b">6</text>
+<text x="700" y="2452" font-family="DejaVu Sans Mono, monospace" font-size="22" text-anchor="middle" fill="#22262b">8</text>
+<text x="800" y="2452" font-family="DejaVu Sans Mono, monospace" font-size="22" text-anchor="middle" fill="#22262b">10</text>
+<text x="830" y="2416" font-family="DejaVu Sans Mono, monospace" font-size="22" fill="#22262b">m</text>
+</svg>

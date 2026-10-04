@@ -4,7 +4,8 @@ Monorepo de demostración con webs de **solicitud de visita/presupuesto** (no e�
 para fabricantes e instaladores de protección solar, puertas y ventanas.
 
 - `apps/toldos` — **SunShade**, marca ficticia de toldos y pérgolas (B2C).
-- `apps/cortinas` — *(fase 2)* reutilizará todo `packages/core`.
+- `apps/cortinas` — **Cota**, marca ficticia de cortinas y persianas para colegios,
+  universidades y oficinas (B2B), con proyectos por ubicaciones y plano interactivo.
 - `packages/core` — piezas compartidas: motor de precios y reglas, validaciones,
   esquema de base de datos, subida de archivos, autenticación, emails, PDF,
   CRUD genérico y componentes de UI (formularios, subida de fotos, panel admin,
@@ -31,6 +32,47 @@ Zod · pnpm workspaces · Vitest · Playwright (capturas / prueba E2E).
 | Admin | `/admin` | Tablero de leads por estado + filtros, ficha con notas y fotos, calendario de visitas, PDF, CRUD de catálogo, reglas de precio y zonas |
 
 Acceso demo al panel: **demo@demo.com / demo1234** (se muestra en la página de login).
+
+---
+
+## Qué incluye Cota (`apps/cortinas`)
+
+![Mi proyecto con plano](screenshots/cortinas/07-mi-proyecto-plano.png)
+
+| Sección | Ruta | Notas |
+|---|---|---|
+| Inicio | `/` | Foto de aula, línea de valor en 3 pasos, sectores (educación, oficinas, salud), plano de ejemplo, proyectos destacados |
+| Catálogo | `/catalogo` | Filtros por tipo, material y uso (en la URL) |
+| Ficha de producto | `/catalogo/[slug]` | Fotos, telas, accionamientos, medidas mín./máx., "agregar al proyecto" |
+| Proyectos realizados | `/proyectos` | Casos con números modestos (22, 54, 118 y 16 ventanas) |
+| Mi proyecto | `/proyecto/[id]` | Ubicaciones (edificio > piso > ambiente), líneas con cantidad, duplicar ubicaciones, importar CSV/Excel, plano interactivo, fotos por ubicación, medición en obra, resumen con descuento por volumen e IGV, PDF/Excel, envío |
+| Particulares | `/particulares` | Flujo rápido sin cuenta (medidas o "que vengan a medir") |
+| Área de cliente | `/cliente` | Registro con RUC, correo + contraseña, proyectos y estados |
+| Admin | `/admin` | Tablero por estado, ficha con plano y anotaciones, comentarios por anotación (marcar observada), cambio de estado, PDF (plano numerado + tabla) y Excel, CRUD de productos, telas, perfiles y reglas |
+
+**Plano interactivo** (`packages/core/src/ui/PlanViewer.tsx`): Leaflet en modo `CRS.Simple`
+(la imagen como plano cartesiano en píxeles), zoom profundo, ajustar a pantalla, minimapa,
+marcas numeradas (punto) y rectángulos (V1, V2…) guardados en coordenadas relativas 0–1,
+colores por estado (sin configurar / configurada / observada), Ctrl + clic para seleccionar
+varias y aplicar la misma configuración, lista lateral sincronizada (clic = encuadra) y
+calibración de escala (dos puntos = X m) que sugiere el ancho al dibujar un rectángulo.
+Los PDF se convierten a PNG en el navegador con pdf.js (primera página).
+
+Accesos demo: cliente **cliente@demo.com / demo1234** (colegio con plano y 50 ventanas
+marcadas) · admin **demo@demo.com / demo1234**.
+
+```bash
+cd apps/cortinas
+cp .env.example .env            # DATABASE_URL a una base propia, p. ej. .../cortinas
+pnpm db:push && pnpm db:seed    # el seed sube el plano de demo a .data/uploads
+pnpm dev                        # o: pnpm build && pnpm start
+node scripts/make-plan.mjs      # (opcional) regenera el plano de demo (SVG -> PNG + PDF)
+BASE_URL=http://localhost:3000 pnpm screenshots   # capturas + recorrido E2E completo
+```
+
+Despliegue: otro proyecto de Vercel con **Root Directory `apps/cortinas`**, su propia base
+de Neon y las mismas variables que toldos (las imágenes de planos van al bucket R2 si hay
+`S3_BUCKET`). Tras el primer despliegue: `pnpm db:push` y `pnpm db:seed` apuntando a Neon.
 
 ---
 
@@ -117,8 +159,8 @@ En Vercel el disco no es persistente, así que en producción **R2 es obligatori
    | `EMAIL_FROM` | *(opcional)* `SunShade <avisos@tudominio.com>` |
    | `NOTIFY_EMAIL` | *(opcional)* email que recibe los avisos de nuevos leads |
 
-4. *Deploy*. Para la futura app de cortinas: otro proyecto con Root Directory `apps/cortinas`
-   y su propia base de datos de Neon.
+4. *Deploy*. Para cortinas: otro proyecto con Root Directory `apps/cortinas`
+   y su propia base de datos de Neon (ver la sección de Cota).
 
 ---
 
@@ -130,12 +172,15 @@ packages/core/src
 ├── validation.ts       Esquemas Zod: formulario, distritos/zonas, RUC, fechas
 ├── perspective.ts      Homografía: CSS matrix3d + deformación en canvas
 ├── db/schema.ts        Tablas (genéricas: sirven para toldos y cortinas)
+├── db/project-schema.ts Proyectos: clientes, ubicaciones, planos, líneas, comentarios
+├── projects.ts         Estados, descuento por volumen, resumen, calibración (puro, testeado)
+├── import.ts · xlsx.ts Importar medidas CSV/Excel y exportar Excel
 ├── db/client.ts        Conexión Postgres (local o Neon)
 ├── storage.ts          Archivos: disco local o S3/R2
 ├── auth.ts             bcrypt + sesión JWT en cookie
 ├── crud.ts             Fábrica de rutas REST para el CRUD del admin
 ├── email.ts · pdf.ts · leads.ts · calendar.ts
-└── ui/                 Field, FileDropzone, AdminShell, CrudManager, PerspectiveOverlay
+└── ui/                 Field, FileDropzone, AdminShell, CrudManager, PerspectiveOverlay, PlanViewer
 
 apps/toldos/src
 ├── app/(site)/         Web pública
@@ -144,6 +189,14 @@ apps/toldos/src
 ├── components/         AwningPreview (SVG), Configurator, OverlayStudio, Wizard…
 ├── lib/                catálogo, sesión, textos, recomendación, campos del admin
 └── proxy.ts            Protege /admin y /api/admin
+
+apps/cortinas/src
+├── app/(site)/         Web pública, área de cliente y editor /proyecto/[id]
+├── app/actions/        Server Actions: cliente, proyecto (editor), particulares
+├── app/admin/          Login + panel (tablero, ficha con plano, catálogo)
+├── app/api/            Imagen del plano, PDF, Excel, plantilla CSV, CRUD admin
+├── components/project/ Editor: pestañas, LineEditor, PlanTab, PlanUpload (pdf.js)…
+└── lib/                catálogo, precio por línea, exportaciones, sesiones, textos
 ```
 
 ### Para estudiar el código (orden sugerido)
@@ -154,13 +207,17 @@ apps/toldos/src
 5. `apps/toldos/src/app/admin/actions.ts` — Server Actions de Next.js.
 6. `packages/core/src/ui/PerspectiveOverlay.tsx` + `perspective.ts` — la parte más "matemática".
 
-### Cómo reutilizar `core` en `apps/cortinas`
-- Copia la estructura de `apps/toldos` y cambia `content.ts`, la paleta en `globals.css`
-  y el dibujo SVG (p. ej. `CurtainPreview`).
-- Los `type` de `product_models` serán otros (`enrollable`, `plisada`…) y las reglas de
-  precio y zonas se gestionan igual desde el panel.
-- `CrudManager`, `FileDropzone`, `PerspectiveOverlay`, `buildPdf`, `createCrudHandlers`,
-  `calculatePrice` y los esquemas Zod se usan tal cual.
+### Qué reutiliza `apps/cortinas` de `core`
+- Tal cual: `calculatePrice` y `validateDimensions` (el "alto" de la cortina usa el campo
+  `projection`), auth (con rol `client` y otra cookie), storage, email, `createCrudHandlers`,
+  `CrudManager`, `AdminShell`, `Field`.
+- Nuevo en core para la fase 2: `project-schema.ts`, `projects.ts`, `import.ts`, `xlsx.ts`,
+  `PlanViewer.tsx` y páginas de plano + tablas en `pdf.ts`.
+- Propio de la app: textos (`content.ts`), paleta (`globals.css`), `CurtainPreview` (SVG),
+  etiquetas de accionamiento (Cadena / Motor / Motor + control centralizado).
+
+Para estudiar la fase 2: `core/src/projects.ts` + test → `core/src/ui/PlanViewer.tsx` →
+`apps/cortinas/src/app/actions/project.ts` → `components/project/PlanTab.tsx`.
 
 ---
 
@@ -175,3 +232,11 @@ apps/toldos/src
 - Las zonas de servicio son distritos (Arequipa en la demo); se comparan por nombre, sin tildes.
 - Precios en soles (S/), orientativos e IGV incluido.
 - Algunas fotos son de terrazas de cafés; ver `CREDITS.md`.
+- Cota: el visor carga el plano como una sola imagen de alta resolución (hasta 6000 px de
+  lado); no genera teselas, así que planos enormes (A0 a 300 ppp) conviene subirlos reducidos.
+  De un PDF solo se usa la primera página.
+- Cota: el login de clientes es correo + contraseña (sin recuperación ni código mágico).
+  Las anotaciones no se pueden mover una vez creadas (se borran y se vuelven a marcar).
+- Cota: el proyecto queda en solo lectura al enviarlo; no hay chat bidireccional, solo
+  comentarios del admin por anotación. No hay foto real de cortinas verticales (se usa una
+  sala de consulta y el dibujo SVG).

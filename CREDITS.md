@@ -31,3 +31,30 @@ No se ha usado ninguna imagen generada por IA.
 
 > Nota: algunas fotos son de terrazas de cafés y no de casas particulares; para una
 > web real conviene sustituirlas por fotos de instalaciones propias.
+
+
+## Cota (apps/cortinas)
+
+Tratamiento común: `scripts/process-images.mjs` (saturación 0,62, matriz fría, contraste
+suave) para que todas parezcan de la misma sesión. El plano de demostración
+(`assets-src/planos/plano-pabellon-a.*`) está dibujado por código en
+`scripts/make-plan.mjs`. Ninguna imagen es generada por IA.
+
+| Archivo | Uso | Fuente | Autor | Licencia |
+|---|---|---|---|---|
+| hero-aula-magna | Portada, Roller gran formato | [Unsplash I8PUo5Xk8DU](https://unsplash.com/photos/empty-lecture-hall-with-rows-of-seats-I8PUo5Xk8DU) | Zsófia Hajnal (@zsofiahajnal) | Licencia Unsplash |
+| sector-educacion | Sector educación, Roller Blackout | [Pexels 36244514](https://www.pexels.com/photo/36244514/) | Merve Nur Kirazlı | Licencia Pexels |
+| sector-oficinas | Sector oficinas, caso de estudio | [Pexels 28715052](https://www.pexels.com/photo/28715052/) | Eric WANG | Licencia Pexels |
+| sector-salud | Sector salud, Vertical PVC | [Pexels 14267573](https://www.pexels.com/photo/14267573/) | Viktorya Sergeeva | Licencia Pexels |
+| producto-roller | Roller Screen 5% | [Pexels 7046155](https://www.pexels.com/photo/7046155/) | Max Vakhtbovych | Licencia Pexels |
+| producto-veneciana | Persiana de aluminio | [Pexels 19304047](https://www.pexels.com/photo/19304047/) | Minh Phuc | Licencia Pexels |
+| producto-blackout | Galería persiana | [Pexels 24428640](https://www.pexels.com/photo/24428640/) | Jaykumar Bherwani | Licencia Pexels |
+| producto-detalle | Doble roller, galería | [Pexels 8955198](https://www.pexels.com/photo/8955198/) | Liviu Gorincioi | Licencia Pexels |
+| producto-vertical | Galería vertical (sala de reuniones) | [Pexels 5511091](https://www.pexels.com/photo/5511091/) | Mike van Schoonderwalt | Licencia Pexels |
+| proyecto-colegio | Caso colegio, galería | [Pexels 30281236](https://www.pexels.com/photo/30281236/) | Oliver Hung | Licencia Pexels |
+| proyecto-universidad | Caso universidad | [Pexels 33892136](https://www.pexels.com/photo/33892136/) | ver página | Licencia Pexels |
+| proyecto-instituto | Caso instituto, login admin | [Pexels 37420211](https://www.pexels.com/photo/37420211/) | ver página | Licencia Pexels |
+
+> Nota: no se encontró una foto libre clara de cortinas verticales; el producto usa una
+> foto de consultorio y el dibujo SVG. Las fotos de aulas y oficinas no muestran
+> instalaciones de la marca (es ficticia).
