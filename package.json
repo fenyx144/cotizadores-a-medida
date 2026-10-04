@@ -1,0 +1,14 @@
+{
+  "name": "portafolio",
+  "private": true,
+  "packageManager": "pnpm@10.33.4",
+  "scripts": {
+    "dev": "pnpm --filter toldos dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "db:push": "pnpm --filter toldos db:push",
+    "db:seed": "pnpm --filter toldos db:seed"
+  }
+}

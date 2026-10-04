@@ -1,0 +1,91 @@
+@import "tailwindcss";
+/* Tailwind también debe leer las clases usadas en el paquete compartido */
+@source "../../../../packages/core/src";
+
+/*
+ * Paleta de materiales reales: lino, tinta, terracota, oliva.
+ * Estos nombres (paper, ink, muted, line...) los usan también los componentes
+ * de packages/core, así que cada app solo cambia los valores.
+ */
+@theme {
+  --color-paper: #f4efe6;
+  --color-paper-deep: #eae2d3;
+  --color-ink: #1f1d1a;
+  --color-muted: #6e675d;
+  --color-line: #d8cfbf;
+  --color-terracotta: #b4552f;
+  --color-olive: #5e6236;
+  --color-sand: #d4bf9a;
+
+  --font-serif: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-instrument), system-ui, sans-serif;
+
+  --animate-rise: rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+/* Títulos: serif, caja normal, interletrado ajustado */
+h1, h2, h3, .font-serif {
+  font-family: var(--font-serif);
+  font-weight: 350;
+  letter-spacing: -0.015em;
+  font-variation-settings: "opsz" 96, "SOFT" 50;
+}
+
+::selection {
+  background: var(--color-sand);
+}
+
+/* Enlace con subrayado que crece al pasar el ratón (micro-animación) */
+.link-grow {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.4s ease;
+}
+.link-grow:hover {
+  background-size: 100% 1px;
+}
+
+/* Las fotos se acercan muy despacio al pasar el ratón */
+.photo-zoom img {
+  transition: transform 1.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.photo-zoom:hover img {
+  transform: scale(1.03);
+}
+
+/* Elementos que aparecen al hacer scroll (ver components/Reveal.tsx) */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .photo-zoom img { transition: none; }
+}
+
+/* Inputs de rango finos, a juego con la línea editorial */
+input[type="range"] {
+  accent-color: var(--color-ink);
+}
