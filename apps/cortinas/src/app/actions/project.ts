@@ -10,7 +10,8 @@ import { z } from "zod";
 import { validateDimensions } from "@portafolio/core/pricing";
 import { nextLabel } from "@portafolio/core/projects";
 import { parseMeasurementFile, type ImportResult, type MeasurementRow } from "@portafolio/core/import";
-import { getStorage, isStorageAvailable, makeKey, StorageUnavailableError } from "@portafolio/core/storage";
+import { makeKey, StorageUnavailableError } from "@portafolio/core/storage";
+import { deleteFile, FileTooLargeError, putFile } from "@/lib/files";
 import { sendEmail } from "@portafolio/core/email";
 import type { LineConfig } from "@portafolio/core/db/project-schema";
 import { getDb, schema } from "@/lib/db";
@@ -41,7 +42,7 @@ async function run(projectId: number, fn: () => Promise<number | void>): Promise
     const data = (await loadProject(projectId))!;
     return { ok: true, data, createdId: createdId ?? undefined };
   } catch (e) {
-    if (e instanceof ActionError || e instanceof StorageUnavailableError) return { ok: false, error: e.message };
+    if (e instanceof ActionError || e instanceof StorageUnavailableError || e instanceof FileTooLargeError) return { ok: false, error: e.message };
     console.error(e);
     return { ok: false, error: "No se pudo guardar. Inténtelo de nuevo." };
   }
@@ -224,7 +225,6 @@ const MAX_PLAN_BYTES = 15 * 1024 * 1024;
 /** Sube un plano (o foto de una ubicación). Los PDF ya llegan convertidos a PNG desde el navegador. */
 export async function uploadPlan(projectId: number, formData: FormData) {
   return run(projectId, async () => {
-    if (!isStorageAvailable()) throw new StorageUnavailableError();
     const file = formData.get("file");
     if (!(file instanceof File) || file.size === 0) throw new ActionError("Elija un archivo.");
     if (!["image/png", "image/jpeg"].includes(file.type)) throw new ActionError("El plano debe ser PNG, JPG o PDF.");
@@ -236,7 +236,7 @@ export async function uploadPlan(projectId: number, formData: FormData) {
     const locationId = Number(formData.get("locationId")) || null;
     if (kind === "foto" && !locationId) throw new ActionError("Elija la ubicación de la foto.");
     const key = makeKey(`planos/p${projectId}`, file.name.replace(/\.pdf$/i, ".png"));
-    await getStorage().put(key, new Uint8Array(await file.arrayBuffer()), file.type);
+    await putFile(key, new Uint8Array(await file.arrayBuffer()), file.type);
     const [row] = await getDb()
       .insert(schema.plans)
       .values({ projectId, kind, locationId, name: String(formData.get("name") || file.name).slice(0, 120), imageKey: key, width, height })
@@ -253,7 +253,7 @@ export async function deletePlan(projectId: number, planId: number) {
     // Las líneas se conservan, pero pierden su anotación.
     await db.update(schema.lines).set({ planId: null, shape: null, x: null, y: null, w: null, h: null }).where(eq(schema.lines.planId, planId));
     await db.delete(schema.plans).where(eq(schema.plans.id, planId));
-    await getStorage().delete(plan.imageKey).catch(() => {});
+    await deleteFile(plan.imageKey).catch(() => {});
   });
 }
 
@@ -365,5 +365,35 @@ export async function addFromCatalog(
       .values({ projectId, locationId: loc.id, label, width: input.width, height: input.height, quantity: Math.max(1, Math.min(500, input.quantity)), sortOrder: all.length, ...cfg })
       .returning();
     return row.id;
+  });
+}
+
+const ATTACHMENT_TYPES = ["image/jpeg", "image/png", "image/webp", "application/pdf"];
+const MAX_ATTACHMENT_BYTES = 4 * 1024 * 1024;
+
+/** Adjunta un archivo genérico al proyecto (foto o PDF, máx. 4 MB). */
+export async function uploadAttachment(projectId: number, formData: FormData) {
+  return run(projectId, async () => {
+    const file = formData.get("file");
+    if (!(file instanceof File) || file.size === 0) throw new ActionError("Elija un archivo.");
+    if (!ATTACHMENT_TYPES.includes(file.type)) throw new ActionError("Solo se aceptan fotos (JPG, PNG, WEBP) o PDF.");
+    if (file.size > MAX_ATTACHMENT_BYTES) throw new ActionError("El archivo supera 4 MB.");
+    const key = makeKey(`adjuntos/p${projectId}`, file.name);
+    await putFile(key, new Uint8Array(await file.arrayBuffer()), file.type);
+    const [row] = await getDb()
+      .insert(schema.projectAttachments)
+      .values({ projectId, name: file.name.slice(0, 120), contentType: file.type, size: file.size, storageKey: key })
+      .returning();
+    return row.id;
+  });
+}
+
+export async function deleteAttachment(projectId: number, attachmentId: number) {
+  return run(projectId, async () => {
+    const db = getDb();
+    const [a] = await db.select().from(schema.projectAttachments).where(and(eq(schema.projectAttachments.id, attachmentId), eq(schema.projectAttachments.projectId, projectId)));
+    if (!a) return;
+    await db.delete(schema.projectAttachments).where(eq(schema.projectAttachments.id, a.id));
+    await deleteFile(a.storageKey).catch(() => {});
   });
 }

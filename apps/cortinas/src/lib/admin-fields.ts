@@ -13,6 +13,7 @@ export const PRODUCT_FIELDS: CrudField[] = [
   { name: "tagline", label: "Frase corta", type: "text" },
   { name: "description", label: "Descripción", type: "textarea" },
   { name: "image", label: "Imagen", type: "text", hint: "Ruta, ej: /img/producto-roller.webp" },
+  { name: "specs", label: "Ficha técnica", type: "specs", hint: "Se muestra como tabla en la página pública del producto." },
   { name: "minWidth", label: "Ancho mínimo (cm)", type: "number" },
   { name: "maxWidth", label: "Ancho máximo (cm)", type: "number", column: true },
   { name: "minProjection", label: "Alto mínimo (cm)", type: "number" },

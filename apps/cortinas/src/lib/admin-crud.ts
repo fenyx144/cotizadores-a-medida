@@ -18,6 +18,7 @@ const resources: Record<string, CrudResource> = {
       type: z.enum(["enrollable", "dual", "vertical", "veneciana"]), material: z.enum(["screen", "blackout", "mixto", "pvc", "aluminio"]),
       uses: z.string().regex(/^[a-z,]*$/, "Ej: educacion,oficinas"), tagline: z.string(), description: z.string(), image: z.string(),
       minWidth: cm, maxWidth: cm, minProjection: cm, maxProjection: cm, basePrice: money, pricePerM2: money, sortOrder: z.number().int(), active: z.boolean(),
+      specs: z.array(z.object({ label: z.string().min(1).max(60), value: z.string().min(1).max(200) })).max(30).default([]),
     }),
   },
   fabrics: {

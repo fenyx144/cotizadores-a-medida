@@ -19,6 +19,8 @@ export const productModels = pgTable("product_models", {
   material: text("material").notNull().default(""),
   uses: text("uses").notNull().default(""), // lista separada por comas: "educacion,oficinas"
   gallery: jsonb("gallery").$type<string[]>().notNull().default([]),
+  /** Ficha técnica: filas clave/valor ("Mecanismo" -> "Cadena con freno"). */
+  specs: jsonb("specs").$type<{ label: string; value: string }[]>().notNull().default([]),
   minWidth: integer("min_width").notNull(),
   maxWidth: integer("max_width").notNull(),
   minProjection: integer("min_projection").notNull(),

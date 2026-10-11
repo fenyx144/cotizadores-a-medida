@@ -5,6 +5,7 @@ import { formatMoney } from "@portafolio/core/pricing";
 import { summarizeProject } from "@portafolio/core/projects";
 import { requestMeasurement, sendProject, updateNotes } from "@/app/actions/project";
 import { DISTRICTS } from "@/lib/content";
+import { AttachmentsBlock } from "./AttachmentsBlock";
 import { btnLine, btnPrimary, inputCls, labelCls, locName, type EditorContext } from "./shared";
 
 export function SummaryTab({ ctx }: { ctx: EditorContext }) {
@@ -69,6 +70,7 @@ export function SummaryTab({ ctx }: { ctx: EditorContext }) {
             ))}
           </tbody>
         </table>
+        <AttachmentsBlock ctx={ctx} />
       </section>
 
       <aside className="space-y-10 lg:col-span-5">

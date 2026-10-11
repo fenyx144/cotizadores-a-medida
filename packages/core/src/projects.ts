@@ -9,11 +9,11 @@ export type ProjectStatus = (typeof PROJECT_STATUSES)[number];
 
 export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
   borrador: "Borrador",
-  enviado: "Enviado",
-  en_revision: "En revisión",
-  cotizado: "Cotizado",
-  ganado: "Ganado",
-  perdido: "Perdido",
+  enviado: "Recibido",
+  en_revision: "En proceso",
+  cotizado: "Presupuestado",
+  ganado: "Aceptado",
+  perdido: "Descartado",
 };
 
 export const LINE_STATUSES = ["sin_configurar", "configurada", "observada"] as const;

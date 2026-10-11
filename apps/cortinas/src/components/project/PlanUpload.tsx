@@ -8,7 +8,7 @@ import { useState } from "react";
 import { uploadPlan } from "@/app/actions/project";
 import { btnPrimary, inputCls, labelCls, locName, type EditorContext } from "./shared";
 
-const MAX_SIDE = 6000; // px del lado mayor tras convertir
+const MAX_SIDE = 3000; // px del lado mayor tras convertir
 
 /** Renderiza la primera página del PDF en un canvas y devuelve un PNG. */
 async function pdfToPng(file: File): Promise<{ blob: Blob; width: number; height: number }> {

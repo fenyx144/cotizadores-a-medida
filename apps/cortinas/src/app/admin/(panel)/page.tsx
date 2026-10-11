@@ -18,14 +18,15 @@ export default async function Board({ searchParams }: { searchParams: Promise<{ 
     .innerJoin(C, eq(C.id, P.clientId))
     .where(q ? or(ilike(P.name, `%${q}%`), ilike(P.reference, `%${q}%`), ilike(C.company, `%${q}%`), ilike(C.name, `%${q}%`)) : undefined)
     .orderBy(desc(P.updatedAt));
-  const [lines, plans] = await Promise.all([
+  const [lines, plans, files] = await Promise.all([
     db.select({ projectId: schema.lines.projectId, quantity: schema.lines.quantity, unitPrice: schema.lines.unitPrice, config: schema.lines.config, status: schema.lines.status }).from(schema.lines),
     db.select({ projectId: schema.plans.projectId }).from(schema.plans),
+    db.select({ projectId: schema.projectAttachments.projectId }).from(schema.projectAttachments),
   ]);
   const stats = (id: number) => {
     const ls = lines.filter((l) => l.projectId === id);
     const s = summarizeProject(ls.map((l) => ({ locationName: "", productName: l.config?.modelName ?? null, quantity: l.quantity, unitPrice: l.config ? l.unitPrice : null })));
-    return { ...s, observed: ls.filter((l) => l.status === "observada").length, hasPlan: plans.some((p) => p.projectId === id) };
+    return { ...s, observed: ls.filter((l) => l.status === "observada").length, hasPlan: plans.some((p) => p.projectId === id), files: files.filter((f) => f.projectId === id).length };
   };
 
   return (
@@ -62,6 +63,7 @@ export default async function Board({ searchParams }: { searchParams: Promise<{ 
                           <span>{s.windows} cortinas</span>
                           {s.total > 0 && <span>{formatMoney(s.total)}</span>}
                           {s.hasPlan && <span className="text-blue">Plano</span>}
+                          {s.files > 0 && <span className="text-blue">{s.files} adj.</span>}
                           {p.measurementRequest && <span className="text-blue">Medición</span>}
                           {s.observed > 0 && <span className="text-danger">{s.observed} obs.</span>}
                         </p>

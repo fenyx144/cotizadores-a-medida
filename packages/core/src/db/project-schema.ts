@@ -8,7 +8,7 @@
  * anotación (punto o rectángulo) en coordenadas relativas 0-1, así no depende
  * del tamaño en píxeles de la imagen.
  */
-import { integer, jsonb, pgTable, real, serial, text, timestamp } from "drizzle-orm/pg-core";
+import { customType, integer, jsonb, pgTable, real, serial, text, timestamp } from "drizzle-orm/pg-core";
 
 export const clients = pgTable("clients", {
   id: serial("id").primaryKey(),
@@ -145,4 +145,28 @@ export type Location = typeof locations.$inferSelect;
 export type Plan = typeof plans.$inferSelect;
 export type Line = typeof lines.$inferSelect;
 export type LineComment = typeof lineComments.$inferSelect;
+/** Archivos adjuntos del cliente a un proyecto (fotos, PDF de especificaciones…). */
+export const projectAttachments = pgTable("project_attachments", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  contentType: text("content_type").notNull(),
+  size: integer("size").notNull(),
+  storageKey: text("storage_key").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+});
+
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () => "bytea" });
+
+/** Respaldo de almacenamiento en Postgres cuando no hay S3/R2 (p. ej. Vercel sin bucket). */
+export const storedFiles = pgTable("stored_files", {
+  key: text("key").primaryKey(),
+  contentType: text("content_type").notNull(),
+  data: bytea("data").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+});
+
+export type ProjectAttachment = typeof projectAttachments.$inferSelect;
 export type ProjectNote = typeof projectNotes.$inferSelect;

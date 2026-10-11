@@ -7,7 +7,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export type FieldType = "text" | "textarea" | "number" | "color" | "boolean" | "select";
+export type FieldType = "text" | "textarea" | "number" | "color" | "boolean" | "select" | "specs";
 
 export interface CrudField {
   name: string;
@@ -48,7 +48,7 @@ export function CrudManager({
 
   function emptyRow(): Partial<Row> {
     const r: Record<string, unknown> = {};
-    for (const f of fields) r[f.name] = f.type === "boolean" ? true : f.type === "number" ? (f.nullable ? null : 0) : f.type === "color" ? "#cccccc" : f.nullable ? null : (f.options?.[0]?.value ?? "");
+    for (const f of fields) r[f.name] = f.type === "specs" ? [] : f.type === "boolean" ? true : f.type === "number" ? (f.nullable ? null : 0) : f.type === "color" ? "#cccccc" : f.nullable ? null : (f.options?.[0]?.value ?? "");
     return r;
   }
 
@@ -58,6 +58,7 @@ export function CrudManager({
     for (const f of fields) {
       let v = row[f.name];
       if (f.type === "number") v = v === "" || v === null || v === undefined ? (f.nullable ? null : 0) : Number(v);
+      else if (f.type === "specs") v = ((v as { label: string; value: string }[]) ?? []).map((r) => ({ label: r.label.trim(), value: r.value.trim() })).filter((r) => r.label && r.value);
       else if (f.type !== "boolean" && f.nullable && (v === "" || v === undefined)) v = null;
       out[f.name] = v;
     }
@@ -104,6 +105,7 @@ export function CrudManager({
           <span className="text-muted">{String(value)}</span>
         </span>
       );
+    if (f.type === "specs") return Array.isArray(value) && value.length ? `${value.length} filas` : "—";
     if (f.type === "select") return f.options?.find((o) => o.value === value)?.label ?? (value == null ? "—" : String(value));
     return value == null || value === "" ? "—" : String(value);
   }
@@ -156,7 +158,11 @@ export function CrudManager({
             className="space-y-4 self-start border-t border-ink pt-4 lg:sticky lg:top-8"
           >
             <p className="font-serif text-xl">{editing.id ? "Editar" : "Nuevo registro"}</p>
-            {fields.map((f) => (
+            {fields.map((f) => f.type === "specs" ? (
+              <SpecsEditor key={f.name} label={f.label} hint={f.hint} error={errors[f.name]}
+                rows={(editing[f.name] as SpecRow[] | undefined) ?? []}
+                onChange={(rows) => setEditing({ ...editing, [f.name]: rows })} />
+            ) : (
               <label key={f.name} className="block text-sm">
                 <span className="text-muted">{f.label}</span>
                 {f.type === "textarea" ? (
@@ -188,6 +194,30 @@ export function CrudManager({
           </form>
         )}
       </div>
+    </div>
+  );
+}
+
+type SpecRow = { label: string; value: string };
+
+/** Editor de ficha técnica: filas clave/valor que se pueden añadir y quitar. */
+function SpecsEditor({ label, hint, error, rows, onChange }: { label: string; hint?: string; error?: string; rows: SpecRow[]; onChange: (rows: SpecRow[]) => void }) {
+  const set = (i: number, k: keyof SpecRow, v: string) => onChange(rows.map((r, j) => (j === i ? { ...r, [k]: v } : r)));
+  return (
+    <div className="block text-sm" data-testid="specs-editor">
+      <span className="text-muted">{label}</span>
+      <div className="mt-1 divide-y divide-line border-y border-line">
+        {rows.map((r, i) => (
+          <div key={i} className="flex items-center gap-2 py-1">
+            <input aria-label="Característica" placeholder="Característica" value={r.label} onChange={(e) => set(i, "label", e.target.value)} className="w-2/5 bg-transparent py-1 text-muted outline-none" />
+            <input aria-label="Valor" placeholder="Valor" value={r.value} onChange={(e) => set(i, "value", e.target.value)} className="min-w-0 flex-1 bg-transparent py-1 outline-none" />
+            <button type="button" onClick={() => onChange(rows.filter((_, j) => j !== i))} className="px-1 text-muted hover:text-danger" aria-label="Quitar fila">×</button>
+          </div>
+        ))}
+      </div>
+      <button type="button" onClick={() => onChange([...rows, { label: "", value: "" }])} className="mt-2 text-ink underline underline-offset-4">+ Añadir fila</button>
+      {hint && <span className="mt-1 block text-xs text-muted">{hint}</span>}
+      {error && <span className="mt-1 block text-xs text-danger">{error}</span>}
     </div>
   );
 }

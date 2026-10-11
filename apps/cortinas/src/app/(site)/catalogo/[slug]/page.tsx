@@ -76,6 +76,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </div>
           </dl>
 
+          {model.specs?.length > 0 && (
+            <section className="mt-8" data-testid="specs">
+              <h2 className="text-[1.6rem]">Ficha técnica</h2>
+              <table className="mt-3 w-full border-y border-line text-[0.95rem]">
+                <tbody className="divide-y divide-line">
+                  {model.specs.map((r) => (
+                    <tr key={r.label}><th scope="row" className="w-1/2 py-2.5 pr-4 text-left font-normal text-muted">{r.label}</th><td className="py-2.5">{r.value}</td></tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          )}
+
           <div className="mt-8">
             <p className="font-mono text-xs text-muted">Telas ({fabrics.length})</p>
             <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
