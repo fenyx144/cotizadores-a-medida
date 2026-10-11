@@ -93,7 +93,8 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
 
       <section className="mt-12">
         <h2 className="border-b border-ink pb-2 text-2xl">Líneas</h2>
-        <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="font-mono text-[11px] text-muted">
             <tr className="border-b border-line">
               <th className="py-2 font-normal">Cód.</th><th className="py-2 font-normal">Ubicación</th><th className="py-2 font-normal">Producto</th><th className="py-2 font-normal">Accionamiento</th>
@@ -115,6 +116,7 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
             ))}
           </tbody>
         </table>
+        </div>
         {data.lines.length === 0 && <p className="mt-4 text-sm text-muted">Sin líneas: el cliente pidió medición en obra.</p>}
       </section>
     </div>
