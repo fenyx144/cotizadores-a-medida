@@ -20,7 +20,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
             {attributes.map((a) => <Link key={a.id} href={`/admin/catalogo/atributos?atributo=${a.id}`} className={tab(a.id === current.id)}>{a.name}</Link>)}
           </nav>
           <CrudManager key={current.id} resource="values" title={`Valores de “${current.name}”`} newLabel="Añadir valor"
-            description={current.kind === "sino" ? "Un solo valor (“Sí”) con su recargo." : current.kind === "numero" ? "El cliente escribe un número; no lleva valores." : "Cada valor puede tener código, muestra y recargo."}
+            description={current.kind === "sino" ? "Un solo valor (“Sí”) con su recargo." : current.kind === "numero" ? "El cliente escribe un número; no lleva valores." : "Cada valor: código, muestra de color o imagen, y recargo."}
             fields={valueFields(attributes.map((a) => ({ value: String(a.id), label: a.name }))).map((f) => (f.name === "attributeId" ? { ...f, options: [{ value: String(current.id), label: current.name }, ...(f.options ?? []).filter((o) => o.value !== String(current.id))] } : f))}
             initialRows={rows} />
         </div>

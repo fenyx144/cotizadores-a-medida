@@ -166,7 +166,7 @@ export function RulesStudio({ catalog, initialRules }: { catalog: CatalogData; i
                   </select>
                   {(draft.kind === "bloquear" || draft.kind === "permitir") && (
                     <select className={sel} value={draft.targetAttributeId ?? ""} onChange={(e) => setDraft({ ...draft, targetAttributeId: Number(e.target.value) || null, targetValueIds: [] })} aria-label="Atributo afectado">
-                      <option value="">Atributo…</option>{attrs.filter((a) => a.kind === "lista" || a.kind === "color").map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                      <option value="">Atributo…</option>{attrs.filter((a) => a.kind === "lista").map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
                     </select>
                   )}
                 </p>
@@ -214,7 +214,7 @@ function Matrix({ catalog, rules, onSaved }: { catalog: CatalogData; rules: Cons
   const families = catalog.families ?? [];
   const [familyId, setFamilyId] = useState(families[0]?.id ?? 0);
   const family = families.find((f) => f.id === familyId);
-  const fas = (family?.attributes ?? []).map((fa) => ({ ...fa, attribute: catalog.attributes.find((a) => a.id === fa.attributeId)! })).filter((x) => x.attribute && (x.attribute.kind === "lista" || x.attribute.kind === "color"));
+  const fas = (family?.attributes ?? []).map((fa) => ({ ...fa, attribute: catalog.attributes.find((a) => a.id === fa.attributeId)! })).filter((x) => x.attribute && x.attribute.kind === "lista");
   const [aId, setA] = useState<number>(fas[0]?.attributeId ?? 0);
   const [bId, setB] = useState<number>(fas[1]?.attributeId ?? 0);
   const fa = fas.find((x) => x.attributeId === aId), fb = fas.find((x) => x.attributeId === bId);

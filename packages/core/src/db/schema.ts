@@ -40,7 +40,7 @@ export const productVariants = pgTable("product_variants", {
 
 /**
  * Atributos genéricos del configurador (Tela, Color del perfil, Accionamiento, Lado del mando…).
- * kind: lista (opciones) | color (opciones con muestra) | numero | sino.
+ * kind: lista (opciones; cada valor puede llevar muestra de color y/o imagen) | numero | sino.
  */
 export const attributes = pgTable("attributes", {
   id: serial("id").primaryKey(),
@@ -59,6 +59,8 @@ export const attributeValues = pgTable("attribute_values", {
   name: text("name").notNull(),
   code: text("code").notNull().default(""),
   hex: text("hex").notNull().default(""),
+  /** Miniatura opcional del valor (URL). */
+  image: text("image").notNull().default(""),
   surcharge: real("surcharge").notNull().default(0),
   surchargeKind: text("surcharge_kind").notNull().default("fijo"), // fijo | por_m2
   /** Solo para estos materiales o tipos de producto (coma); vacío = todos. */

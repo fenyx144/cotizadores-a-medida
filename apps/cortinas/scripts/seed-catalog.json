@@ -17,6 +17,14 @@
             4
           ],
           "attributeId": 1
+        },
+        {
+          "required": false,
+          "valueIds": [
+            24,
+            25
+          ],
+          "attributeId": 7
         }
       ]
     },
@@ -36,6 +44,13 @@
             7
           ],
           "attributeId": 1
+        },
+        {
+          "required": false,
+          "valueIds": [
+            26
+          ],
+          "attributeId": 7
         }
       ]
     },
@@ -56,6 +71,14 @@
             4
           ],
           "attributeId": 1
+        },
+        {
+          "required": false,
+          "valueIds": [
+            24,
+            25
+          ],
+          "attributeId": 7
         }
       ]
     },
@@ -74,6 +97,13 @@
             9
           ],
           "attributeId": 1
+        },
+        {
+          "required": false,
+          "valueIds": [
+            27
+          ],
+          "attributeId": 7
         }
       ]
     },
@@ -93,6 +123,13 @@
             12
           ],
           "attributeId": 1
+        },
+        {
+          "required": false,
+          "valueIds": [
+            28
+          ],
+          "attributeId": 7
         }
       ]
     }
@@ -114,6 +151,11 @@
       "allowed_fabric_ids": "",
       "sort_order": 1,
       "attributes": [
+        {
+          "required": true,
+          "valueIds": [],
+          "attributeId": 7
+        },
         {
           "required": true,
           "valueIds": [],
@@ -166,6 +208,11 @@
         {
           "required": true,
           "valueIds": [],
+          "attributeId": 7
+        },
+        {
+          "required": true,
+          "valueIds": [],
           "attributeId": 1
         },
         {
@@ -210,6 +257,11 @@
       "allowed_fabric_ids": "",
       "sort_order": 3,
       "attributes": [
+        {
+          "required": true,
+          "valueIds": [],
+          "attributeId": 7
+        },
         {
           "required": true,
           "valueIds": [],
@@ -263,6 +315,11 @@
         {
           "required": true,
           "valueIds": [],
+          "attributeId": 7
+        },
+        {
+          "required": true,
+          "valueIds": [],
           "attributeId": 1
         },
         {
@@ -297,6 +354,11 @@
       "allowed_fabric_ids": "",
       "sort_order": 5,
       "attributes": [
+        {
+          "required": true,
+          "valueIds": [],
+          "attributeId": 7
+        },
         {
           "required": true,
           "valueIds": [],
@@ -448,6 +510,163 @@
       "surcharge": 18,
       "surcharge_kind": "fijo",
       "source": ""
+    },
+    {
+      "id": 9,
+      "name": "Colores de Screen 5%",
+      "kind": "permitir",
+      "family_id": null,
+      "model_id": null,
+      "if_option": null,
+      "then_option": null,
+      "min_width": null,
+      "max_width": null,
+      "min_height": null,
+      "max_height": null,
+      "message": "Colores de Screen 5%: Blanco gris, Gris perla, Lino.",
+      "active": true,
+      "conditions": [
+        {
+          "valueIds": [
+            24
+          ],
+          "attributeId": 7
+        }
+      ],
+      "target_attribute_id": 1,
+      "target_value_ids": [
+        1,
+        2,
+        3
+      ],
+      "surcharge": 0,
+      "surcharge_kind": "fijo",
+      "source": ""
+    },
+    {
+      "id": 10,
+      "name": "Colores de Screen 3%",
+      "kind": "permitir",
+      "family_id": null,
+      "model_id": null,
+      "if_option": null,
+      "then_option": null,
+      "min_width": null,
+      "max_width": null,
+      "min_height": null,
+      "max_height": null,
+      "message": "Colores de Screen 3%: Carbón.",
+      "active": true,
+      "conditions": [
+        {
+          "valueIds": [
+            25
+          ],
+          "attributeId": 7
+        }
+      ],
+      "target_attribute_id": 1,
+      "target_value_ids": [
+        4
+      ],
+      "surcharge": 0,
+      "surcharge_kind": "fijo",
+      "source": ""
+    },
+    {
+      "id": 11,
+      "name": "Colores de Blackout",
+      "kind": "permitir",
+      "family_id": null,
+      "model_id": null,
+      "if_option": null,
+      "then_option": null,
+      "min_width": null,
+      "max_width": null,
+      "min_height": null,
+      "max_height": null,
+      "message": "Colores de Blackout: Blanco, Arena, Gris piedra.",
+      "active": true,
+      "conditions": [
+        {
+          "valueIds": [
+            26
+          ],
+          "attributeId": 7
+        }
+      ],
+      "target_attribute_id": 1,
+      "target_value_ids": [
+        5,
+        6,
+        7
+      ],
+      "surcharge": 0,
+      "surcharge_kind": "fijo",
+      "source": ""
+    },
+    {
+      "id": 12,
+      "name": "Colores de PVC",
+      "kind": "permitir",
+      "family_id": null,
+      "model_id": null,
+      "if_option": null,
+      "then_option": null,
+      "min_width": null,
+      "max_width": null,
+      "min_height": null,
+      "max_height": null,
+      "message": "Colores de PVC: Perla, Gris niebla.",
+      "active": true,
+      "conditions": [
+        {
+          "valueIds": [
+            27
+          ],
+          "attributeId": 7
+        }
+      ],
+      "target_attribute_id": 1,
+      "target_value_ids": [
+        8,
+        9
+      ],
+      "surcharge": 0,
+      "surcharge_kind": "fijo",
+      "source": ""
+    },
+    {
+      "id": 13,
+      "name": "Colores de Lámina aluminio",
+      "kind": "permitir",
+      "family_id": null,
+      "model_id": null,
+      "if_option": null,
+      "then_option": null,
+      "min_width": null,
+      "max_width": null,
+      "min_height": null,
+      "max_height": null,
+      "message": "Colores de Lámina aluminio: Plata, Blanco, Grafito.",
+      "active": true,
+      "conditions": [
+        {
+          "valueIds": [
+            28
+          ],
+          "attributeId": 7
+        }
+      ],
+      "target_attribute_id": 1,
+      "target_value_ids": [
+        10,
+        11,
+        12
+      ],
+      "surcharge": 0,
+      "surcharge_kind": "fijo",
+      "source": ""
     }
   ],
   "variants": [
@@ -462,7 +681,7 @@
       "price_adjustment": 0,
       "active": true,
       "sort_order": 1,
-      "value_ids": "1,13"
+      "value_ids": "24,1,13"
     },
     {
       "id": 2,
@@ -475,7 +694,7 @@
       "price_adjustment": 0,
       "active": true,
       "sort_order": 2,
-      "value_ids": "2,14"
+      "value_ids": "24,2,14"
     },
     {
       "id": 3,
@@ -488,7 +707,7 @@
       "price_adjustment": 30,
       "active": true,
       "sort_order": 3,
-      "value_ids": "4,15"
+      "value_ids": "25,4,15"
     },
     {
       "id": 4,
@@ -501,7 +720,7 @@
       "price_adjustment": 0,
       "active": true,
       "sort_order": 1,
-      "value_ids": "5,13"
+      "value_ids": "26,5,13"
     },
     {
       "id": 5,
@@ -514,7 +733,7 @@
       "price_adjustment": 30,
       "active": true,
       "sort_order": 2,
-      "value_ids": "7,15"
+      "value_ids": "26,7,15"
     },
     {
       "id": 6,
@@ -527,7 +746,7 @@
       "price_adjustment": 0,
       "active": true,
       "sort_order": 1,
-      "value_ids": "8"
+      "value_ids": "27,8"
     },
     {
       "id": 7,
@@ -540,7 +759,7 @@
       "price_adjustment": 0,
       "active": true,
       "sort_order": 2,
-      "value_ids": "9"
+      "value_ids": "27,9"
     },
     {
       "id": 8,
@@ -553,7 +772,7 @@
       "price_adjustment": 0,
       "active": true,
       "sort_order": 1,
-      "value_ids": "10"
+      "value_ids": "28,10"
     },
     {
       "id": 9,
@@ -566,14 +785,14 @@
       "price_adjustment": 20,
       "active": true,
       "sort_order": 2,
-      "value_ids": "12"
+      "value_ids": "28,12"
     }
   ],
   "attributes": [
     {
       "id": 1,
-      "name": "Tela",
-      "kind": "color",
+      "name": "Color de tela",
+      "kind": "lista",
       "unit": "",
       "sort_order": 1,
       "scope": "material"
@@ -581,7 +800,7 @@
     {
       "id": 2,
       "name": "Color del perfil",
-      "kind": "color",
+      "kind": "lista",
       "unit": "",
       "sort_order": 2,
       "scope": "generico"
@@ -617,6 +836,14 @@
       "unit": "",
       "sort_order": 6,
       "scope": "generico"
+    },
+    {
+      "id": 7,
+      "name": "Tipo de tela",
+      "kind": "lista",
+      "unit": "",
+      "sort_order": 0,
+      "scope": "material"
     }
   ],
   "values": [
@@ -630,7 +857,8 @@
       "surcharge_kind": "por_m2",
       "only_for": "",
       "active": true,
-      "sort_order": 1
+      "sort_order": 1,
+      "image": ""
     },
     {
       "id": 2,
@@ -642,7 +870,8 @@
       "surcharge_kind": "por_m2",
       "only_for": "",
       "active": true,
-      "sort_order": 2
+      "sort_order": 2,
+      "image": ""
     },
     {
       "id": 3,
@@ -654,7 +883,8 @@
       "surcharge_kind": "por_m2",
       "only_for": "",
       "active": true,
-      "sort_order": 3
+      "sort_order": 3,
+      "image": ""
     },
     {
       "id": 4,
@@ -666,7 +896,8 @@
       "surcharge_kind": "por_m2",
       "only_for": "",
       "active": true,
-      "sort_order": 4
+      "sort_order": 4,
+      "image": ""
     },
     {
       "id": 5,
@@ -678,7 +909,8 @@
       "surcharge_kind": "por_m2",
       "only_for": "",
       "active": true,
-      "sort_order": 5
+      "sort_order": 5,
+      "image": ""
     },
     {
       "id": 6,
@@ -690,7 +922,8 @@
       "surcharge_kind": "por_m2",
       "only_for": "",
       "active": true,
-      "sort_order": 6
+      "sort_order": 6,
+      "image": ""
     },
     {
       "id": 7,
@@ -702,7 +935,8 @@
       "surcharge_kind": "por_m2",
       "only_for": "",
       "active": true,
-      "sort_order": 7
+      "sort_order": 7,
+      "image": ""
     },
     {
       "id": 8,
@@ -714,7 +948,8 @@
       "surcharge_kind": "por_m2",
       "only_for": "",
       "active": true,
-      "sort_order": 8
+      "sort_order": 8,
+      "image": ""
     },
     {
       "id": 9,
@@ -726,7 +961,8 @@
       "surcharge_kind": "por_m2",
       "only_for": "",
       "active": true,
-      "sort_order": 9
+      "sort_order": 9,
+      "image": ""
     },
     {
       "id": 10,
@@ -738,7 +974,8 @@
       "surcharge_kind": "por_m2",
       "only_for": "",
       "active": true,
-      "sort_order": 10
+      "sort_order": 10,
+      "image": ""
     },
     {
       "id": 11,
@@ -750,7 +987,8 @@
       "surcharge_kind": "por_m2",
       "only_for": "",
       "active": true,
-      "sort_order": 11
+      "sort_order": 11,
+      "image": ""
     },
     {
       "id": 12,
@@ -762,7 +1000,8 @@
       "surcharge_kind": "por_m2",
       "only_for": "",
       "active": true,
-      "sort_order": 12
+      "sort_order": 12,
+      "image": ""
     },
     {
       "id": 13,
@@ -774,7 +1013,8 @@
       "surcharge_kind": "fijo",
       "only_for": "",
       "active": true,
-      "sort_order": 1
+      "sort_order": 1,
+      "image": ""
     },
     {
       "id": 14,
@@ -786,7 +1026,8 @@
       "surcharge_kind": "fijo",
       "only_for": "",
       "active": true,
-      "sort_order": 2
+      "sort_order": 2,
+      "image": ""
     },
     {
       "id": 15,
@@ -798,7 +1039,8 @@
       "surcharge_kind": "fijo",
       "only_for": "",
       "active": true,
-      "sort_order": 3
+      "sort_order": 3,
+      "image": ""
     },
     {
       "id": 16,
@@ -810,7 +1052,8 @@
       "surcharge_kind": "fijo",
       "only_for": "",
       "active": true,
-      "sort_order": 1
+      "sort_order": 1,
+      "image": ""
     },
     {
       "id": 17,
@@ -822,7 +1065,8 @@
       "surcharge_kind": "fijo",
       "only_for": "",
       "active": true,
-      "sort_order": 2
+      "sort_order": 2,
+      "image": ""
     },
     {
       "id": 18,
@@ -834,7 +1078,8 @@
       "surcharge_kind": "fijo",
       "only_for": "",
       "active": true,
-      "sort_order": 3
+      "sort_order": 3,
+      "image": ""
     },
     {
       "id": 19,
@@ -846,7 +1091,8 @@
       "surcharge_kind": "fijo",
       "only_for": "",
       "active": true,
-      "sort_order": 1
+      "sort_order": 1,
+      "image": ""
     },
     {
       "id": 20,
@@ -858,7 +1104,8 @@
       "surcharge_kind": "fijo",
       "only_for": "",
       "active": true,
-      "sort_order": 2
+      "sort_order": 2,
+      "image": ""
     },
     {
       "id": 21,
@@ -870,7 +1117,8 @@
       "surcharge_kind": "fijo",
       "only_for": "",
       "active": true,
-      "sort_order": 1
+      "sort_order": 1,
+      "image": ""
     },
     {
       "id": 22,
@@ -882,7 +1130,8 @@
       "surcharge_kind": "fijo",
       "only_for": "",
       "active": true,
-      "sort_order": 2
+      "sort_order": 2,
+      "image": ""
     },
     {
       "id": 23,
@@ -894,7 +1143,73 @@
       "surcharge_kind": "fijo",
       "only_for": "",
       "active": true,
-      "sort_order": 1
+      "sort_order": 1,
+      "image": ""
+    },
+    {
+      "id": 24,
+      "attribute_id": 7,
+      "name": "Screen 5%",
+      "code": "SC5",
+      "hex": "",
+      "surcharge": 0,
+      "surcharge_kind": "fijo",
+      "only_for": "",
+      "active": true,
+      "sort_order": 1,
+      "image": ""
+    },
+    {
+      "id": 25,
+      "attribute_id": 7,
+      "name": "Screen 3%",
+      "code": "SC3",
+      "hex": "",
+      "surcharge": 0,
+      "surcharge_kind": "fijo",
+      "only_for": "",
+      "active": true,
+      "sort_order": 2,
+      "image": ""
+    },
+    {
+      "id": 26,
+      "attribute_id": 7,
+      "name": "Blackout",
+      "code": "BK",
+      "hex": "",
+      "surcharge": 0,
+      "surcharge_kind": "fijo",
+      "only_for": "",
+      "active": true,
+      "sort_order": 3,
+      "image": ""
+    },
+    {
+      "id": 27,
+      "attribute_id": 7,
+      "name": "PVC",
+      "code": "VP",
+      "hex": "",
+      "surcharge": 0,
+      "surcharge_kind": "fijo",
+      "only_for": "",
+      "active": true,
+      "sort_order": 4,
+      "image": ""
+    },
+    {
+      "id": 28,
+      "attribute_id": 7,
+      "name": "Lámina aluminio",
+      "code": "AL",
+      "hex": "",
+      "surcharge": 0,
+      "surcharge_kind": "fijo",
+      "only_for": "",
+      "active": true,
+      "sort_order": 5,
+      "image": ""
     }
   ],
   "models": [

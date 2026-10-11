@@ -94,7 +94,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                   const v = catalog.values.find((x) => x.id === c.value)!;
                   return (
                     <li key={c.value} className="flex items-center gap-3">
-                      {c.hex && <span className={`size-8 shrink-0 border border-line ${f.kind === "color" && f.attribute.name.toLowerCase().includes("perfil") ? "rounded-full" : ""}`} style={{ background: c.hex }} />}
+                      {c.image ? <img src={c.image} alt="" className="size-8 shrink-0 border border-line object-cover" /> : c.hex && <span className={`size-8 shrink-0 border border-line ${f.attribute.name.toLowerCase().includes("perfil") ? "rounded-full" : ""}`} style={{ background: c.hex }} />}
                       <span>
                         {v.name}
                         {(v.code || v.surcharge > 0) && <span className="block font-mono text-[11px] text-muted">{v.code}{v.surcharge > 0 ? `${v.code ? " · " : ""}+${formatMoney(v.surcharge)}${v.surchargeKind === "por_m2" ? "/m²" : ""}` : ""}</span>}

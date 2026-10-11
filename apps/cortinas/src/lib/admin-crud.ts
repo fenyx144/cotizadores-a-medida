@@ -38,14 +38,14 @@ const resources: Record<string, CrudResource> = {
   attributes: {
     table: schema.attributes,
     orderBy: schema.attributes.sortOrder,
-    schema: z.object({ name: z.string().trim().min(2, "Indique el nombre").max(60), kind: z.enum(["lista", "color", "numero", "sino"]), scope: z.enum(["generico", "material"]).default("generico"), unit: z.string().max(10).default(""), sortOrder: z.number().int() }),
+    schema: z.object({ name: z.string().trim().min(2, "Indique el nombre").max(60), kind: z.enum(["lista", "numero", "sino"]), scope: z.enum(["generico", "material"]).default("generico"), unit: z.string().max(10).default(""), sortOrder: z.number().int() }),
   },
   values: {
     table: schema.attributeValues,
     orderBy: schema.attributeValues.sortOrder,
     schema: z.object({
       attributeId: z.coerce.number().int().min(1, "Elija el atributo"), name: z.string().trim().min(1, "Indique el nombre").max(80), code: z.string().max(40).default(""),
-      hex: hexOpt.nullable().transform((v) => v ?? ""), surcharge: z.number().min(-5000).max(5000), surchargeKind: z.enum(["fijo", "por_m2"]), onlyFor: z.string().regex(/^[a-z0-9,-]*$/, "Ej.: screen,mixto").default(""),
+      hex: hexOpt.nullable().transform((v) => v ?? ""), image: z.string().max(500).default(""), surcharge: z.number().min(-5000).max(5000), surchargeKind: z.enum(["fijo", "por_m2"]), onlyFor: z.string().regex(/^[a-z0-9,-]*$/, "Ej.: screen,mixto").default(""),
       active: z.boolean(), sortOrder: z.number().int(),
     }),
   },

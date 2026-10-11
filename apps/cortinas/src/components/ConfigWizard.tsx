@@ -175,7 +175,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
             {attr.choices.map((c) => (
               <button key={c.value} disabled={!!c.disabled} className={`${big(values[attr.attribute.id] === c.value, !!c.disabled)} flex items-center gap-3`} data-testid="wizard-choice"
                 onClick={() => { setValues({ ...values, [attr.attribute.id]: c.value }); go(1); }}>
-                {c.hex && <span className="size-6 shrink-0 rounded-full border border-line" style={{ background: c.hex }} />}
+                {c.image ? <img src={c.image} alt="" className="size-10 shrink-0 border border-line object-cover" /> : c.hex && <span className="size-6 shrink-0 rounded-full border border-line" style={{ background: c.hex }} />}
                 <span><span className="block">{c.label}</span>{c.disabled && <span className="block text-xs" data-testid="wizard-reason">No disponible: {c.disabled}</span>}</span>
               </button>
             ))}

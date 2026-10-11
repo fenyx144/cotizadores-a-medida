@@ -109,4 +109,10 @@ describe("motor de reglas (atributos genéricos)", () => {
     const other = c.values.find((x) => x.attributeId === attr && x.id !== fixed[attr])!;
     expect(matchVariant(c, { modelId: v.modelId, values: { ...fixed, [attr]: other.id } })?.id).not.toBe(v.id);
   });
+
+  it("permitir solo es simétrico con una condición", () => {
+    const allow = { ...constraints[0], id: 14, name: "Tipo", kind: "permitir", conditions: [{ attributeId: ACC, valueIds: [16] }], targetAttributeId: LADO, targetValueIds: [19], message: "Solo izquierda con cadena." } as ConstraintRule;
+    const ev = evaluate({ ...c, constraints: [allow] }, { modelId: 2, values: { [LADO]: 20 } });
+    expect(f(ev, ACC)!.choices.find((x) => x.value === 16)?.disabled).toBe("Solo izquierda con cadena.");
+  });
 });

@@ -36,7 +36,7 @@ export function AttributeFields({ ev, values, onChange, disabled, inputClass, la
         return (
           <label key={id} data-testid={`attr-${id}`}>
             <span className={labelClass}>
-              {current?.hex && <i className="mr-1.5 inline-block size-2.5 rounded-full border border-line align-middle" style={{ background: current.hex }} />}
+              {current?.image ? <img src={current.image} alt="" className="mr-1.5 inline-block size-4 border border-line object-cover align-middle" /> : current?.hex && <i className="mr-1.5 inline-block size-2.5 rounded-full border border-line align-middle" style={{ background: current.hex }} />}
               {title}
             </span>
             <select className={inputClass} disabled={disabled} value={typeof v === "number" ? v : ""} name={`attr-${id}`} aria-label={f.attribute.name}

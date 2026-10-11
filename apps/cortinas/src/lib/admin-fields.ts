@@ -34,7 +34,7 @@ export const PRODUCT_FIELDS = productFields([]);
 
 export const ATTRIBUTE_FIELDS: CrudField[] = [
   { name: "name", label: "Nombre", type: "text", column: true },
-  { name: "kind", label: "Tipo", type: "select", options: [{ value: "lista", label: "Lista de opciones" }, { value: "color", label: "Color (con muestra)" }, { value: "numero", label: "Número" }, { value: "sino", label: "Sí / no" }], column: true },
+  { name: "kind", label: "Tipo", type: "select", options: [{ value: "lista", label: "Lista de opciones" }, { value: "numero", label: "Número" }, { value: "sino", label: "Sí / no" }], column: true },
   { name: "scope", label: "Aplica a", type: "select", options: [{ value: "generico", label: "Genérico (todos los materiales)" }, { value: "material", label: "Según material" }], column: true, hint: "Según material: solo donde el material lo activa." },
   { name: "unit", label: "Unidad", type: "text", hint: "Solo para números. Ej.: cm" },
   { name: "sortOrder", label: "Orden en el configurador", type: "number", column: true },
@@ -44,7 +44,8 @@ export const valueFields = (attrs: Opt[]): CrudField[] => [
   { name: "attributeId", label: "Atributo", type: "select", options: attrs, column: true },
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "code", label: "Código", type: "text", column: true },
-  { name: "hex", label: "Muestra de color", type: "color", nullable: true, column: true, hint: "Solo en atributos de color." },
+  { name: "hex", label: "Muestra de color", type: "color", nullable: true, column: true, hint: "Opcional." },
+  { name: "image", label: "Imagen", type: "image", uploadUrl: UPLOAD, column: true, hint: "Miniatura opcional." },
   { name: "surcharge", label: "Recargo (S/)", type: "number", step: 0.01, column: true },
   { name: "surchargeKind", label: "Recargo por", type: "select", options: [{ value: "fijo", label: "Unidad" }, { value: "por_m2", label: "m²" }] },
   { name: "sortOrder", label: "Orden", type: "number" },

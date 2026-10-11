@@ -13,8 +13,8 @@ export const models = [
   { id: 4, slug: "vertical", name: "Vertical", type: "vertical", material: "pvc", familyId: 4, minWidth: 60, maxWidth: 500, minProjection: 60, maxProjection: 350, basePrice: 60, pricePerM2: 70 },
 ] as ProductModel[];
 export const attributes = [
-  { id: TELA, name: "Tela", kind: "color", scope: "material", unit: "", sortOrder: 1 },
-  { id: PERFIL, name: "Color del perfil", kind: "color", unit: "", sortOrder: 2 },
+  { id: TELA, name: "Tela", kind: "lista", scope: "material", unit: "", sortOrder: 1 },
+  { id: PERFIL, name: "Color del perfil", kind: "lista", unit: "", sortOrder: 2 },
   { id: ACC, name: "Accionamiento", kind: "lista", unit: "", sortOrder: 3 },
   { id: LADO, name: "Lado del mando", kind: "lista", unit: "", sortOrder: 4 },
   { id: CENEFA, name: "Cenefa decorativa", kind: "sino", unit: "", sortOrder: 6 },

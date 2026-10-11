@@ -35,7 +35,7 @@ export interface Selection {
   height?: number | null;
 }
 
-export interface Choice<T> { value: T; label: string; disabled?: string; hex?: string; /** Regla que lo bloquea. */ rule?: string }
+export interface Choice<T> { value: T; label: string; disabled?: string; hex?: string; image?: string; /** Regla que lo bloquea. */ rule?: string }
 
 export interface EvalField {
   attribute: Attribute;
@@ -231,6 +231,11 @@ export function blockReason(c: RulesCatalog, model: ProductModel, attributeId: n
       const t = r.targetAttributeId != null ? others.get(r.targetAttributeId) : undefined;
       if (t != null && targets.includes(t)) hit = true;
     }
+    // Simetría en "permitir solo" de una condición: si ya se eligió un valor fuera de la lista, se bloquea la condición.
+    else if (r.kind === "permitir" && r.conditions?.length === 1 && condKind(r.conditions[0]) === "atributo" && r.conditions[0].attributeId === attributeId && r.conditions[0].valueIds.includes(valueId)) {
+      const t = r.targetAttributeId != null ? others.get(r.targetAttributeId) : undefined;
+      if (t != null && !targets.includes(t)) hit = true;
+    }
     if (hit) return { message: r.message || (cond ? `No disponible si ${cond}.` : `No disponible para ${model.name}.`), rule: r.name };
   }
   return undefined;
@@ -253,7 +258,7 @@ export function evaluate(c: RulesCatalog, sel: Selection): Evaluation {
   const fields: EvalField[] = familyAttributes(c, model).map(({ attribute, required, valueIds }) => {
     const choices = valuesFor(c, attribute.id, model, valueIds).map((v) => {
       const why = blockReason(c, model, attribute.id, v.id, sel);
-      return { value: v.id, label: valueText(v), hex: attribute.kind === "color" ? v.hex || undefined : undefined, disabled: why?.message, rule: why?.rule };
+      return { value: v.id, label: valueText(v), hex: v.hex || undefined, image: v.image || undefined, disabled: why?.message, rule: why?.rule };
     });
     return { attribute, kind: (attribute.kind as AttributeKind) ?? "lista", required, choices };
   });
