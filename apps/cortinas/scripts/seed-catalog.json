@@ -57,7 +57,7 @@
     {
       "id": 3,
       "slug": "mixto",
-      "name": "Mixto (día/noche)",
+      "name": "Tela día y noche",
       "description": "Franjas opacas y traslúcidas.",
       "sort_order": 3,
       "active": true,
@@ -110,7 +110,7 @@
     {
       "id": 5,
       "slug": "aluminio",
-      "name": "Aluminio",
+      "name": "Lámina de aluminio",
       "description": "Lamas metálicas lacadas.",
       "sort_order": 5,
       "active": true,

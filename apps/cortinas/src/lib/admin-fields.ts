@@ -29,7 +29,7 @@ export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_
   { name: "maxProjection", label: "Alto máximo (cm)", type: "number", column: true },
   { name: "basePrice", label: "Precio base (S/)", type: "number", column: true },
   { name: "pricePerM2", label: "Precio por m² (S/)", type: "number", column: true },
-  { name: "sortOrder", label: "Orden", type: "number" },
+  { name: "sortOrder", label: "Orden", type: "number", nullable: true, hint: "Vacío = al final." },
   { name: "active", label: "Visible en la web", type: "boolean", column: true },
 ];
 export const PRODUCT_FIELDS = productFields([]);
@@ -39,7 +39,7 @@ export const ATTRIBUTE_FIELDS: CrudField[] = [
   { name: "kind", label: "Tipo", type: "select", options: [{ value: "lista", label: "Lista de opciones" }, { value: "numero", label: "Número" }, { value: "sino", label: "Sí / no" }], column: true },
   { name: "scope", label: "Aplica a", type: "select", options: [{ value: "generico", label: "Genérico (todos los materiales)" }, { value: "material", label: "Según material" }], column: true, hint: "Según material: solo donde el material lo activa." },
   { name: "unit", label: "Unidad", type: "text", hint: "Solo para números. Ej.: cm" },
-  { name: "sortOrder", label: "Orden en el configurador", type: "number", column: true },
+  { name: "sortOrder", label: "Orden en el configurador", type: "number", nullable: true, column: true, hint: "Vacío = al final." },
 ];
 
 export const valueFields = (attrs: Opt[]): CrudField[] => [
@@ -50,7 +50,7 @@ export const valueFields = (attrs: Opt[]): CrudField[] => [
   { name: "image", label: "Imagen", type: "image", uploadUrl: UPLOAD, column: true, hint: "Miniatura opcional." },
   { hidden: !SHOW_SURCHARGES, name: "surcharge", label: "Recargo (S/)", type: "number", step: 0.01, column: true },
   { hidden: !SHOW_SURCHARGES, name: "surchargeKind", label: "Recargo por", type: "select", options: [{ value: "fijo", label: "Unidad" }, { value: "por_m2", label: "m²" }] },
-  { name: "sortOrder", label: "Orden", type: "number" },
+  { name: "sortOrder", label: "Orden", type: "number", nullable: true, hint: "Vacío = al final." },
   { name: "active", label: "Activo", type: "boolean", column: true },
 ];
 
@@ -75,19 +75,19 @@ export const familyFields = (attrOptions: AttrOption[], materials: Opt[] = [], m
   { name: "maxWidth", label: "Ancho máximo por defecto (cm)", type: "number", column: true },
   { name: "minHeight", label: "Alto mínimo por defecto (cm)", type: "number" },
   { name: "maxHeight", label: "Alto máximo por defecto (cm)", type: "number", column: true },
-  { name: "sortOrder", label: "Orden", type: "number" },
+  { name: "sortOrder", label: "Orden", type: "number", nullable: true, hint: "Vacío = al final." },
 ];
 
 
 export const materialFields = (attrOptions: AttrOption[]): CrudField[] => [...MATERIAL_FIELDS,
-  { name: "usedBy", label: "Usado en", type: "text", column: true, readOnly: true },
+  { name: "usedBy", label: "Categorías que lo usan", type: "text", column: true, readOnly: true },
   { name: "attributes", label: "Atributos de este material", type: "attrs", attrOptions, noRequired: true, hint: "Marque los que aplican y sus valores." }];
 
 export const MATERIAL_FIELDS: CrudField[] = [
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "slug", label: "Código", type: "text", column: true, hint: "Minúsculas, sin espacios. Ej.: blackout" },
   { name: "description", label: "Descripción", type: "textarea", column: true },
-  { name: "sortOrder", label: "Orden", type: "number" },
+  { name: "sortOrder", label: "Orden", type: "number", nullable: true, hint: "Vacío = al final." },
   { name: "active", label: "Visible", type: "boolean", column: true },
 ];
 
@@ -99,6 +99,6 @@ export const variantFields = (models: Opt[], values: Opt[], materials: Opt[] = [
   { name: "valueIds", label: "Combinación", type: "multiselect", options: values, column: true, hint: "Valores que fija esta variante." },
   { name: "attributes", label: "Otros datos", type: "text", hint: "Ej.: cofre 80 mm" },
   { name: "priceAdjustment", label: "Ajuste de precio (S/ por unidad)", type: "number", column: true },
-  { name: "sortOrder", label: "Orden", type: "number" },
+  { name: "sortOrder", label: "Orden", type: "number", nullable: true, hint: "Vacío = al final." },
   { name: "active", label: "Activa", type: "boolean", column: true },
 ];

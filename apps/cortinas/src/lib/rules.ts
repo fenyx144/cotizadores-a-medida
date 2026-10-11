@@ -13,7 +13,7 @@ import type { Attribute, AttributeValue, ConstraintRule, FamilyAttribute, Materi
 
 export const ATTRIBUTE_KINDS = { lista: "Lista de opciones", color: "Color (con muestra)", numero: "Número", sino: "Sí / no" } as const;
 export type AttributeKind = keyof typeof ATTRIBUTE_KINDS;
-export const MATERIAL_NAMES: Record<string, string> = { screen: "Screen", blackout: "Blackout", mixto: "Mixto (día/noche)", pvc: "PVC", aluminio: "Aluminio" };
+export const MATERIAL_NAMES: Record<string, string> = { screen: "Screen", blackout: "Blackout", mixto: "Tela día y noche", pvc: "PVC", aluminio: "Lámina de aluminio" };
 
 export interface RulesCatalog {
   models: ProductModel[];
@@ -226,7 +226,7 @@ const orList = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")}
 const attrName = (c: RulesCatalog, id: number | null | undefined) => c.attributes.find((a) => a.id === id)?.name ?? "";
 const materialName = (c: RulesCatalog, slug: string) => c.materials?.find((m) => m.slug === slug)?.name ?? MATERIAL_NAMES[slug] ?? slug;
 
-/** Condiciones como texto: "Material es Aluminio y Ancho mayor que 200 cm". */
+/** Condiciones como texto: "Material es Lámina de aluminio y Ancho mayor que 200 cm". */
 export function conditionsText(c: RulesCatalog, conds: RuleCondition[] | null | undefined) {
   return (conds ?? []).map((k) => {
     const kind = condKind(k);

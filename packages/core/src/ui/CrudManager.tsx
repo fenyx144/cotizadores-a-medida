@@ -66,12 +66,12 @@ export function CrudManager({
   const [editing, setEditing] = useState<Partial<Row> | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
-  const columns = fields.filter((f) => f.column && !f.hidden);
+  // La columna Visible/Activo va siempre al final de la tabla.
+  const columns = fields.filter((f) => f.column && !f.hidden).sort((a, b) => Number(a.name === "active") - Number(b.name === "active"));
 
   function emptyRow(): Partial<Row> {
     const r: Record<string, unknown> = {};
     for (const f of fields) r[f.name] = f.type === "specs" || f.type === "gallery" || f.type === "attrs" ? [] : f.type === "multiselect" ? "" : f.type === "boolean" ? true : f.type === "number" ? (f.nullable ? null : 0) : f.type === "color" ? (f.nullable ? "" : "#cccccc") : f.nullable ? null : (f.options?.[0]?.value ?? "");
-    for (const f of fields) if (f.type === "number" && f.name === "sortOrder") r[f.name] = Math.max(0, ...rows.map((x) => Number(x[f.name]) || 0)) + 1;
     return r;
   }
 

@@ -83,3 +83,14 @@ export function ensureOrderFromOne() {
   })().catch((e) => { order = null; console.error("orden", e); });
   return order;
 }
+
+/** Nombres visibles de materiales (solo si siguen con el nombre antiguo; el código no cambia). */
+let names: Promise<void> | null = null;
+export function ensureMaterialNames() {
+  names ??= (async () => {
+    const db = getDb();
+    await db.execute(sql`update materials set name = 'Tela día y noche' where slug = 'mixto' and name = 'Mixto (día/noche)'`);
+    await db.execute(sql`update materials set name = 'Lámina de aluminio' where slug = 'aluminio' and name = 'Aluminio'`);
+  })().catch((e) => { names = null; console.error("nombres", e); });
+  return names;
+}

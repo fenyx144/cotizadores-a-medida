@@ -23,9 +23,9 @@ export const TYPE_LABELS: Record<string, string> = {
 export const MATERIAL_LABELS: Record<string, string> = {
   screen: "Screen",
   blackout: "Blackout",
-  mixto: "Screen + blackout",
+  mixto: "Tela día y noche",
   pvc: "PVC",
-  aluminio: "Aluminio",
+  aluminio: "Lámina de aluminio",
 };
 
 export const USE_LABELS: Record<string, string> = {
