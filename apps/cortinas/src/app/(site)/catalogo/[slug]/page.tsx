@@ -91,7 +91,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
           {options.map((f) => (
             <div key={f.attribute.id} className="mt-8" data-testid="option-group">
-              <p className="font-mono text-xs text-muted">{f.attribute.name} ({f.choices.length})</p>
+              <p className="font-mono text-xs text-muted">{f.group ? `${f.group} · ` : ""}{f.attribute.name} ({f.choices.length})</p>
               <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
                 {f.choices.map((c) => {
                   const v = catalog.values.find((x) => x.id === c.value)!;

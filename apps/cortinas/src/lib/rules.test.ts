@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ConstraintRule } from "@portafolio/core/db/schema";
-import { MATERIAL_ATTR, cleanValues, evaluate, findConflicts, matchVariant, variantValues, parseAttributeCell, ruleSentence, withDefaults } from "./rules";
+import { MATERIAL_ATTR, attributeMaterial, cleanValues, evaluate, findConflicts, matchVariant, variantValues, parseAttributeCell, ruleSentence, withDefaults } from "./rules";
 import { priceLine } from "./line-price";
 import { ACC, CENEFA, LADO, PERFIL, TELA, attributes, catalog as c, constraints } from "./test-catalog";
 
@@ -118,15 +118,38 @@ describe("motor de reglas (atributos genéricos)", () => {
   });
 
 
-  it("producto con varios materiales: primero Material y luego sus atributos", () => {
-    const cc = { ...c, models: c.models.map((m) => (m.id === 1 ? { ...m, materials: "screen,blackout" } : m)) };
+  it("producto con varios materiales a la vez: suma los atributos de todos, agrupados por material", () => {
+    const cc = { ...c, models: c.models.map((m) => (m.id === 1 ? { ...m, materials: "screen,tubo-aluminio" } : m)) };
     const ev = evaluate(cc, { modelId: 1, values: {} });
-    expect(ev.fields[0].attribute.name).toBe("Material");
-    expect(ev.fields[0].choices.map((x) => x.label)).toEqual(["screen", "blackout"]);
+    expect(ev.fields.some((x) => x.attribute.id === MATERIAL_ATTR)).toBe(false);
     expect(f(ev, TELA)!.choices.map((x) => x.value)).toEqual([1]);
-    const bk = evaluate(cc, { modelId: 1, values: { [MATERIAL_ATTR]: 2 } });
-    expect(f(bk, TELA)!.choices.map((x) => x.value)).toEqual([5, 6]);
-    expect(withDefaults(cc, { modelId: 1, values: { [MATERIAL_ATTR]: 2 } })[TELA]).toBe(5);
-    expect(cleanValues(cc, 1, { [MATERIAL_ATTR]: 2, [TELA]: 6 })).toEqual({ [MATERIAL_ATTR]: 2, [TELA]: 6 });
+    expect(f(ev, PERFIL)!.choices.map((x) => x.value)).toEqual([13]);
+    const m1 = cc.models.find((m) => m.id === 1)!;
+    expect(attributeMaterial(cc, m1, TELA)?.slug).toBe("screen");
+    expect(attributeMaterial(cc, m1, PERFIL)?.slug).toBe("tubo-aluminio");
+    expect(attributeMaterial(cc, m1, ACC)).toBeNull();
+    // Línea antigua con Material elegido: se ignora sin romper.
+    expect(withDefaults(cc, { modelId: 1, values: { [MATERIAL_ATTR]: 2 } })[TELA]).toBe(1);
+  });
+});
+
+describe("varios materiales a la vez: reglas y variantes", () => {
+  const cc = { ...c, models: c.models.map((m) => (m.id === 1 ? { ...m, materials: "screen,tubo-aluminio" } : m)) };
+  const regla = (over: Partial<ConstraintRule>) => ({ ...constraints[0], id: 99, active: true, ...over }) as ConstraintRule;
+  const all = { ...cc, materials: cc.materials!.map((m) => (m.slug === "tubo-aluminio" ? { ...m, attributes: [{ attributeId: PERFIL, required: false, valueIds: [] }] } : m)) };
+  it("la condición Material = X se cumple si el producto incluye ese material (también combinada con atributos)", () => {
+    const r = regla({ name: "Tubo sin negro", conditions: [{ kind: "material", materials: ["tubo-aluminio"] } as never], targetAttributeId: PERFIL, targetValueIds: [15], message: "Con tubo de aluminio, perfil blanco." });
+    expect(f(evaluate({ ...all, constraints: [r] }, { modelId: 1 }), PERFIL)!.choices.find((x) => x.value === 15)?.disabled).toBe("Con tubo de aluminio, perfil blanco.");
+    expect(f(evaluate({ ...all, constraints: [r] }, { modelId: 2 }), PERFIL)!.choices.find((x) => x.value === 15)?.disabled).toBeUndefined();
+    const r2 = regla({ conditions: [{ kind: "material", materials: ["screen"] } as never, { attributeId: TELA, valueIds: [1] }], targetAttributeId: PERFIL, targetValueIds: [15], message: "x" });
+    expect(f(evaluate({ ...all, constraints: [r2] }, { modelId: 1, values: { [TELA]: 1 } }), PERFIL)!.choices.find((x) => x.value === 15)?.disabled).toBe("x");
+    expect(findConflicts({ ...all, constraints: [r, r2] })).toEqual([]);
+  });
+  it("una variante fija valores de varios materiales y deja libre el resto", () => {
+    const vv = { ...all, variants: [{ ...c.variants![0], id: 9, modelId: 1, code: "RS-ARENA-9016", valueIds: "1,13", material: "" }] };
+    expect(matchVariant(vv, { modelId: 1, values: { [TELA]: 1, [PERFIL]: 13 } })?.code).toBe("RS-ARENA-9016");
+    expect(matchVariant(vv, { modelId: 1, values: { [TELA]: 1 } })).toBeUndefined();
+    const fixed = variantValues(vv, vv.variants[0]);
+    expect(fixed[TELA]).toBe(1); expect(fixed[PERFIL]).toBe(13); expect(fixed[ACC]).toBeUndefined();
   });
 });

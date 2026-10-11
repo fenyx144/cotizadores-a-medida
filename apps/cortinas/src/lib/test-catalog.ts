@@ -56,5 +56,6 @@ export const materials = [
   mat(1, "screen", [{ attributeId: TELA, required: false, valueIds: [1] }]),
   mat(2, "blackout", [{ attributeId: TELA, required: false, valueIds: [5, 6] }]),
   mat(4, "pvc", [{ attributeId: TELA, required: false, valueIds: [8] }]),
+  mat(5, "tubo-aluminio", [{ attributeId: PERFIL, required: false, valueIds: [13] }]),
 ];
 export const catalog: CatalogData = { models, attributes, values, families, constraints, rules, variants, materials };

@@ -112,7 +112,8 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
         {i > 0 && <button onClick={() => go(-1)} className="hover:text-ink">← Atrás</button>}
       </div>
       <div className="mt-2 h-0.5 bg-line"><div className="h-full bg-accent transition-all" style={{ width: `${((phase + (isOption ? (optIndex + 1) / (optSteps.length + 1) : 1)) / PHASES.length) * 100}%` }} /></div>
-      <h1 className="mt-8 font-serif text-[2.2rem] leading-tight" data-testid="wizard-title">{step.title}{attr && !attr.required ? <span className="ml-2 font-sans text-sm text-muted">opcional</span> : null}</h1>
+      {attr?.group && <p className="mt-8 font-mono text-xs uppercase tracking-wide text-muted" data-testid="wizard-group">{attr.group}</p>}
+      <h1 className={`${attr?.group ? "mt-1" : "mt-8"} font-serif text-[2.2rem] leading-tight`} data-testid="wizard-title">{step.title}{attr && !attr.required ? <span className="ml-2 font-sans text-sm text-muted">opcional</span> : null}</h1>
 
       <div className="mt-6 space-y-2">
         {step.key === "categoria" && families.map((f) => {
@@ -135,7 +136,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
               </div>
             )}
             {inFamily.filter((m) => !material || productMaterials(catalog, m).some((x) => x.slug === material)).map((m) => (
-              <button key={m.id} className={`${big(modelId === m.id)} flex items-center gap-4`} onClick={() => { if (modelId !== m.id) { const mat = productMaterials(catalog, m).find((x) => x.slug === material); setValues(mat ? { [MATERIAL_ATTR]: mat.id } : {}); setVariantId(undefined); } setModelId(m.id); go(1); }}>
+              <button key={m.id} className={`${big(modelId === m.id)} flex items-center gap-4`} onClick={() => { if (modelId !== m.id) { setValues({}); setVariantId(undefined); } setModelId(m.id); go(1); }}>
                 {m.image && <span className="relative size-14 shrink-0 overflow-hidden bg-paper-deep"><Image src={m.image} alt="" fill sizes="56px" className="object-cover" /></span>}
                 <span><span className="block text-lg">{m.name}</span><span className="block text-sm text-muted">{productMaterials(catalog, m).map((x) => x.name).join(" · ")} · {m.tagline}</span></span>
               </button>

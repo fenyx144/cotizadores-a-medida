@@ -8,7 +8,9 @@ export function AttributeFields({ ev, values, onChange, disabled, inputClass, la
 }) {
   return (
     <>
-      {ev.fields.map((f) => {
+      {ev.fields.map((f, i) => {
+        const head = f.group && f.group !== ev.fields[i - 1]?.group ? <p key={`g-${f.group}`} className="col-span-2 mt-2 border-b border-line pb-1 font-mono text-xs uppercase tracking-wide text-muted" data-testid="attr-group">{f.group}</p> : null;
+        const node = (() => {
         const id = f.attribute.id, err = ev.errors[`a${id}`], v = values[id];
         const title = `${f.attribute.name}${f.required ? "" : " (opcional)"}`;
         if (f.kind === "sino") {
@@ -52,6 +54,8 @@ export function AttributeFields({ ev, values, onChange, disabled, inputClass, la
             {err && <span className="mt-1 block text-xs text-danger" data-testid="attr-error">{err}</span>}
           </label>
         );
+        })();
+        return head ? [head, node] : node;
       })}
     </>
   );

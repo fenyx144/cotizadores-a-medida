@@ -6,8 +6,8 @@ const STEPS = [
   { n: 1, title: "Atributos", href: "/admin/catalogo/atributos", text: "Cree las opciones y sus valores: genéricas (p. ej. Accionamiento: enrollable, vertical…) o según material." },
   { n: 2, title: "Materiales", href: "/admin/catalogo/materiales", text: "Marque qué atributos y valores admite cada material." },
   { n: 3, title: "Categorías", href: "/admin/catalogo/familias", text: "Elija sus materiales permitidos, qué atributos pide y qué valores admite (p. ej. solo Accionamiento Enrollable)." },
-  { n: 4, title: "Productos", href: "/admin/catalogo/productos", text: "Dé a cada producto su categoría y uno o varios materiales." },
-  { n: 5, title: "Variantes", href: "/admin/catalogo/variantes", text: "Dé un código propio a las combinaciones que vende con SKU." },
+  { n: 4, title: "Productos", href: "/admin/catalogo/productos", text: "Dé a cada producto su categoría y los materiales que usa a la vez (p. ej. tela Screen + tubo de aluminio)." },
+  { n: 5, title: "Variantes", href: "/admin/catalogo/variantes", text: "Dé un código propio a combinaciones con SKU: fije valores de uno o varios materiales; lo demás lo elige el cliente." },
   { n: 6, title: "Reglas", href: "/admin/catalogo/reglas", text: "Bloquee combinaciones y limite medidas." },
   { n: 7, title: "El cliente configura", href: "/catalogo", text: "Con la ficha o el asistente paso a paso, ve solo lo permitido." },
 ];

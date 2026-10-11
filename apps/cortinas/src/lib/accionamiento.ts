@@ -39,3 +39,31 @@ async function migrate() {
   });
 }
 
+
+/**
+ * Demo de producto con varios materiales a la vez: crea "Tubo de aluminio" (pide Color del perfil)
+ * y lo añade a Roller Screen (Screen + Tubo de aluminio). Solo si aún no hay ningún producto combinado.
+ */
+let combo: Promise<void> | null = null;
+export function ensureCombinedDemo() {
+  combo ??= (async () => {
+    const db = getDb();
+    const models = await db.select().from(schema.productModels);
+    if (models.some((m) => m.materials.includes(","))) return;
+    const [exists] = await db.select().from(schema.materials).where(sql`${schema.materials.slug} = 'tubo-aluminio'`);
+    if (exists) return;
+    await db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(771123)`);
+      const [again] = await tx.select().from(schema.materials).where(sql`${schema.materials.slug} = 'tubo-aluminio'`);
+      if (again) return;
+      const [perfil] = await tx.select().from(schema.attributes).where(sql`${schema.attributes.name} = 'Color del perfil'`);
+      await tx.insert(schema.materials).values({ slug: "tubo-aluminio", name: "Tubo de aluminio", description: "Tubo y perfiles de aluminio lacado.", sortOrder: 9,
+        attributes: perfil ? [{ attributeId: perfil.id, required: false, valueIds: [] }] : [] });
+      const rs = models.find((m) => m.slug === "roller-screen");
+      if (!rs) return;
+      await tx.update(schema.productModels).set({ materials: `${rs.materials || rs.material},tubo-aluminio` }).where(sql`${schema.productModels.id} = ${rs.id}`);
+      if (rs.familyId) await tx.execute(sql`update product_families set materials = materials || ',tubo-aluminio' where id = ${rs.familyId} and materials <> '' and position('tubo-aluminio' in materials) = 0`);
+    });
+  })().catch((e) => { combo = null; console.error("combinado", e); });
+  return combo;
+}
