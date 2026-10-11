@@ -3,21 +3,22 @@
 @source "../../../../packages/core/src";
 
 /*
- * Paleta de Cota: blanco cálido, tarjetas blancas, líneas finas y un verde
- * profundo como único acento. Los nombres (paper, ink, muted, line, accent...)
+ * Paleta de Cota: blanco limpio, secciones #F8F7F4, líneas finas y un verde
+ * intenso como acento. Los nombres (paper, ink, muted, line, accent...)
  * los usan también los componentes de packages/core.
  */
 @theme {
-  --color-paper: #f7f6f2;
-  --color-paper-deep: #efede7;
-  --color-white-stone: #ffffff;
-  --color-ink: #1c1f22;
-  --color-muted: #63676c;
-  --color-line: #e6e3dc;
-  --color-sand: #e4dccb;
-  --color-blue: #2f4a3e;
-  --color-olive: #2f4a3e;
-  --color-accent: #2f4a3e;
+  --color-paper: #ffffff;
+  --color-paper-deep: #f8f7f4;
+  --color-white-stone: #f8f7f4;
+  --color-ink: #1a1d21;
+  --color-muted: #585d65;
+  --color-line: #e4e1da;
+  --color-sand: #d6ebe1;
+  --color-blue: #1f6b4f;
+  --color-olive: #1f6b4f;
+  --color-accent: #1f6b4f;
+  --color-accent-deep: #17543e;
   --color-anthracite: #2b2f33;
   --color-danger: #a4472a;
 
@@ -104,3 +105,8 @@ input[type="range"] {
 .plan-image {
   image-rendering: auto;
 }
+
+/* Botones y estados: el acento gana profundidad al pasar el cursor; foco visible. */
+.bg-blue:hover, .bg-accent:hover { background-color: var(--color-accent-deep); }
+.bg-ink:hover { background-color: var(--color-accent); }
+button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }

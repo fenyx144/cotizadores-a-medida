@@ -183,7 +183,7 @@ function ByLocation({ ctx }: { ctx: EditorContext }) {
                   }}
                 >
                   <td className="py-2" onClick={(e) => e.stopPropagation()}>
-                    <input type="checkbox" checked={selected.includes(l.id)} onChange={() => toggle(l.id)} aria-label={`Seleccionar ${l.label}`} className="accent-[#2f4a3e]" />
+                    <input type="checkbox" checked={selected.includes(l.id)} onChange={() => toggle(l.id)} aria-label={`Seleccionar ${l.label}`} className="accent-[#1f6b4f]" />
                   </td>
                   <td className="py-2 font-mono text-xs">
                     <span className="mr-1.5 inline-block size-2 align-middle" style={{ background: LINE_STATUS_COLORS[l.status as LineStatus] }} />

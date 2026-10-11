@@ -24,7 +24,7 @@ export function StepBar({ current, notes }: { current: 1 | 2 | 3; notes?: [strin
 /** Barra de pasos del proyecto: se muestra una vez y se puede cerrar. */
 export function ProjectIntro() {
   const [show, setShow] = useState(false);
-  useEffect(() => { setShow(!localStorage.getItem("cota-intro-proyecto")); }, []);
+  useEffect(() => { const id = requestAnimationFrame(() => setShow(!localStorage.getItem("cota-intro-proyecto"))); return () => cancelAnimationFrame(id); }, []);
   if (!show) return null;
   return (
     <div className="mx-auto max-w-[1360px] px-5 pt-6 md:px-10">

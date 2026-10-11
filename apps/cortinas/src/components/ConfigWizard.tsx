@@ -5,7 +5,7 @@
  */
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { addFromWizard } from "@/app/actions/project";
 import type { CatalogData } from "@/lib/line-price";
 import { evaluate, type Values } from "@/lib/rules";
@@ -37,14 +37,14 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
   const w = Number(dims.width) || null, h = Number(dims.height) || null;
   const ev = model ? evaluate(catalog, { modelId: model.id, values, width: w, height: h }) : null;
   const fields = ev?.fields ?? [];
-  const steps: Step[] = useMemo(() => [
+  const steps: Step[] = [
     { key: "categoria", title: "¿Qué tipo de cortina busca?" },
     { key: "producto", title: "Elija el producto" },
     ...fields.map((f) => ({ key: `a${f.attribute.id}`, title: f.attribute.name })),
     { key: "medidas", title: "Medidas y cantidad" },
     { key: "ubicacion", title: "¿Dónde va?" },
     { key: "resumen", title: "Resumen" },
-  ], [fields]);
+  ];
   const [i, setI] = useState(startModel ? 2 : initial?.familyId ? 1 : 0);
   const step = steps[Math.min(i, steps.length - 1)];
   const go = (d: number) => { setError(null); setI((x) => Math.max(0, Math.min(steps.length - 1, x + d))); };

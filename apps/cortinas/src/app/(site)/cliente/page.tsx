@@ -1,6 +1,6 @@
+import { StatusChip } from "@/components/StatusChip";
 import Link from "next/link";
 import { desc, eq, sql } from "drizzle-orm";
-import { PROJECT_STATUS_LABELS, type ProjectStatus } from "@portafolio/core/projects";
 import { getDb, schema } from "@/lib/db";
 import { requireClient } from "@/lib/client-session";
 import { logout } from "@/app/actions/client";
@@ -45,7 +45,7 @@ export default async function ClientHome({ searchParams }: { searchParams: Promi
               <li key={p.id} className="flex flex-wrap items-baseline justify-between gap-3 py-4">
                 <Link href={`/proyecto/${p.id}`} className="font-serif text-xl hover:text-blue">{p.name}</Link>
                 <span className="font-mono text-xs text-muted">{p.reference} · {p.windows} cortinas · {p.updatedAt.toLocaleDateString("es-PE")}</span>
-                <span className="text-blue">{PROJECT_STATUS_LABELS[p.status as ProjectStatus]}</span>
+                <StatusChip status={p.status} />
               </li>
             ))}
           </ul>
@@ -93,7 +93,7 @@ export default async function ClientHome({ searchParams }: { searchParams: Promi
                 <td className="hidden py-4 text-muted md:table-cell">{p.district}</td>
                 <td className="py-4 text-right font-mono text-sm">{p.windows}</td>
                 <td className="py-4 pl-6">
-                  <span className={p.status === "borrador" ? "text-muted" : "text-blue"}>{PROJECT_STATUS_LABELS[p.status as ProjectStatus]}</span>
+                  <StatusChip status={p.status} />
                 </td>
                 <td className="hidden py-4 text-right text-sm text-muted md:table-cell">{p.updatedAt.toLocaleDateString("es-PE")}</td>
               </tr>

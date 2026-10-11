@@ -1,4 +1,5 @@
 "use client";
+import { StatusChip } from "@/components/StatusChip";
 /**
  * Editor "Mi proyecto": cabecera + cuatro pestañas.
  * El estado del proyecto vive aquí; cada acción del servidor devuelve el
@@ -55,7 +56,7 @@ export function ProjectEditor({ initial, catalog, initialTab }: { initial: Proje
       <header className="grid gap-4 border-b border-line pb-5 md:grid-cols-12 md:items-end">
         <div className="md:col-span-7">
           <p className="font-mono text-xs text-muted">
-            {data.project.reference} · {data.client.company || data.client.name} · {PROJECT_STATUS_LABELS[data.project.status as ProjectStatus]}
+            {data.project.reference} · {data.client.company || data.client.name} · <StatusChip status={data.project.status} />
           </p>
           <h1 className="mt-2 text-[2.3rem] leading-[1.05] md:text-[2.8rem]">{data.project.name}</h1>
         </div>

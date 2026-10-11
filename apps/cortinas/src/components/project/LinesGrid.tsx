@@ -229,7 +229,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
     if (!f) return <span className="block px-1.5 py-1 text-muted">—</span>;
     const v = r.values[attrId];
     const set = (nv: number | boolean | null) => update(i, { values: { ...r.values, [attrId]: nv } }, `a${attrId}`);
-    if (f.kind === "sino") return <input type="checkbox" className="m-2 accent-[#2f4a3e]" checked={v === true} disabled={readOnly} onChange={(e) => set(e.target.checked)} aria-label={`${f.attribute.name} fila ${i + 1}`} />;
+    if (f.kind === "sino") return <input type="checkbox" className="m-2 accent-[#1f6b4f]" checked={v === true} disabled={readOnly} onChange={(e) => set(e.target.checked)} aria-label={`${f.attribute.name} fila ${i + 1}`} />;
     if (f.kind === "numero") return <input className={`${cell} font-mono`} inputMode="decimal" value={typeof v === "number" ? v : ""} disabled={readOnly} onChange={(e) => set(e.target.value === "" ? null : Number(e.target.value.replace(",", ".")) || 0)} aria-label={`${f.attribute.name} fila ${i + 1}`} />;
     return select(i, `a${attrId}`, typeof v === "number" ? v : null, f.choices, set, r.unmatched?.[`a${attrId}`] ?? (f.required ? `${f.attribute.name}…` : "—"), !f.required);
   };
@@ -286,7 +286,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
               const p = price(i);
               return (
                 <tr key={r.key} className={`border-b border-line ${sel.has(r.key) ? "bg-white-stone" : ""}`} data-testid="grid-row">
-                  <td className="py-1 align-top"><input type="checkbox" checked={sel.has(r.key)} onChange={() => toggle(r.key)} aria-label={`Seleccionar fila ${i + 1}`} className="mt-2 accent-[#2f4a3e]" /></td>
+                  <td className="py-1 align-top"><input type="checkbox" checked={sel.has(r.key)} onChange={() => toggle(r.key)} aria-label={`Seleccionar fila ${i + 1}`} className="mt-2 accent-[#1f6b4f]" /></td>
                   <td className="py-1 pt-2 align-top font-mono text-[11px] text-muted">{i + 1}</td>
                   {td("location", <input className={cell} value={r.location} disabled={readOnly} list="grid-locations" onChange={(e) => update(i, { location: e.target.value }, "location")} aria-label={`Ubicación fila ${i + 1}`} />)}
                   {td("model", <>

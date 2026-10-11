@@ -15,7 +15,7 @@ export function AttributeFields({ ev, values, onChange, disabled, inputClass, la
           const yes = f.choices[0];
           return (
             <label key={id} className="col-span-2 flex items-center gap-2 text-sm" data-testid={`attr-${id}`}>
-              <input type="checkbox" className="accent-[#2f4a3e]" checked={v === true} disabled={disabled || (!!yes?.disabled && v !== true)} onChange={(e) => onChange(id, e.target.checked)} />
+              <input type="checkbox" className="accent-[#1f6b4f]" checked={v === true} disabled={disabled || (!!yes?.disabled && v !== true)} onChange={(e) => onChange(id, e.target.checked)} />
               <span>{f.attribute.name}</span>
               {yes?.disabled && <span className="text-xs text-muted">— {yes.disabled}</span>}
               {err && <span className="block text-xs text-danger">{err}</span>}

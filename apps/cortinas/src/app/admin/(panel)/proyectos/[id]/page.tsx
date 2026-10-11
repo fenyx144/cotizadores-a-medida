@@ -1,3 +1,4 @@
+import { StatusChip } from "@/components/StatusChip";
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
@@ -27,6 +28,7 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
         <div className="lg:col-span-7">
           <p className="font-mono text-xs text-muted">{project.reference} · {client.kind === "particular" ? "Particular" : "Empresa"} · creado {project.createdAt.toLocaleDateString("es-PE")}</p>
           <h1 className="mt-2 text-4xl leading-tight">{project.name}</h1>
+          <div className="mt-2"><StatusChip status={project.status} /></div>
         </div>
         <div className="flex flex-wrap items-end gap-4 lg:col-span-5 lg:justify-end">
           <form action={updateProjectStatus} className="flex items-end gap-2">

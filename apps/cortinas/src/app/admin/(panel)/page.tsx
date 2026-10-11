@@ -1,10 +1,11 @@
+import { StatusChip } from "@/components/StatusChip";
 /**
  * Tablero de proyectos: una columna por estado. Filtro de texto en la URL (?q=).
  */
 import Link from "next/link";
 import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { formatMoney } from "@portafolio/core/pricing";
-import { PROJECT_STATUSES, PROJECT_STATUS_LABELS, summarizeProject } from "@portafolio/core/projects";
+import { PROJECT_STATUSES, summarizeProject } from "@portafolio/core/projects";
 import { getDb, schema } from "@/lib/db";
 
 export default async function Board({ searchParams }: { searchParams: Promise<{ q?: string; tipo?: string }> }) {
@@ -53,7 +54,7 @@ export default async function Board({ searchParams }: { searchParams: Promise<{ 
           return (
             <section key={status} className={`min-h-[60vh] px-4 ${i ? "border-l border-line" : "pl-0"}`}>
               <h2 className="flex items-baseline justify-between border-b border-ink pb-2 text-xl">
-                {PROJECT_STATUS_LABELS[status]}
+                <StatusChip status={status} className="text-sm" />
                 <span className="font-mono text-xs text-muted">{list.length}</span>
               </h2>
               <ul className="divide-y divide-line">
