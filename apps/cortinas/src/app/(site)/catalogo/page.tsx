@@ -1,3 +1,4 @@
+import { modelDrawing } from "@/lib/drawing";
 import Image from "next/image";
 import Link from "next/link";
 import { formatMoney } from "@portafolio/core/pricing";
@@ -113,7 +114,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
   }
 
   const list = models.filter(
-    (m) => (!params.tipo || m.type === params.tipo) && offers(m, params.material) && (!params.uso || m.uses.split(",").includes(params.uso)),
+    (m) => (!params.tipo || modelDrawing(catalog, m) === params.tipo) && offers(m, params.material) && (!params.uso || m.uses.split(",").includes(params.uso)),
   );
 
   return (
@@ -124,7 +125,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
       </div>
       <div className="mt-8 grid gap-10 md:grid-cols-12">
         <aside className="md:col-span-3 lg:col-span-2">
-          <FilterGroup title="Tipo" param="tipo" options={TYPE_LABELS} current={params.tipo} params={params} />
+          <FilterGroup title="Accionamiento" param="tipo" options={TYPE_LABELS} current={params.tipo} params={params} />
           <FilterGroup title="Material" param="material" options={materialOptions} current={params.material} params={params} />
           <FilterGroup title="Uso" param="uso" options={USE_LABELS} current={params.uso} params={params} />
         </aside>
@@ -148,7 +149,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
                 </div>
                 <div className="mt-4 flex items-baseline justify-between gap-4">
                   <h3 className="text-[1.6rem] leading-tight group-hover:text-blue">{m.name}</h3>
-                  <span className="shrink-0 font-mono text-xs text-muted">{TYPE_LABELS[m.type]}</span>
+                  <span className="shrink-0 font-mono text-xs text-muted">{TYPE_LABELS[modelDrawing(catalog, m)]}</span>
                 </div>
                 <p className="mt-1 text-muted">{m.tagline}</p>
                 <p className="mt-3 text-sm">

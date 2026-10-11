@@ -1,0 +1,41 @@
+/**
+ * "Accionamiento" (enrollable, día y noche, vertical, veneciana) es un atributo genérico normal.
+ * Antes era el campo especial "Mecanismo" (product_models.type, que se conserva).
+ * Migración idempotente y no destructiva: crea el atributo y sus valores, renombra el antiguo
+ * "Accionamiento" (cadena / motor) a "Mando" y habilita en cada categoría solo el valor de sus productos.
+ */
+import "server-only";
+import { sql } from "drizzle-orm";
+import { getDb, schema } from "./db";
+import { TYPE_LABELS } from "./content";
+
+let done: Promise<void> | null = null;
+
+export function ensureAccionamiento() {
+  done ??= migrate().catch((e) => { done = null; console.error("accionamiento", e); });
+  return done;
+}
+
+async function migrate() {
+  const db = getDb();
+  const codes = Object.keys(TYPE_LABELS);
+  const has = async (tx: typeof db) => (await tx.select({ id: schema.attributeValues.id }).from(schema.attributeValues).where(sql`${schema.attributeValues.code} = 'enrollable'`)).length > 0;
+  if (await has(db)) return;
+  await db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(771122)`);
+    if (await has(tx as unknown as typeof db)) return;
+    await tx.update(schema.attributes).set({ name: "Mando" }).where(sql`${schema.attributes.name} = 'Accionamiento'`);
+    await tx.execute(sql`update attributes set sort_order = sort_order + 1`);
+    const [attr] = await tx.insert(schema.attributes).values({ name: "Accionamiento", kind: "lista", scope: "generico", sortOrder: 0 }).returning();
+    const vals = await tx.insert(schema.attributeValues).values(codes.map((c, i) => ({ attributeId: attr.id, name: TYPE_LABELS[c], code: c, sortOrder: i + 1 }))).returning();
+    const byCode = new Map(vals.map((v) => [v.code, v.id]));
+    const models = await tx.select().from(schema.productModels);
+    for (const f of await tx.select().from(schema.productFamilies)) {
+      const ids = [...new Set(models.filter((m) => m.familyId === f.id).map((m) => byCode.get(m.type)!).filter(Boolean))];
+      const list = f.attributes ?? [];
+      if (!list.length) continue; // sin lista = todos los atributos (ya lo incluye)
+      await tx.update(schema.productFamilies).set({ attributes: [{ attributeId: attr.id, required: true, valueIds: ids }, ...list] }).where(sql`${schema.productFamilies.id} = ${f.id}`);
+    }
+  });
+}
+

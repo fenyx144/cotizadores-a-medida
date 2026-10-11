@@ -1,3 +1,4 @@
+import { modelDrawing } from "@/lib/drawing";
 import { SHOW_SURCHARGES } from "@/lib/flags";
 import { StepBar } from "@/components/StepBar";
 import Image from "next/image";
@@ -42,7 +43,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   return (
     <div className="mx-auto max-w-[1360px] px-5 pt-8 md:px-10">
       <nav className="font-mono text-xs text-muted">
-        <Link href="/catalogo" className="hover:text-ink">Catálogo</Link> / {family ? <Link href={`/catalogo?categoria=${family.id}`} className="hover:text-ink">{family.name}</Link> : TYPE_LABELS[model.type]}
+        <Link href="/catalogo" className="hover:text-ink">Catálogo</Link> / {family ? <Link href={`/catalogo?categoria=${family.id}`} className="hover:text-ink">{family.name}</Link> : TYPE_LABELS[modelDrawing(catalog, model)]}
       </nav>
       <div className="mt-4"><StepBar current={2} /></div>
       <div className="mt-6 grid gap-12 md:grid-cols-12">
@@ -58,7 +59,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </div>
             ))}
             <div className="grid-paper flex aspect-[4/3] items-center justify-center border border-line bg-white-stone">
-              <CurtainPreview width={150} height={150} hex={firstHex} type={model.type} className="h-full w-full p-2" />
+              <CurtainPreview width={150} height={150} hex={firstHex} type={modelDrawing(catalog, model)} className="h-full w-full p-2" />
             </div>
           </div>
         </div>

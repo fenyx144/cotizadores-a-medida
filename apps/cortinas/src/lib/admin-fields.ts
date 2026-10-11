@@ -15,7 +15,7 @@ export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_
   { name: "image", label: "Foto principal", type: "image", uploadUrl: UPLOAD, column: true },
   { name: "familyId", label: "Categoría", type: "select", nullable: true, options: families, column: true },
   { name: "slug", label: "Dirección web", type: "text" },
-  { name: "type", label: "Mecanismo", type: "select", options: opts(TYPE_LABELS), column: true, hint: SHOW_SURCHARGES ? "Define el dibujo de la vista previa y los recargos generales por mecanismo." : "Define el dibujo de la vista previa." },
+  { name: "type", label: "Mecanismo (antiguo)", type: "select", options: opts(TYPE_LABELS), hidden: true, hint: "Sustituido por el atributo Accionamiento." },
   { name: "material", label: "Material principal", type: "select", options: materials, column: true, filterBy: { field: "familyId", map: familyMaterials }, hint: "El que se propone por defecto." },
   { name: "materials", label: "Materiales disponibles", type: "multiselect", options: materials, allLabel: "Todos los de la categoría", filterBy: { field: "familyId", map: familyMaterials }, column: true, hint: "Con varios, el cliente elige primero el material." },
   { name: "uses", label: "Usos", type: "text", hint: "Separados por comas: educacion,oficinas,salud" },

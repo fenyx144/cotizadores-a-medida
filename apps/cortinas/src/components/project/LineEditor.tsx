@@ -4,6 +4,7 @@
  * Calcula el precio en vivo en el navegador con el mismo motor que el servidor;
  * el servidor lo recalcula al guardar (nunca confiamos en el precio del cliente).
  */
+import { drawingType, modelDrawing } from "@/lib/drawing";
 import { useState } from "react";
 import { formatMoney } from "@portafolio/core/pricing";
 import { configHex } from "@portafolio/core/db/project-schema";
@@ -131,7 +132,7 @@ export function LineEditor({ ctx, lines, isNew, defaultLocationId = null, sugges
 
       <div className="grid grid-cols-[1fr_auto] items-end gap-4 border-t border-line pt-4">
         {model && w > 0 && h > 0 ? (
-          <CurtainPreview width={w} height={h} hex={configHex(preview?.config)} type={model.type} className="h-32 w-auto" />
+          <CurtainPreview width={w} height={h} hex={configHex(preview?.config)} type={drawingType(catalog, values, modelDrawing(catalog, model))} className="h-32 w-auto" />
         ) : (
           <span />
         )}
