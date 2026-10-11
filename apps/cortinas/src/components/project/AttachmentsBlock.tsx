@@ -14,6 +14,8 @@ export function AttachmentsBlock({ ctx }: { ctx: EditorContext }) {
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const list = Array.from(e.target.files ?? []);
     for (const f of list) {
+      if (!["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(f.type)) { alert(`“${f.name}”: solo se aceptan fotos (JPG, PNG, WEBP) o PDF.`); continue; }
+      if (f.size > 4 * 1024 * 1024) { alert(`“${f.name}” pesa ${(f.size / 1024 / 1024).toFixed(1)} MB y el máximo es 4 MB. Comprímalo (por ejemplo, exportando el PDF en calidad web) o envíe solo las páginas necesarias.`); continue; }
       const fd = new FormData();
       fd.set("file", f);
       await act(uploadAttachment(data.project.id, fd), "Archivo adjuntado.");

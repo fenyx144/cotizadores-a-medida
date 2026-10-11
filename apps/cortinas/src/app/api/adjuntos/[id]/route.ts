@@ -12,5 +12,5 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   const file = await getFile(a.storageKey, url.origin);
   if (!file) return new Response("No encontrado", { status: 404 });
   const disposition = `${url.searchParams.has("descargar") ? "attachment" : "inline"}; filename*=UTF-8''${encodeURIComponent(a.name)}`;
-  return new Response(Buffer.from(file.body), { headers: { "Content-Type": a.contentType, "Content-Disposition": disposition, "Cache-Control": "private, max-age=3600" } });
+  return new Response(Buffer.from(file.body), { headers: { "Content-Type": a.contentType, "Content-Disposition": disposition, "Cache-Control": "private, max-age=3600", "X-Content-Type-Options": "nosniff" } });
 }

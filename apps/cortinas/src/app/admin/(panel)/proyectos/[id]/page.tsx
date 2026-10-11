@@ -7,6 +7,7 @@ import { LINE_STATUS_COLORS, LINE_STATUS_LABELS, PROJECT_STATUSES, PROJECT_STATU
 import { loadProject, locationName, projectSummary } from "@/lib/project";
 import { DRIVE_LABELS } from "@/lib/content";
 import { addProjectNote, updateProjectStatus } from "@/app/admin/actions";
+import { AttachmentGallery } from "@/components/admin/AttachmentGallery";
 import { AdminPlanView } from "@/components/admin/AdminPlanView";
 
 export default async function AdminProject({ params }: { params: Promise<{ id: string }> }) {
@@ -81,30 +82,7 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
 
       <section className="mt-10 border-t border-ink pt-4" data-testid="admin-attachments">
         <h2 className="text-2xl">Archivos adjuntos <span className="font-mono text-xs text-muted">({data.attachments.length})</span></h2>
-        {data.attachments.length === 0 ? (
-          <p className="mt-2 text-sm text-muted">El cliente no adjuntó archivos.</p>
-        ) : (
-          <ul className="mt-4 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {data.attachments.map((a) => (
-              <li key={a.id} className="text-sm">
-                <a href={`/api/adjuntos/${a.id}`} target="_blank" className="block aspect-[4/3] overflow-hidden border border-line bg-white-stone hover:border-ink">
-                  {a.contentType.startsWith("image/") ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={`/api/adjuntos/${a.id}`} alt={a.name} className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="flex h-full flex-col items-center justify-center gap-1"><span className="font-serif text-3xl">PDF</span><span className="font-mono text-[11px] text-muted">Abrir</span></span>
-                  )}
-                </a>
-                <p className="mt-2 truncate">{a.name}</p>
-                <p className="font-mono text-[11px] text-muted">
-                  {(a.size / 1024).toFixed(0)} KB · {a.createdAt.toLocaleDateString("es-PE", { timeZone: "America/Lima" })} ·{" "}
-                  <a href={`/api/adjuntos/${a.id}`} target="_blank" className="underline underline-offset-2 hover:text-ink">Abrir</a> ·{" "}
-                  <a href={`/api/adjuntos/${a.id}?descargar=1`} className="underline underline-offset-2 hover:text-ink">Descargar</a>
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
+        <AttachmentGallery items={data.attachments.map((a) => ({ id: a.id, name: a.name, contentType: a.contentType, size: a.size, createdAt: a.createdAt.toISOString() }))} />
       </section>
 
       {data.plans.length > 0 && (
