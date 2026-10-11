@@ -44,6 +44,11 @@ export function AttributeFields({ ev, values, onChange, disabled, inputClass, la
               {(!f.required || v == null) && <option value="">{f.required ? "Elija…" : "—"}</option>}
               {f.choices.map((c) => <option key={c.value} value={c.value} disabled={!!c.disabled}>{c.label}{c.disabled ? ` — ${c.disabled}` : ""}</option>)}
             </select>
+            {f.choices.some((c) => c.disabled) && (
+              <span className="mt-1 block space-y-0.5 text-xs text-muted" data-testid="blocked-reasons">
+                {f.choices.filter((c) => c.disabled).map((c) => <span key={c.value} className="block">✕ {c.label}: {c.disabled}</span>)}
+              </span>
+            )}
             {err && <span className="mt-1 block text-xs text-danger" data-testid="attr-error">{err}</span>}
           </label>
         );

@@ -10,7 +10,7 @@ export default async function Page() {
     attributeData(),
   ]);
   return (
-    <CrudManager resource="materials" title="1 · Materiales" newLabel="Añadir material"
+    <CrudManager resource="materials" title="2 · Materiales" newLabel="Añadir material"
       description="Cada material decide qué atributos y valores admite."
       fields={materialFields(attrOptions)} initialRows={rows} />
   );

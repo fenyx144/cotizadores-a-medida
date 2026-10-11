@@ -11,7 +11,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   const tab = (on: boolean) => (on ? "text-ink underline decoration-accent underline-offset-4" : "text-muted hover:text-ink");
   return (
     <div className="space-y-14">
-      <CrudManager resource="attributes" title="2 · Atributos" newLabel="Añadir atributo"
+      <CrudManager resource="attributes" title="1 · Atributos" newLabel="Añadir atributo"
         description="Genéricos para todos, o según material. Cada uno con sus valores."
         fields={ATTRIBUTE_FIELDS} initialRows={attributes} />
       {current && (

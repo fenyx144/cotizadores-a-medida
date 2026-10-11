@@ -3,11 +3,12 @@ import Link from "next/link";
 import { formatMoney } from "@portafolio/core/pricing";
 import { getCatalog } from "@/lib/catalog";
 import { TYPE_LABELS, USE_LABELS } from "@/lib/content";
+import { StepBar } from "@/components/StepBar";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Catálogo — Cota" };
 
-type Params = { tipo?: string; material?: string; uso?: string };
+type Params = { tipo?: string; material?: string; uso?: string; categoria?: string };
 
 /** Filtros como enlaces: cada clic cambia un parámetro de la URL (se puede compartir). */
 function FilterGroup({ title, param, options, current, params }: { title: string; param: keyof Params; options: Record<string, string>; current?: string; params: Params }) {
@@ -37,6 +38,76 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
   const params = await searchParams;
   const { models, families, materials } = await getCatalog();
   const materialOptions = Object.fromEntries(materials.filter((x) => x.active).map((x) => [x.slug, x.name]));
+  const family = families.find((f) => String(f.id) === params.categoria);
+
+  // Inicio del catálogo: tarjetas de categoría con foto.
+  if (!family && !params.tipo && !params.material && !params.uso) {
+    const cards = families.map((f) => ({ f, items: models.filter((m) => m.familyId === f.id) })).filter((c) => c.items.length);
+    return (
+      <div className="mx-auto max-w-[1360px] px-5 pt-12 md:px-10">
+        <div className="grid gap-6 border-b border-line pb-8 md:grid-cols-12 md:items-end">
+          <h1 className="text-[3rem] leading-none md:col-span-6 md:text-[4rem]">Catálogo</h1>
+          <div className="md:col-span-5 md:col-start-8"><StepBar current={1} /></div>
+        </div>
+        <div className="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3" data-testid="category-cards">
+          {cards.map(({ f, items }) => (
+            <Link key={f.id} href={`/catalogo?categoria=${f.id}`} className="photo-zoom group block border-t border-line pt-4" data-testid="category-card">
+              <div className="relative aspect-[4/3] overflow-hidden bg-paper-deep">
+                {items[0].image && <Image src={items[0].image} alt={f.name} fill sizes="(min-width: 1024px) 28vw, (min-width: 640px) 45vw, 100vw" className="object-cover" />}
+              </div>
+              <div className="mt-4 flex items-baseline justify-between gap-4">
+                <h2 className="text-[1.8rem] leading-tight group-hover:text-blue">{f.name}</h2>
+                <span className="shrink-0 font-mono text-xs text-muted">{items.length} {items.length === 1 ? "producto" : "productos"}</span>
+              </div>
+              {f.description && <p className="mt-1 text-muted">{f.description}</p>}
+            </Link>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Página de categoría: sus productos con filtro de material.
+  if (family) {
+    const inFamily = models.filter((m) => m.familyId === family.id);
+    const mats = Object.fromEntries(materials.filter((x) => inFamily.some((m) => m.material === x.slug)).map((x) => [x.slug, x.name]));
+    const items = inFamily.filter((m) => !params.material || m.material === params.material);
+    return (
+      <div className="mx-auto max-w-[1360px] px-5 pt-8 md:px-10">
+        <nav className="font-mono text-xs text-muted"><Link href="/catalogo" className="hover:text-ink">Catálogo</Link> / {family.name}</nav>
+        <div className="mt-4 grid gap-6 border-b border-line pb-8 md:grid-cols-12 md:items-end">
+          <div className="md:col-span-7">
+            <h1 className="text-[2.8rem] leading-none md:text-[3.6rem]">{family.name}</h1>
+            {family.description && <p className="mt-3 text-muted">{family.description}</p>}
+          </div>
+          <div className="md:col-span-4 md:col-start-9"><StepBar current={1} /></div>
+        </div>
+        {Object.keys(mats).length > 1 && (
+          <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm" data-testid="material-filter">
+            <span className="font-mono text-xs text-muted">Material</span>
+            {[["", "Todos"], ...Object.entries(mats)].map(([v, l]) => (
+              <Link key={v} href={`/catalogo?categoria=${family.id}${v ? `&material=${v}` : ""}`} className={(params.material ?? "") === v ? "text-ink underline decoration-accent underline-offset-4" : "text-muted hover:text-ink"}>{l}</Link>
+            ))}
+          </div>
+        )}
+        <div className="mt-8 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((m) => (
+            <Link key={m.id} href={`/catalogo/${m.slug}`} className="photo-zoom group block border-t border-line pt-4" data-testid="product-card">
+              <div className="relative aspect-[4/5] overflow-hidden bg-paper-deep">
+                <Image src={m.image} alt={m.name} fill sizes="(min-width: 1024px) 28vw, (min-width: 640px) 45vw, 100vw" className="object-cover" />
+              </div>
+              <div className="mt-4 flex items-baseline justify-between gap-4">
+                <h3 className="text-[1.6rem] leading-tight group-hover:text-blue">{m.name}</h3>
+                <span className="shrink-0 font-mono text-xs text-muted">{materials.find((x) => x.slug === m.material)?.name}</span>
+              </div>
+              <p className="mt-1 text-muted">{m.tagline}</p>
+            </Link>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   const list = models.filter(
     (m) => (!params.tipo || m.type === params.tipo) && (!params.material || m.material === params.material) && (!params.uso || m.uses.split(",").includes(params.uso)),
   );
