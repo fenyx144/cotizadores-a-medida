@@ -345,6 +345,7 @@ function Tester({ catalog }: { catalog: CatalogData }) {
           ))}
         </div>
         <div className="space-y-4 text-sm" data-testid="tester-result">
+          {model && <p className="text-xs text-muted" data-testid="tester-scope">Categoría {catalog.families?.find((x) => x.id === model.familyId)?.name ?? "—"} · material {catalog.materials?.find((x) => x.slug === model.material)?.name ?? model.material}: se muestran solo los atributos y valores que ambos permiten.</p>}
           <p className="font-mono text-xs text-muted">Medidas: ancho {ev.limits.minWidth}–{ev.limits.maxWidth} cm · alto {ev.limits.minHeight}–{ev.limits.maxHeight} cm</p>
           {ev.fields.filter((f) => f.kind !== "numero" && f.kind !== "sino").map((f) => (
             <div key={f.attribute.id}>
