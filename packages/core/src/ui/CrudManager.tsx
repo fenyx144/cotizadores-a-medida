@@ -38,6 +38,8 @@ export interface CrudField {
   noRequired?: boolean;
   /** Mostrar en la tabla. */
   column?: boolean;
+  /** Mínimo del número. En "sortOrder" por defecto 1 (orden visible desde 1; un registro nuevo va al final). */
+  min?: number;
   /** Oculto en tabla y formulario (se conserva su valor al guardar). */
   hidden?: boolean;
 }
@@ -69,6 +71,7 @@ export function CrudManager({
   function emptyRow(): Partial<Row> {
     const r: Record<string, unknown> = {};
     for (const f of fields) r[f.name] = f.type === "specs" || f.type === "gallery" || f.type === "attrs" ? [] : f.type === "multiselect" ? "" : f.type === "boolean" ? true : f.type === "number" ? (f.nullable ? null : 0) : f.type === "color" ? (f.nullable ? "" : "#cccccc") : f.nullable ? null : (f.options?.[0]?.value ?? "");
+    for (const f of fields) if (f.type === "number" && f.name === "sortOrder") r[f.name] = Math.max(0, ...rows.map((x) => Number(x[f.name]) || 0)) + 1;
     return r;
   }
 
@@ -253,7 +256,7 @@ export function CrudManager({
                     <input value={String(editing[f.name] ?? "")} onChange={(e) => setEditing({ ...editing, [f.name]: e.target.value })} className="w-full border-b border-line bg-transparent py-1" />
                   </span>
                 ) : (
-                  <input type={f.type} step={f.step} value={editing[f.name] == null ? "" : String(editing[f.name])} onChange={(e) => setEditing({ ...editing, [f.name]: e.target.value })} className="mt-1 w-full border-b border-line bg-transparent py-1" />
+                  <input type={f.type} step={f.step} min={f.min ?? (f.name === "sortOrder" ? 1 : undefined)} value={editing[f.name] == null ? "" : String(editing[f.name])} onChange={(e) => setEditing({ ...editing, [f.name]: e.target.value })} className="mt-1 w-full border-b border-line bg-transparent py-1" />
                 )}
                 {f.hint && <span className="mt-1 block text-xs text-muted">{f.hint}</span>}
                 {errors[f.name] && <span className="mt-1 block text-xs text-danger">{errors[f.name]}</span>}

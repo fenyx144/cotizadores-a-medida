@@ -853,7 +853,7 @@
       "name": "Color de tela",
       "kind": "lista",
       "unit": "",
-      "sort_order": 2,
+      "sort_order": 3,
       "scope": "material"
     },
     {
@@ -861,7 +861,7 @@
       "name": "Color del perfil",
       "kind": "lista",
       "unit": "",
-      "sort_order": 3,
+      "sort_order": 4,
       "scope": "generico"
     },
     {
@@ -869,7 +869,7 @@
       "name": "Mando",
       "kind": "lista",
       "unit": "",
-      "sort_order": 4,
+      "sort_order": 5,
       "scope": "generico"
     },
     {
@@ -877,7 +877,7 @@
       "name": "Lado del mando",
       "kind": "lista",
       "unit": "",
-      "sort_order": 5,
+      "sort_order": 6,
       "scope": "generico"
     },
     {
@@ -885,7 +885,7 @@
       "name": "Caída",
       "kind": "lista",
       "unit": "",
-      "sort_order": 6,
+      "sort_order": 7,
       "scope": "generico"
     },
     {
@@ -893,7 +893,7 @@
       "name": "Cenefa decorativa",
       "kind": "sino",
       "unit": "",
-      "sort_order": 7,
+      "sort_order": 8,
       "scope": "generico"
     },
     {
@@ -901,7 +901,7 @@
       "name": "Tipo de tela",
       "kind": "lista",
       "unit": "",
-      "sort_order": 1,
+      "sort_order": 2,
       "scope": "material"
     },
     {
@@ -909,7 +909,7 @@
       "name": "Accionamiento",
       "kind": "lista",
       "unit": "",
-      "sort_order": 0,
+      "sort_order": 1,
       "scope": "generico"
     }
   ],

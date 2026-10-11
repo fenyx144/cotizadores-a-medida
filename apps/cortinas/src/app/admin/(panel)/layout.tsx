@@ -1,5 +1,6 @@
 import { AdminShell } from "@portafolio/core/ui/AdminShell";
 import { requireAdmin } from "@/lib/session";
+import { ensureOrderFromOne } from "@/lib/accionamiento";
 import { logout } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +19,7 @@ const NAV = [
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {
   const session = await requireAdmin();
+  await ensureOrderFromOne();
   return (
     <AdminShell brand="Cota" items={NAV} userName={session.name} logoutAction={logout}>
       {children}

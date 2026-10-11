@@ -68,3 +68,18 @@ export function ensureCombinedDemo() {
   })().catch((e) => { combo = null; console.error("combinado", e); });
   return combo;
 }
+
+/** Orden visible desde 1: renumera 1..n (mismo orden) donde haya posiciones 0 o negativas. */
+let order: Promise<void> | null = null;
+export function ensureOrderFromOne() {
+  order ??= (async () => {
+    const db = getDb();
+    const groups: [string, string | null][] = [["attributes", null], ["attribute_values", "attribute_id"], ["materials", null], ["product_families", null], ["product_models", null], ["product_variants", "model_id"]];
+    for (const [t, by] of groups) {
+      const part = by ? `partition by ${by} ` : "";
+      const where = by ? `where ${by} in (select ${by} from ${t} where sort_order < 1)` : `where exists (select 1 from ${t} where sort_order < 1)`;
+      await db.execute(sql.raw(`update ${t} x set sort_order = n.rn from (select id, row_number() over (${part}order by sort_order, id) as rn from ${t} ${where}) n where x.id = n.id`));
+    }
+  })().catch((e) => { order = null; console.error("orden", e); });
+  return order;
+}
