@@ -231,11 +231,6 @@ export function blockReason(c: RulesCatalog, model: ProductModel, attributeId: n
       const t = r.targetAttributeId != null ? others.get(r.targetAttributeId) : undefined;
       if (t != null && targets.includes(t)) hit = true;
     }
-    // Simetría en "permitir solo" de una condición: si ya se eligió un valor fuera de la lista, se bloquea la condición.
-    else if (r.kind === "permitir" && r.conditions?.length === 1 && condKind(r.conditions[0]) === "atributo" && r.conditions[0].attributeId === attributeId && r.conditions[0].valueIds.includes(valueId)) {
-      const t = r.targetAttributeId != null ? others.get(r.targetAttributeId) : undefined;
-      if (t != null && !targets.includes(t)) hit = true;
-    }
     if (hit) return { message: r.message || (cond ? `No disponible si ${cond}.` : `No disponible para ${model.name}.`), rule: r.name };
   }
   return undefined;

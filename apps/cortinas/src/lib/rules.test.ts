@@ -110,9 +110,11 @@ describe("motor de reglas (atributos genéricos)", () => {
     expect(matchVariant(c, { modelId: v.modelId, values: { ...fixed, [attr]: other.id } })?.id).not.toBe(v.id);
   });
 
-  it("permitir solo es simétrico con una condición", () => {
+  it("cambiar el tipo reajusta el color por defecto (permitir solo no bloquea al revés)", () => {
     const allow = { ...constraints[0], id: 14, name: "Tipo", kind: "permitir", conditions: [{ attributeId: ACC, valueIds: [16] }], targetAttributeId: LADO, targetValueIds: [19], message: "Solo izquierda con cadena." } as ConstraintRule;
-    const ev = evaluate({ ...c, constraints: [allow] }, { modelId: 2, values: { [LADO]: 20 } });
-    expect(f(ev, ACC)!.choices.find((x) => x.value === 16)?.disabled).toBe("Solo izquierda con cadena.");
+    const cc = { ...c, constraints: [allow] };
+    expect(f(evaluate(cc, { modelId: 2, values: { [LADO]: 20 } }), ACC)!.choices.find((x) => x.value === 16)?.disabled).toBeUndefined();
+    expect(withDefaults(cc, { modelId: 2, values: { [ACC]: 16, [LADO]: 20 } })[LADO]).toBe(19);
   });
+
 });
