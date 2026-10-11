@@ -159,7 +159,7 @@ export function evaluate(c: RulesCatalog, sel: Selection): Evaluation {
   const fields: EvalField[] = familyAttributes(c, model).map(({ attribute, required, valueIds }) => {
     const others = selectionRefs(c, sel, attribute.id);
     const choices = valuesFor(c, attribute.id, model, valueIds).map((v) => ({
-      value: v.id, label: valueText(v), hex: v.hex || undefined, disabled: blockedBy(c, model, `v:${v.id}`, others),
+      value: v.id, label: valueText(v), hex: attribute.kind === "color" ? v.hex || undefined : undefined, disabled: blockedBy(c, model, `v:${v.id}`, others),
     }));
     return { attribute, kind: (attribute.kind as AttributeKind) ?? "lista", required, choices };
   });

@@ -26,7 +26,7 @@ export function lineOptions(catalog: RulesCatalog, sel: { modelId: number; value
     if (f.kind === "numero") { out.push({ attributeId: f.attribute.id, attribute: f.attribute.name, value: `${raw}${f.attribute.unit ? ` ${f.attribute.unit}` : ""}` }); continue; }
     const v = f.kind === "sino" ? catalog.values.find((x) => x.attributeId === f.attribute.id && x.active) : catalog.values.find((x) => x.id === raw);
     if (!v) continue;
-    out.push({ attributeId: f.attribute.id, attribute: f.attribute.name, valueId: v.id, value: f.kind === "sino" ? f.attribute.name : v.name, code: v.code || undefined, hex: v.hex || undefined });
+    out.push({ attributeId: f.attribute.id, attribute: f.attribute.name, valueId: v.id, value: f.kind === "sino" ? f.attribute.name : v.name, code: v.code || undefined, hex: f.kind === "color" ? v.hex || undefined : undefined });
   }
   return out;
 }

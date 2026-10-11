@@ -45,7 +45,7 @@ const resources: Record<string, CrudResource> = {
     orderBy: schema.attributeValues.sortOrder,
     schema: z.object({
       attributeId: z.coerce.number().int().min(1, "Elija el atributo"), name: z.string().trim().min(1, "Indique el nombre").max(80), code: z.string().max(40).default(""),
-      hex: hexOpt.default(""), surcharge: z.number().min(-5000).max(5000), surchargeKind: z.enum(["fijo", "por_m2"]), onlyFor: z.string().regex(/^[a-z0-9,-]*$/, "Ej.: screen,mixto").default(""),
+      hex: hexOpt.nullable().transform((v) => v ?? ""), surcharge: z.number().min(-5000).max(5000), surchargeKind: z.enum(["fijo", "por_m2"]), onlyFor: z.string().regex(/^[a-z0-9,-]*$/, "Ej.: screen,mixto").default(""),
       active: z.boolean(), sortOrder: z.number().int(),
     }),
   },

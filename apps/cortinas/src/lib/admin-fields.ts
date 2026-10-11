@@ -43,7 +43,7 @@ export const valueFields = (attrs: Opt[]): CrudField[] => [
   { name: "attributeId", label: "Atributo", type: "select", options: attrs, column: true },
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "code", label: "Código", type: "text", column: true },
-  { name: "hex", label: "Muestra de color", type: "color", column: true, hint: "Solo en atributos de color." },
+  { name: "hex", label: "Muestra de color", type: "color", nullable: true, column: true, hint: "Solo en atributos de color." },
   { name: "surcharge", label: "Recargo (S/)", type: "number", step: 0.01, column: true },
   { name: "surchargeKind", label: "Recargo por", type: "select", options: [{ value: "fijo", label: "Unidad" }, { value: "por_m2", label: "m²" }] },
   { name: "onlyFor", label: "Solo para", type: "text", hint: "Materiales o tipos, separados por comas. Vacío = todos." },
