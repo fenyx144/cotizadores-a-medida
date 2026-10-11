@@ -209,29 +209,46 @@ function Matrix({ catalog, rules, onSaved }: { catalog: CatalogData; rules: Cons
   const [bId, setB] = useState<number>(fas[1]?.attributeId ?? 0);
   const fa = fas.find((x) => x.attributeId === aId), fb = fas.find((x) => x.attributeId === bId);
   const source = `matriz:${familyId}:${aId}:${bId}`;
-  const mine = rules.filter((r) => r.source === source);
-  const blockedFrom = () => new Set(mine.flatMap((r) => (r.targetValueIds ?? []).map((b) => `${r.conditions[0]?.valueIds[0]}:${b}`)));
+  // Todas las reglas de bloqueo de una condición entre A y B (en cualquier sentido) que alcanzan a esta categoría.
+  const mine = rules.filter((r) => r.kind === "bloquear" && r.conditions?.length === 1 && !r.modelId && (!r.familyId || r.familyId === familyId) &&
+    ((r.conditions[0].attributeId === aId && r.targetAttributeId === bId) || (r.conditions[0].attributeId === bId && r.targetAttributeId === aId)));
+  const cells = (r: ConstraintRule) => r.conditions[0].valueIds.flatMap((x) => (r.targetValueIds ?? []).map((y) => (r.targetAttributeId === bId ? `${x}:${y}` : `${y}:${x}`)));
+  const blockedFrom = () => new Set(mine.flatMap(cells));
   const [blocked, setBlocked] = useState<Set<string>>(blockedFrom);
   const [key, setKey] = useState(source);
   if (key !== source) { setKey(source); setBlocked(blockedFrom()); }
   const [msg, setMsg] = useState<string | null>(null);
-  const av = fa ? valuesFor(catalog, aId, undefined, fa.valueIds) : [];
-  const bv = fb ? valuesFor(catalog, bId, undefined, fb.valueIds) : [];
+  // Solo los valores permitidos en la categoría y que sirven a alguno de sus productos.
+  const models = catalog.models.filter((m) => m.familyId === familyId);
+  const allowed = (id: number, ids: number[]) => valuesFor(catalog, id, undefined, ids).filter((v) => !models.length || models.some((m) => valuesFor(catalog, id, m, ids).some((x) => x.id === v.id)));
+  const av = fa ? allowed(aId, fa.valueIds) : [];
+  const bv = fb ? allowed(bId, fb.valueIds) : [];
 
   async function save() {
     setMsg(null);
-    for (const r of mine) await fetch(`/api/admin/constraints/${r.id}`, { method: "DELETE" });
+    const visible = new Set(av.flatMap((a) => bv.map((b) => `${a.id}:${b.id}`)));
+    const covered = new Set<string>();
+    let next = [...rules];
+    // Ajusta las reglas existentes: quita los valores destino de las celdas que ahora están marcadas.
+    for (const r of mine) {
+      const key = (x: number, y: number) => (r.targetAttributeId === bId ? `${x}:${y}` : `${y}:${x}`);
+      const keep = (r.targetValueIds ?? []).filter((y) => r.conditions[0].valueIds.some((x) => !visible.has(key(x, y)) || blocked.has(key(x, y))));
+      for (const x of r.conditions[0].valueIds) for (const y of keep) covered.add(key(x, y));
+      if (keep.length === (r.targetValueIds ?? []).length) continue;
+      if (!keep.length) { await fetch(`/api/admin/constraints/${r.id}`, { method: "DELETE" }); next = next.filter((z) => z.id !== r.id); }
+      else { const row = await api("PATCH", r.id, toPayload({ ...toDraft(r), targetValueIds: keep })); next = next.map((z) => (z.id === r.id ? row : z)); }
+    }
     const created: ConstraintRule[] = [];
     for (const a of av) {
-      const ids = bv.filter((b) => blocked.has(`${a.id}:${b.id}`)).map((b) => b.id);
+      const ids = bv.filter((b) => blocked.has(`${a.id}:${b.id}`) && !covered.has(`${a.id}:${b.id}`)).map((b) => b.id);
       if (!ids.length) continue;
       created.push(await api("POST", undefined, {
         name: `Compatibilidad ${family?.name}: ${fa!.attribute.name} ${a.name}`, kind: "bloquear", familyId, modelId: null,
         conditions: [{ attributeId: aId, valueIds: [a.id] }], targetAttributeId: bId, targetValueIds: ids, message: "", active: true, source,
       }));
     }
-    onSaved([...rules.filter((r) => r.source !== source), ...created]);
-    setMsg(`Guardado: ${created.length} ${created.length === 1 ? "regla" : "reglas"} de bloqueo.`);
+    onSaved([...next, ...created]);
+    setMsg(`Guardado. ${created.length ? `${created.length} ${created.length === 1 ? "regla nueva" : "reglas nuevas"}.` : ""}`);
   }
 
   return (
