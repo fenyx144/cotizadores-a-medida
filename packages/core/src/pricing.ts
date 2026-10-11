@@ -60,6 +60,8 @@ export interface PricingRule {
   drive: Drive | null;
   modelType: string | null;
   minArea: number | null;
+  /** Si está, la regla solo aplica cuando la configuración incluye esa opción ("tela:6"). */
+  optionRef?: string | null;
   active: boolean;
 }
 
@@ -122,8 +124,9 @@ export function validateDimensions(model: PricingModel, width: number, projectio
 }
 
 /** ¿La regla aplica a esta configuración? */
-export function ruleApplies(rule: PricingRule, ctx: { drive: Drive; modelType: string; area: number }): boolean {
+export function ruleApplies(rule: PricingRule, ctx: { drive: Drive; modelType: string; area: number; refs?: Set<string> }): boolean {
   if (!rule.active) return false;
+  if (rule.optionRef && !ctx.refs?.has(rule.optionRef)) return false;
   if (rule.drive && rule.drive !== ctx.drive) return false;
   if (rule.modelType && rule.modelType !== ctx.modelType) return false;
   if (rule.minArea != null && ctx.area < rule.minArea) return false;
@@ -142,9 +145,11 @@ export function calculatePrice(
     fabric?: PricingFabric | null;
     frameColor?: PricingFrameColor | null;
     rules: PricingRule[];
+    /** Opciones elegidas ("tela:6", "perfil:3"…) para reglas condicionadas. */
+    refs?: Set<string>;
   },
 ): PriceResult {
-  const { model, fabric, frameColor, rules } = catalog;
+  const { model, fabric, frameColor, rules, refs } = catalog;
   const area = areaM2(config.width, config.projection);
   const lines: PriceLine[] = [];
 
@@ -157,7 +162,7 @@ export function calculatePrice(
     lines.push({ label: `Estructura ${frameColor.name}`, amount: frameColor.surcharge });
   }
 
-  const ctx = { drive: config.drive, modelType: model.type, area };
+  const ctx = { drive: config.drive, modelType: model.type, area, refs };
   const applicable = rules.filter((r) => ruleApplies(r, ctx));
 
   // Primero reglas de importe (fijo y por m²)...

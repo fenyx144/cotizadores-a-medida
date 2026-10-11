@@ -35,7 +35,7 @@ function FilterGroup({ title, param, options, current, params }: { title: string
 
 export default async function CatalogPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
-  const { models } = await getCatalog();
+  const { models, families } = await getCatalog();
   const list = models.filter(
     (m) => (!params.tipo || m.type === params.tipo) && (!params.material || m.material === params.material) && (!params.uso || m.uses.split(",").includes(params.uso)),
   );
@@ -55,14 +55,23 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
         <div className="md:col-span-9 lg:col-span-10">
           <p className="font-mono text-xs text-muted">{list.length} {list.length === 1 ? "producto" : "productos"}</p>
           {list.length === 0 && <p className="mt-8 text-muted">No hay productos con esa combinación. <Link href="/catalogo" className="underline">Quitar filtros</Link></p>}
-          <div className="mt-4 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
-            {list.map((m) => (
+          {[...families.map((f) => ({ id: f.id as number | null, name: f.name, description: f.description })), { id: null, name: "Otros productos", description: "" }]
+            .map((g) => ({ ...g, items: list.filter((m) => (m.familyId ?? null) === g.id || (g.id === null && m.familyId != null && !families.some((f) => f.id === m.familyId))) }))
+            .filter((g) => g.items.length)
+            .map((g) => (
+              <section key={g.id ?? "otros"} className="mt-10 first:mt-4" data-testid="family-group">
+                <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-ink pb-2">
+                  <h2 className="text-[2rem] leading-tight">{g.name}</h2>
+                  {g.description && <p className="max-w-xl text-sm text-muted">{g.description}</p>}
+                </div>
+                <div className="mt-6 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+                  {g.items.map((m) => (
               <Link key={m.id} href={`/catalogo/${m.slug}`} className="photo-zoom group block border-t border-line pt-4">
                 <div className="relative aspect-[4/5] overflow-hidden bg-paper-deep">
                   <Image src={m.image} alt={m.name} fill sizes="(min-width: 1024px) 28vw, (min-width: 640px) 45vw, 100vw" className="object-cover" />
                 </div>
                 <div className="mt-4 flex items-baseline justify-between gap-4">
-                  <h2 className="text-[1.6rem] leading-tight group-hover:text-blue">{m.name}</h2>
+                  <h3 className="text-[1.6rem] leading-tight group-hover:text-blue">{m.name}</h3>
                   <span className="shrink-0 font-mono text-xs text-muted">{TYPE_LABELS[m.type]}</span>
                 </div>
                 <p className="mt-1 text-muted">{m.tagline}</p>
@@ -71,8 +80,10 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
                   <span className="text-muted"> · {m.uses.split(",").map((u) => USE_LABELS[u]).join(", ")}</span>
                 </p>
               </Link>
+                  ))}
+                </div>
+              </section>
             ))}
-          </div>
         </div>
       </div>
     </div>

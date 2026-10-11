@@ -7,7 +7,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export type FieldType = "text" | "textarea" | "number" | "color" | "boolean" | "select" | "specs";
+export type FieldType = "text" | "textarea" | "number" | "color" | "boolean" | "select" | "specs" | "multiselect";
 
 export interface CrudField {
   name: string;
@@ -48,7 +48,7 @@ export function CrudManager({
 
   function emptyRow(): Partial<Row> {
     const r: Record<string, unknown> = {};
-    for (const f of fields) r[f.name] = f.type === "specs" ? [] : f.type === "boolean" ? true : f.type === "number" ? (f.nullable ? null : 0) : f.type === "color" ? "#cccccc" : f.nullable ? null : (f.options?.[0]?.value ?? "");
+    for (const f of fields) r[f.name] = f.type === "specs" ? [] : f.type === "multiselect" ? "" : f.type === "boolean" ? true : f.type === "number" ? (f.nullable ? null : 0) : f.type === "color" ? "#cccccc" : f.nullable ? null : (f.options?.[0]?.value ?? "");
     return r;
   }
 
@@ -106,7 +106,11 @@ export function CrudManager({
         </span>
       );
     if (f.type === "specs") return Array.isArray(value) && value.length ? `${value.length} filas` : "—";
-    if (f.type === "select") return f.options?.find((o) => o.value === value)?.label ?? (value == null ? "—" : String(value));
+    if (f.type === "multiselect") {
+      const v = String(value ?? "").split(",").filter(Boolean);
+      return v.length ? v.map((x) => f.options?.find((o) => o.value === x)?.label ?? x).join(", ") : "Todas";
+    }
+    if (f.type === "select") return f.options?.find((o) => o.value === String(value))?.label ?? (value == null ? "—" : String(value));
     return value == null || value === "" ? "—" : String(value);
   }
 
@@ -163,12 +167,26 @@ export function CrudManager({
                 rows={(editing[f.name] as SpecRow[] | undefined) ?? []}
                 onChange={(rows) => setEditing({ ...editing, [f.name]: rows })} />
             ) : (
-              <label key={f.name} className="block text-sm">
+              <FieldWrap key={f.name} multi={f.type === "multiselect"}>
                 <span className="text-muted">{f.label}</span>
                 {f.type === "textarea" ? (
                   <textarea rows={3} value={String(editing[f.name] ?? "")} onChange={(e) => setEditing({ ...editing, [f.name]: e.target.value })} className="mt-1 w-full border border-line bg-transparent p-2" />
                 ) : f.type === "boolean" ? (
                   <input type="checkbox" checked={Boolean(editing[f.name])} onChange={(e) => setEditing({ ...editing, [f.name]: e.target.checked })} className="ml-3 align-middle accent-ink" />
+                ) : f.type === "multiselect" ? (
+                  <span className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+                    {f.options?.map((o) => {
+                      const cur = String(editing[f.name] ?? "").split(",").filter(Boolean);
+                      const on = cur.includes(o.value);
+                      return (
+                        <label key={o.value} className="inline-flex items-center gap-1.5">
+                          <input type="checkbox" checked={on} className="accent-ink" aria-label={o.label}
+                            onChange={() => setEditing({ ...editing, [f.name]: (on ? cur.filter((x) => x !== o.value) : [...cur, o.value]).join(",") })} />
+                          <span>{o.label}</span>
+                        </label>
+                      );
+                    })}
+                  </span>
                 ) : f.type === "select" ? (
                   <select value={String(editing[f.name] ?? "")} onChange={(e) => setEditing({ ...editing, [f.name]: e.target.value })} className="mt-1 w-full border-b border-line bg-transparent py-1">
                     {f.nullable && <option value="">— Cualquiera —</option>}
@@ -184,7 +202,7 @@ export function CrudManager({
                 )}
                 {f.hint && <span className="mt-1 block text-xs text-muted">{f.hint}</span>}
                 {errors[f.name] && <span className="mt-1 block text-xs text-danger">{errors[f.name]}</span>}
-              </label>
+              </FieldWrap>
             ))}
             {errors._ && <p className="text-sm text-danger">{errors._}</p>}
             <div className="flex gap-4 pt-2">
@@ -220,4 +238,9 @@ function SpecsEditor({ label, hint, error, rows, onChange }: { label: string; hi
       {error && <span className="mt-1 block text-xs text-danger">{error}</span>}
     </div>
   );
+}
+
+/** Envoltorio de campo: <label> normal; <div> para listas de casillas (cada casilla lleva su propio label). */
+function FieldWrap({ multi, children }: { multi: boolean; children: React.ReactNode }) {
+  return multi ? <div className="block text-sm">{children}</div> : <label className="block text-sm">{children}</label>;
 }

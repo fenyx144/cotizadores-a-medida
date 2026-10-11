@@ -169,3 +169,33 @@ export async function parseMeasurementFile(data: Uint8Array, fileName: string): 
   if (/\.(csv|txt)$/i.test(fileName)) return parseMeasurementRows(parseCsv(new TextDecoder().decode(data)));
   return { rows: [], errors: [{ row: 0, message: "Formato no soportado. Usa CSV o Excel (.xlsx)." }] };
 }
+
+/** Lee CSV o XLSX como tabla de texto (sin interpretar columnas). */
+export async function readTable(data: Uint8Array, fileName: string): Promise<string[][]> {
+  if (/\.xlsx$/i.test(fileName)) {
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer);
+    const sheet = wb.worksheets[0];
+    const table: string[][] = [];
+    sheet?.eachRow({ includeEmpty: false }, (row) => {
+      const values = (row.values as unknown[]).slice(1);
+      table.push(values.map((v) => (v == null ? "" : typeof v === "object" && "text" in (v as object) ? String((v as { text: string }).text) : typeof v === "object" && "result" in (v as object) ? String((v as { result: unknown }).result) : String(v))));
+    });
+    return table;
+  }
+  if (/\.(csv|txt|tsv)$/i.test(fileName)) return parseCsv(new TextDecoder().decode(data).replace(/^\uFEFF/, ""));
+  throw new Error("Formato no soportado");
+}
+
+/** Columnas de la planilla de líneas (plantilla descargable). */
+export const GRID_HEADERS = ["ubicacion", "producto", "ancho_cm", "alto_cm", "cantidad", "tela", "color_perfil", "accionamiento", "nota"];
+
+/** Genera un .xlsx simple con encabezados en negrita (plantillas descargables). */
+export async function buildXlsx(sheetName: string, headers: string[], rows: (string | number)[][], widths: number[] = []): Promise<ArrayBuffer> {
+  const wb = new ExcelJS.Workbook();
+  const ws = wb.addWorksheet(sheetName);
+  ws.addRow(headers).font = { bold: true };
+  rows.forEach((r) => ws.addRow(r));
+  ws.columns.forEach((c, i) => (c.width = widths[i] ?? 14));
+  return (await wb.xlsx.writeBuffer()) as ArrayBuffer;
+}

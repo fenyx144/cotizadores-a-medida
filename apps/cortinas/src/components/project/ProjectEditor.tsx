@@ -9,21 +9,19 @@ import { formatMoney } from "@portafolio/core/pricing";
 import { PROJECT_STATUS_LABELS, summarizeProject, type ProjectStatus } from "@portafolio/core/projects";
 import { LocationsTab } from "./LocationsTab";
 import { PlanTab } from "./PlanTab";
-import { ImportTab } from "./ImportTab";
 import { SummaryTab } from "./SummaryTab";
 import type { ActionResult, CatalogData, EditorContext, ProjectData } from "./shared";
 
-type Tab = "ubicaciones" | "plano" | "importar" | "resumen";
+type Tab = "ubicaciones" | "plano" | "resumen";
 const TABS: { key: Tab; label: string }[] = [
-  { key: "plano", label: "Plano y fotos" },
   { key: "ubicaciones", label: "Ubicaciones y líneas" },
-  { key: "importar", label: "Importar medidas" },
   { key: "resumen", label: "Resumen y envío" },
+  { key: "plano", label: "Plano y fotos (opcional)" },
 ];
 
-export function ProjectEditor({ initial, catalog, initialTab }: { initial: ProjectData; catalog: CatalogData; initialTab?: Tab }) {
+export function ProjectEditor({ initial, catalog, initialTab }: { initial: ProjectData; catalog: CatalogData; initialTab?: string }) {
   const [data, setData] = useState(initial);
-  const [tab, setTab] = useState<Tab>(initialTab ?? (initial.plans.length ? "plano" : "ubicaciones"));
+  const [tab, setTab] = useState<Tab>(TABS.some((t) => t.key === initialTab) ? (initialTab as Tab) : "ubicaciones");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
   const readOnly = data.project.status !== "borrador";
@@ -86,7 +84,6 @@ export function ProjectEditor({ initial, catalog, initialTab }: { initial: Proje
       <div className="mt-8">
         {tab === "ubicaciones" && <LocationsTab ctx={ctx} />}
         {tab === "plano" && <PlanTab ctx={ctx} onGoToSummary={() => setTab("resumen")} />}
-        {tab === "importar" && <ImportTab ctx={ctx} onImported={() => setTab("ubicaciones")} />}
         {tab === "resumen" && <SummaryTab ctx={ctx} />}
       </div>
     </div>

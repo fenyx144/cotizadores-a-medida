@@ -105,20 +105,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </div>
 
           <div className="mt-10 border-t border-ink pt-6">
-            <h2 className="text-[1.6rem]">Agregar al proyecto</h2>
-            {session ? (
-              <AddToProject
-                model={{ id: model.id, name: model.name, minWidth: model.minWidth, maxWidth: model.maxWidth, minHeight: model.minProjection, maxHeight: model.maxProjection }}
-                fabrics={fabrics.map((f) => ({ id: f.id, name: f.name }))}
-                projects={drafts}
-              />
-            ) : (
-              <p className="mt-3 text-muted">
-                <Link href={`/cliente/ingresar?next=/catalogo/${model.slug}`} className="text-ink underline decoration-accent underline-offset-4">Ingrese</Link> o{" "}
-                <Link href="/cliente/registro" className="text-ink underline decoration-accent underline-offset-4">cree una cuenta</Link> para armar un proyecto por ambientes. Para una casa, use la{" "}
-                <Link href="/particulares" className="text-ink underline decoration-accent underline-offset-4">cotización rápida</Link>.
-              </p>
-            )}
+            <h2 className="text-[1.6rem]">Configurar y cotizar</h2>
+            <AddToProject modelId={model.id} slug={model.slug} catalog={catalog} projects={drafts} loggedIn={!!session} />
             {motorRule && <p className="mt-4 text-xs text-muted">Motorización desde {formatMoney(motorRule.amount)} por cortina. Precios con IGV.</p>}
           </div>
         </div>

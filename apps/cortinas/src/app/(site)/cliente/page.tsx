@@ -33,6 +33,10 @@ export default async function ClientHome() {
         </div>
         <form action={logout}><button className="text-sm text-muted hover:text-ink">Salir</button></form>
       </div>
+      <p className="mt-4 text-sm text-muted" data-testid="particulares-link">
+        Proyectos por ubicaciones para empresas e instituciones. ¿Es para su casa?{" "}
+        <Link href="/particulares" className="text-ink underline decoration-accent underline-offset-4">Cotización rápida para particulares</Link>.
+      </p>
 
       {projects.length === 0 ? (
         <p className="mt-8 text-muted">Aún no tiene proyectos. Cree el primero abajo.</p>

@@ -4,13 +4,16 @@
  */
 import { calculatePrice, type Drive, type PricingRule } from "@portafolio/core/pricing";
 import type { LineConfig } from "@portafolio/core/db/project-schema";
-import type { Fabric, FrameColor, ProductModel } from "@portafolio/core/db/schema";
+import type { ConstraintRule, Fabric, FrameColor, ProductFamily, ProductModel } from "@portafolio/core/db/schema";
+import { selectionRefs } from "./rules";
 
 export interface CatalogData {
   models: ProductModel[];
   fabrics: Fabric[];
   frames: FrameColor[];
   rules: PricingRule[];
+  families?: ProductFamily[];
+  constraints?: ConstraintRule[];
 }
 
 /**
@@ -42,10 +45,12 @@ export function priceLine(catalog: CatalogData, input: LineInput): { config: Lin
   const model = catalog.models.find((m) => m.id === input.modelId);
   if (!model) return null;
   const fabric = fabricsFor(catalog, model).find((f) => f.id === input.fabricId) ?? fabricsFor(catalog, model)[0];
-  const frame = catalog.frames.find((f) => f.id === input.frameColorId) ?? catalog.frames[0];
+  const family = model.familyId ? catalog.families?.find((f) => f.id === model.familyId) : undefined;
+  const frame = family && !family.requiresFrame ? undefined : (catalog.frames.find((f) => f.id === input.frameColorId) ?? catalog.frames[0]);
+  const refs = selectionRefs(catalog, { modelId: model.id, fabricId: fabric?.id, frameColorId: frame?.id, drive: input.drive });
   const result = calculatePrice(
     { modelId: model.id, width: input.width, projection: input.height, fabricId: fabric?.id ?? 0, frameColorId: frame?.id ?? 0, drive: input.drive },
-    { model, fabric, frameColor: frame, rules: catalog.rules },
+    { model, fabric, frameColor: frame, rules: catalog.rules, refs },
   );
   return {
     config: {

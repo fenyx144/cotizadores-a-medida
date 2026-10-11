@@ -8,16 +8,32 @@ import { formatMoney, formatMeters } from "@portafolio/core/pricing";
 import { LINE_STATUS_COLORS, type LineStatus } from "@portafolio/core/projects";
 import { addLocation, deleteLocation, duplicateLocation, updateLocation } from "@/app/actions/project";
 import { LineEditor } from "./LineEditor";
+import { LinesGrid } from "./LinesGrid";
 import { btnLine, inputCls, labelCls, locName, type EditorContext, type Location } from "./shared";
 
 export function LocationsTab({ ctx }: { ctx: EditorContext }) {
+  const [view, setView] = useState<"planilla" | "ubicaciones">("planilla");
+  return (
+    <div>
+      <div className="mb-6 flex items-center gap-5 text-sm" role="tablist" aria-label="Vista">
+        {([["planilla", "Planilla (todas las líneas)"], ["ubicaciones", "Por ubicación"]] as const).map(([k, label]) => (
+          <button key={k} type="button" role="tab" aria-selected={view === k} onClick={() => setView(k)}
+            className={`border-b pb-1 ${view === k ? "border-accent text-ink" : "border-transparent text-muted hover:text-ink"}`}>{label}</button>
+        ))}
+      </div>
+      {view === "planilla" ? <LinesGrid ctx={ctx} /> : <ByLocation ctx={ctx} />}
+    </div>
+  );
+}
+
+function ByLocation({ ctx }: { ctx: EditorContext }) {
   const { data, readOnly } = ctx;
   const [locId, setLocId] = useState<number | "all">(data.locations[0]?.id ?? "all");
   const [selected, setSelected] = useState<number[]>([]);
   const [creating, setCreating] = useState(false);
   const [times, setTimes] = useState("1");
   const current = data.locations.find((l) => l.id === locId);
-  const [form, setForm] = useState({ building: current?.building ?? "Edificio principal", floor: current?.floor ?? "Piso 1", room: "" });
+  const [form, setForm] = useState({ building: current?.building ?? "", floor: current?.floor ?? "", room: `Ubicación ${data.locations.length + 1}` });
   const [editingLoc, setEditingLoc] = useState(false);
 
   // Árbol: edificio -> piso -> ambientes
@@ -48,7 +64,7 @@ export function LocationsTab({ ctx }: { ctx: EditorContext }) {
     const r = await ctx.act(addLocation(data.project.id, form), "Ubicación agregada.");
     if (r?.createdId) {
       pick(r.createdId);
-      setForm((f) => ({ ...f, room: "" }));
+      setForm((f) => ({ ...f, room: `Ubicación ${(r.data.locations.length ?? 0) + 1}` }));
     }
   }
 
@@ -84,9 +100,9 @@ export function LocationsTab({ ctx }: { ctx: EditorContext }) {
         {!readOnly && (
           <div className="mt-6 space-y-3 border-t border-ink pt-4">
             <p className={labelCls}>Nueva ubicación</p>
-            <input className={inputCls} placeholder="Edificio" value={form.building} onChange={(e) => setForm({ ...form, building: e.target.value })} aria-label="Edificio" />
-            <input className={inputCls} placeholder="Piso" value={form.floor} onChange={(e) => setForm({ ...form, floor: e.target.value })} aria-label="Piso" />
-            <input className={inputCls} placeholder="Ambiente (p. ej. Aula 201)" value={form.room} onChange={(e) => setForm({ ...form, room: e.target.value })} aria-label="Ambiente" />
+            <input className={inputCls} placeholder="Edificio o sede (opcional)" value={form.building} onChange={(e) => setForm({ ...form, building: e.target.value })} aria-label="Edificio" />
+            <input className={inputCls} placeholder="Piso o zona (opcional)" value={form.floor} onChange={(e) => setForm({ ...form, floor: e.target.value })} aria-label="Piso" />
+            <input className={inputCls} placeholder="Nombre (p. ej. Oficina 201, Dormitorio)" value={form.room} onChange={(e) => setForm({ ...form, room: e.target.value })} aria-label="Ambiente" />
             <button type="button" className={btnLine} disabled={ctx.busy || !form.room.trim()} onClick={add}>Agregar ubicación</button>
           </div>
         )}
@@ -95,7 +111,15 @@ export function LocationsTab({ ctx }: { ctx: EditorContext }) {
       {/* Líneas */}
       <section className="lg:col-span-5">
         <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-line pb-3">
-          <h2 className="text-[1.7rem] leading-tight">{current ? current.room : "Todas las ventanas"}</h2>
+          <h2 className="text-[1.7rem] leading-tight">
+            {current ? (
+              readOnly ? current.room : (
+                <button type="button" onClick={() => setEditingLoc(true)} className="group text-left" title="Cambiar nombre">
+                  {current.room} <span className="align-middle font-sans text-sm text-muted underline underline-offset-4 group-hover:text-ink">editar nombre</span>
+                </button>
+              )
+            ) : "Todas las ventanas"}
+          </h2>
           {current && <span className="font-mono text-xs text-muted">{[current.building, current.floor].filter(Boolean).join(" · ")}</span>}
         </div>
         {current && !readOnly && (
@@ -116,7 +140,7 @@ export function LocationsTab({ ctx }: { ctx: EditorContext }) {
               <input className="w-10 border-b border-line bg-transparent text-center font-mono" value={times} onChange={(e) => setTimes(e.target.value.replace(/\D/g, ""))} aria-label="Veces" />
               <span className="text-muted">veces</span>
             </span>
-            <button type="button" className="text-muted hover:text-ink" onClick={() => setEditingLoc(!editingLoc)}>Renombrar</button>
+            <button type="button" className="text-muted hover:text-ink" onClick={() => setEditingLoc(!editingLoc)}>Editar nombre</button>
             <button
               type="button"
               className="ml-auto text-muted hover:text-danger"
@@ -205,9 +229,9 @@ function RenameLocation({ ctx, loc, onDone }: { ctx: EditorContext; loc: { id: n
   const [v, setV] = useState({ building: loc.building, floor: loc.floor, room: loc.room });
   return (
     <div className="mt-3 grid grid-cols-3 gap-3 border-b border-line pb-4">
-      <input className={inputCls} value={v.building} onChange={(e) => setV({ ...v, building: e.target.value })} aria-label="Edificio" />
-      <input className={inputCls} value={v.floor} onChange={(e) => setV({ ...v, floor: e.target.value })} aria-label="Piso" />
-      <input className={inputCls} value={v.room} onChange={(e) => setV({ ...v, room: e.target.value })} aria-label="Ambiente" />
+      <label><span className={labelCls}>Nombre</span><input autoFocus className={inputCls} value={v.room} onChange={(e) => setV({ ...v, room: e.target.value })} aria-label="Nombre de la ubicación" /></label>
+      <label><span className={labelCls}>Edificio o sede</span><input className={inputCls} value={v.building} onChange={(e) => setV({ ...v, building: e.target.value })} aria-label="Edificio" placeholder="Opcional" /></label>
+      <label><span className={labelCls}>Piso o zona</span><input className={inputCls} value={v.floor} onChange={(e) => setV({ ...v, floor: e.target.value })} aria-label="Piso" placeholder="Opcional" /></label>
       <button
         type="button"
         className={`${btnLine} col-span-3 justify-self-start`}

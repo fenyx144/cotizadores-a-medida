@@ -7,6 +7,47 @@
  */
 import { boolean, date, integer, jsonb, pgTable, real, serial, text, timestamp } from "drizzle-orm/pg-core";
 
+/** Plantilla / familia de productos: parámetros requeridos, medidas por defecto y opciones permitidas. */
+export const productFamilies = pgTable("product_families", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull().default(""),
+  requiresFabric: boolean("requires_fabric").notNull().default(true),
+  requiresFrame: boolean("requires_frame").notNull().default(true),
+  requiresDrive: boolean("requires_drive").notNull().default(true),
+  minWidth: integer("min_width").notNull().default(40),
+  maxWidth: integer("max_width").notNull().default(300),
+  minHeight: integer("min_height").notNull().default(40),
+  maxHeight: integer("max_height").notNull().default(320),
+  /** Listas separadas por comas; vacío = todas. */
+  allowedDrives: text("allowed_drives").notNull().default(""),
+  allowedFrameIds: text("allowed_frame_ids").notNull().default(""),
+  allowedFabricIds: text("allowed_fabric_ids").notNull().default(""),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+/**
+ * Reglas de restricción del configurador.
+ * - dimension: limita ancho/alto para una familia o producto (opcionalmente solo si se elige una opción).
+ * - incompatibilidad: si se elige la opción A, la opción B queda deshabilitada (y viceversa).
+ * Las opciones se codifican como "tipo:valor": tela:6, perfil:3, accionamiento:motor, material:blackout, producto:2, familia:1.
+ */
+export const constraintRules = pgTable("constraint_rules", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  kind: text("kind").notNull(), // dimension | incompatibilidad
+  familyId: integer("family_id"),
+  modelId: integer("model_id"),
+  ifOption: text("if_option"),
+  thenOption: text("then_option"),
+  minWidth: integer("min_width"),
+  maxWidth: integer("max_width"),
+  minHeight: integer("min_height"),
+  maxHeight: integer("max_height"),
+  message: text("message").notNull().default(""),
+  active: boolean("active").notNull().default(true),
+});
+
 export const productModels = pgTable("product_models", {
   id: serial("id").primaryKey(),
   slug: text("slug").notNull().unique(),
@@ -20,6 +61,7 @@ export const productModels = pgTable("product_models", {
   uses: text("uses").notNull().default(""), // lista separada por comas: "educacion,oficinas"
   gallery: jsonb("gallery").$type<string[]>().notNull().default([]),
   /** Ficha técnica: filas clave/valor ("Mecanismo" -> "Cadena con freno"). */
+  familyId: integer("family_id"),
   specs: jsonb("specs").$type<{ label: string; value: string }[]>().notNull().default([]),
   minWidth: integer("min_width").notNull(),
   maxWidth: integer("max_width").notNull(),
@@ -64,6 +106,8 @@ export const priceRules = pgTable("price_rules", {
   drive: text("drive"), // manual | motor | sensor | null (= cualquiera)
   modelType: text("model_type"), // null = cualquier tipo
   minArea: real("min_area"),
+  /** Condición opcional por opción elegida ("tela:6", "perfil:3", "material:blackout"…). */
+  optionRef: text("option_ref"),
   active: boolean("active").notNull().default(true),
 });
 
@@ -146,6 +190,8 @@ export interface LeadConfiguration {
 }
 
 export type ProductModel = typeof productModels.$inferSelect;
+export type ProductFamily = typeof productFamilies.$inferSelect;
+export type ConstraintRule = typeof constraintRules.$inferSelect;
 export type Fabric = typeof fabrics.$inferSelect;
 export type FrameColor = typeof frameColors.$inferSelect;
 export type PriceRule = typeof priceRules.$inferSelect;

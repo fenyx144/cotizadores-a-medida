@@ -5,10 +5,10 @@
  * el servidor lo recalcula al guardar (nunca confiamos en el precio del cliente).
  */
 import { useState } from "react";
-import { formatMoney, validateDimensions, type Drive } from "@portafolio/core/pricing";
+import { formatMoney, type Drive } from "@portafolio/core/pricing";
 import { LINE_STATUS_COLORS, LINE_STATUS_LABELS, type LineStatus } from "@portafolio/core/projects";
-import { fabricsFor, priceLine } from "@/lib/line-price";
-import { DRIVE_LABELS } from "@/lib/content";
+import { priceLine } from "@/lib/line-price";
+import { evaluate, firstEnabled } from "@/lib/rules";
 import { CurtainPreview } from "@/components/CurtainPreview";
 import { applyConfig, deleteLines, saveLine } from "@/app/actions/project";
 import { btnLine, btnPrimary, inputCls, labelCls, locName, type EditorContext, type Line } from "./shared";
@@ -29,8 +29,7 @@ export function LineEditor({ ctx, lines, isNew, defaultLocationId = null, sugges
   const first = lines[0];
   const [modelId, setModelId] = useState<number>(first?.config?.modelId ?? catalog.models[0]?.id ?? 0);
   const model = catalog.models.find((m) => m.id === modelId);
-  const fabrics = model ? fabricsFor(catalog, model) : [];
-  const [fabricId, setFabricId] = useState<number>(first?.config?.fabricId ?? fabrics[0]?.id ?? 0);
+  const [fabricId, setFabricId] = useState<number>(first?.config?.fabricId ?? 0);
   const [frameId, setFrameId] = useState<number>(first?.config?.frameColorId ?? catalog.frames[0]?.id ?? 0);
   const [drive, setDrive] = useState<Drive>(first?.config?.drive ?? "manual");
   const [width, setWidth] = useState<string>(bulk ? "" : String(first?.width ?? suggested?.width ?? 150));
@@ -39,21 +38,26 @@ export function LineEditor({ ctx, lines, isNew, defaultLocationId = null, sugges
   const [note, setNote] = useState(first?.note ?? "");
   const [locationId, setLocationId] = useState<number | null>(first ? first.locationId : defaultLocationId);
 
-  // Si cambia el producto y la tela ya no es compatible, tomamos la primera compatible.
-  const effectiveFabric = fabrics.find((f) => f.id === fabricId) ?? fabrics[0];
   // En modo bulk, si no se escriben medidas, mostramos el precio con las de la primera ventana.
   const w = Number(width) || (bulk ? first?.width ?? 0 : 0);
   const h = Number(height) || (bulk ? first?.height ?? 0 : 0);
-  const errors = model && w && h ? validateDimensions(model, w, h) : [];
+  // Motor de reglas: opciones permitidas/bloqueadas y límites. Si la tela elegida ya no aplica, tomamos la primera habilitada.
+  const ev0 = evaluate(catalog, { modelId, fabricId, frameColorId: frameId, drive });
+  const fabricSel = ev0.requires.fabric ? (ev0.fabrics.some((f) => f.value === fabricId) ? fabricId : firstEnabled(ev0.fabrics) ?? 0) : 0;
+  const frameSel = ev0.requires.frame ? (ev0.frames.some((f) => f.value === frameId) ? frameId : firstEnabled(ev0.frames) ?? 0) : 0;
+  const driveSel: Drive = ev0.drives.some((d) => d.value === drive) ? drive : firstEnabled(ev0.drives) ?? drive;
+  const ev = evaluate(catalog, { modelId, fabricId: fabricSel, frameColorId: frameSel || null, drive: driveSel, width: w || null, height: h || null });
+  const effectiveFabric = catalog.fabrics.find((f) => f.id === fabricSel);
+  const errors = Object.values(ev.errors).filter(Boolean) as string[];
   // Cálculo barato: no hace falta memorizarlo.
-  const preview = model && w && h && !errors.length ? priceLine(catalog, { modelId: model.id, fabricId: effectiveFabric?.id ?? 0, frameColorId: frameId, drive, width: w, height: h }) : null;
+  const preview = model && w && h && !errors.length ? priceLine(catalog, { modelId: model.id, fabricId: fabricSel, frameColorId: frameSel, drive: driveSel, width: w, height: h }) : null;
   const qty = Math.max(1, Number(quantity) || 1);
   const lineComments = first && comments ? data.comments.filter((c) => c.lineId === first.id) : [];
 
   async function save(withConfig: boolean) {
     if (bulk) {
       const r = await ctx.act(
-        applyConfig(data.project.id, lines.map((l) => l.id), { modelId, fabricId: effectiveFabric?.id ?? 0, frameColorId: frameId, drive, width: w || null, height: h || null }),
+        applyConfig(data.project.id, lines.map((l) => l.id), { modelId, fabricId: fabricSel, frameColorId: frameSel, drive: driveSel, width: w || null, height: h || null }),
         `Configuración aplicada a ${lines.length} ventanas.`,
       );
       if (r) onDone?.();
@@ -62,7 +66,7 @@ export function LineEditor({ ctx, lines, isNew, defaultLocationId = null, sugges
     const r = await ctx.act(
       saveLine(data.project.id, {
         id: isNew ? undefined : first?.id, locationId, width: w || null, height: h || null, quantity: qty, note,
-        modelId: withConfig ? modelId : null, fabricId: effectiveFabric?.id ?? null, frameColorId: frameId, drive,
+        modelId: withConfig ? modelId : null, fabricId: fabricSel || null, frameColorId: frameSel || null, drive: driveSel,
       }),
       isNew ? "Ventana agregada." : "Cambios guardados.",
     );
@@ -94,30 +98,37 @@ export function LineEditor({ ctx, lines, isNew, defaultLocationId = null, sugges
             {catalog.models.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
         </label>
-        <label>
-          <span className={labelCls}>Tela</span>
-          <select className={inputCls} value={effectiveFabric?.id ?? 0} disabled={readOnly} onChange={(e) => setFabricId(Number(e.target.value))}>
-            {fabrics.map((f) => <option key={f.id} value={f.id}>{f.collection} · {f.name}</option>)}
-          </select>
-        </label>
-        <label>
-          <span className={labelCls}>Perfil</span>
-          <select className={inputCls} value={frameId} disabled={readOnly} onChange={(e) => setFrameId(Number(e.target.value))}>
-            {catalog.frames.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
-          </select>
-        </label>
+        {ev.requires.fabric && (
+          <label>
+            <span className={labelCls}>Tela</span>
+            <select className={inputCls} value={fabricSel} disabled={readOnly} onChange={(e) => setFabricId(Number(e.target.value))} name="fabricId">
+              {ev.fabrics.map((f) => <option key={f.value} value={f.value} disabled={!!f.disabled}>{f.label}{f.disabled ? ` — ${f.disabled}` : ""}</option>)}
+            </select>
+            {ev.errors.fabric && <span className="mt-1 block text-xs text-danger">{ev.errors.fabric}</span>}
+          </label>
+        )}
+        {ev.requires.frame && (
+          <label>
+            <span className={labelCls}>Color de perfil</span>
+            <select className={inputCls} value={frameSel} disabled={readOnly} onChange={(e) => setFrameId(Number(e.target.value))} name="frameColorId">
+              {ev.frames.map((f) => <option key={f.value} value={f.value} disabled={!!f.disabled}>{f.label}{f.disabled ? ` — ${f.disabled}` : ""}</option>)}
+            </select>
+            {ev.errors.frame && <span className="mt-1 block text-xs text-danger" data-testid="frame-error">{ev.errors.frame}</span>}
+          </label>
+        )}
         <label className="col-span-2">
           <span className={labelCls}>Accionamiento</span>
-          <select className={inputCls} value={drive} disabled={readOnly} onChange={(e) => setDrive(e.target.value as Drive)}>
-            {(Object.keys(DRIVE_LABELS) as Drive[]).map((d) => <option key={d} value={d}>{DRIVE_LABELS[d]}</option>)}
+          <select className={inputCls} value={driveSel} disabled={readOnly} onChange={(e) => setDrive(e.target.value as Drive)} name="drive">
+            {ev.drives.map((d) => <option key={d.value} value={d.value} disabled={!!d.disabled}>{d.label}{d.disabled ? ` — ${d.disabled}` : ""}</option>)}
           </select>
+          {ev.errors.drive && <span className="mt-1 block text-xs text-danger">{ev.errors.drive}</span>}
         </label>
         <label>
-          <span className={labelCls}>Ancho (cm){bulk && " · vacío = conservar"}</span>
+          <span className={labelCls}>Ancho (cm) · {ev.limits.minWidth}–{ev.limits.maxWidth}{bulk && " · vacío = conservar"}</span>
           <input className={`${inputCls} font-mono`} inputMode="numeric" value={width} disabled={readOnly} onChange={(e) => setWidth(e.target.value.replace(/\D/g, ""))} name="width" />
         </label>
         <label>
-          <span className={labelCls}>Alto (cm){bulk && " · vacío = conservar"}</span>
+          <span className={labelCls}>Alto (cm) · {ev.limits.minHeight}–{ev.limits.maxHeight}{bulk && " · vacío = conservar"}</span>
           <input className={`${inputCls} font-mono`} inputMode="numeric" value={height} disabled={readOnly} onChange={(e) => setHeight(e.target.value.replace(/\D/g, ""))} name="height" />
         </label>
         {!bulk && (
@@ -142,7 +153,7 @@ export function LineEditor({ ctx, lines, isNew, defaultLocationId = null, sugges
       </div>
 
       {suggested && isNew && <p className="font-mono text-xs text-muted">Medida sugerida por la escala del plano: {suggested.width} cm de ancho.</p>}
-      {model && w > 0 && h > 0 && errors.length > 0 && <p className="text-sm text-danger">{errors[0]}</p>}
+      {(ev.errors.width || ev.errors.height) && <p className="text-sm text-danger" data-testid="dim-error">{ev.errors.width ?? ev.errors.height}</p>}
 
       <div className="grid grid-cols-[1fr_auto] items-end gap-4 border-t border-line pt-4">
         {model && w > 0 && h > 0 ? (

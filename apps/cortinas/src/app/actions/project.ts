@@ -7,17 +7,16 @@
  */
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { z } from "zod";
-import { validateDimensions } from "@portafolio/core/pricing";
 import { nextLabel } from "@portafolio/core/projects";
-import { parseMeasurementFile, type ImportResult, type MeasurementRow } from "@portafolio/core/import";
+import { readTable } from "@portafolio/core/import";
 import { makeKey, StorageUnavailableError } from "@portafolio/core/storage";
 import { deleteFile, FileTooLargeError, putFile } from "@/lib/files";
 import { sendEmail } from "@portafolio/core/email";
-import type { LineConfig } from "@portafolio/core/db/project-schema";
 import { getDb, schema } from "@/lib/db";
 import { getClientSession } from "@/lib/client-session";
 import { getCatalog, priceLine } from "@/lib/catalog";
 import { loadProject, type ProjectData } from "@/lib/project";
+import { evaluate } from "@/lib/rules";
 
 export type ActionResult = { ok: true; data: ProjectData; createdId?: number } | { ok: false; error: string };
 
@@ -131,8 +130,9 @@ async function resolveConfig(input: z.infer<typeof lineSchema>, label: string) {
   const model = catalog.models.find((m) => m.id === input.modelId);
   if (!model) throw new ActionError("Producto no disponible.");
   if (!input.width || !input.height) throw new ActionError(`${label}: indique ancho y alto.`);
-  const errors = validateDimensions(model, input.width, input.height);
-  if (errors.length) throw new ActionError(`${label}: ${errors[0]}`);
+  const ev = evaluate(catalog, { modelId: model.id, fabricId: input.fabricId, frameColorId: input.frameColorId, drive: input.drive, width: input.width, height: input.height });
+  const firstError = Object.values(ev.errors)[0];
+  if (firstError) throw new ActionError(`${label}: ${firstError}`);
   const priced = priceLine(catalog, { modelId: model.id, fabricId: input.fabricId ?? 0, frameColorId: input.frameColorId ?? 0, drive: input.drive, width: input.width, height: input.height })!;
   return { ...priced, status: "configurada" as const };
 }
@@ -264,8 +264,8 @@ export async function calibratePlan(projectId: number, planId: number, metersPer
   });
 }
 
-/** Paso 1 de la importación: leer y validar el archivo sin guardar nada. */
-export async function previewImport(projectId: number, formData: FormData): Promise<ImportResult | { error: string }> {
+/** Lee un CSV/XLSX y devuelve la tabla cruda (la planilla la mapea y valida en el navegador). */
+export async function readSheetFile(projectId: number, formData: FormData): Promise<{ table: string[][] } | { error: string }> {
   try {
     await editableProject(projectId);
   } catch (e) {
@@ -274,40 +274,84 @@ export async function previewImport(projectId: number, formData: FormData): Prom
   const file = formData.get("file");
   if (!(file instanceof File) || file.size === 0) return { error: "Elija un archivo CSV o Excel." };
   if (file.size > 2 * 1024 * 1024) return { error: "El archivo supera 2 MB." };
-  return parseMeasurementFile(new Uint8Array(await file.arrayBuffer()), file.name);
+  try {
+    return { table: await readTable(new Uint8Array(await file.arrayBuffer()), file.name) };
+  } catch {
+    return { error: "No se pudo leer el archivo. Use la plantilla (CSV o .xlsx)." };
+  }
 }
 
-/** Paso 2: crear ubicaciones (si no existen) y líneas a partir de las filas válidas. */
-export async function commitImport(projectId: number, rows: MeasurementRow[]) {
+export interface GridRowInput {
+  id?: number | null;
+  location: string;
+  modelId: number | null;
+  width: number | null;
+  height: number | null;
+  quantity: number;
+  fabricId: number | null;
+  frameColorId: number | null;
+  drive: "manual" | "motor" | "sensor" | null;
+  note: string;
+}
+export type GridCellErrors = Record<number, Partial<Record<string, string>>>;
+export type GridResult = ActionResult | { ok: false; error: string; cells: GridCellErrors };
+
+/**
+ * Guarda la planilla completa: valida todas las filas con el motor de reglas
+ * (errores por celda), crea las ubicaciones que no existan, actualiza/crea
+ * líneas y borra las que se quitaron (las anotadas en un plano se conservan).
+ */
+export async function saveGrid(projectId: number, rows: GridRowInput[]): Promise<GridResult> {
+  if (rows.length > 1000) return { ok: false, error: "Máximo 1000 filas por planilla." };
+  const catalog = await getCatalog();
+  const cells: GridCellErrors = {};
+  rows.forEach((r, i) => {
+    const e: Partial<Record<string, string>> = {};
+    if (!r.location.trim()) e.location = "Indique la ubicación.";
+    if (!(r.quantity >= 1 && r.quantity <= 500)) e.quantity = "Cantidad entre 1 y 500.";
+    if (!r.width) e.width = "Indique el ancho.";
+    if (!r.height) e.height = "Indique el alto.";
+    if (r.modelId) {
+      const ev = evaluate(catalog, { modelId: r.modelId, fabricId: r.fabricId, frameColorId: r.frameColorId, drive: r.drive, width: r.width, height: r.height });
+      Object.assign(e, ev.errors, e.width || e.height ? { width: e.width ?? ev.errors.width, height: e.height ?? ev.errors.height } : {});
+    }
+    for (const k of Object.keys(e)) if (!e[k]) delete e[k];
+    if (Object.keys(e).length) cells[i] = e;
+  });
+  if (Object.keys(cells).length) {
+    const n = Object.keys(cells).length;
+    return { ok: false, error: `Revise ${n} ${n === 1 ? "fila" : "filas"} marcadas en rojo.`, cells };
+  }
   return run(projectId, async () => {
-    if (!rows.length || rows.length > 1000) throw new ActionError("No hay filas para importar.");
     const db = getDb();
-    const catalog = await getCatalog();
     const locations = await db.select().from(schema.locations).where(eq(schema.locations.projectId, projectId));
-    const all = await db.select({ label: schema.lines.label }).from(schema.lines).where(eq(schema.lines.projectId, projectId));
-    const labels = all.map((l) => l.label);
-    const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
-    for (const r of rows) {
-      const building = r.building.slice(0, 80);
-      const floor = r.floor.slice(0, 80);
-      const room = r.room.slice(0, 80);
-      let loc = locations.find((l) => norm(l.building) === norm(building) && norm(l.floor) === norm(floor) && norm(l.room) === norm(room));
+    const existing = await db.select().from(schema.lines).where(eq(schema.lines.projectId, projectId));
+    const labels = existing.map((l) => l.label);
+    const norm = (x: string) => x.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+    const keep = new Set<number>();
+    for (const [i, r] of rows.entries()) {
+      const name = r.location.trim().slice(0, 160);
+      let loc = locations.find((l) => norm([l.building, l.floor, l.room].filter(Boolean).join(" · ")) === norm(name) || norm(l.room) === norm(name));
       if (!loc) {
-        [loc] = await db.insert(schema.locations).values({ projectId, building, floor, room, sortOrder: locations.length }).returning();
+        [loc] = await db.insert(schema.locations).values({ projectId, building: "", floor: "", room: name.slice(0, 80), sortOrder: locations.length }).returning();
         locations.push(loc);
       }
-      // Producto opcional: por nombre o slug. Si no coincide, la línea queda sin configurar.
-      const model = r.product ? catalog.models.find((m) => norm(m.name) === norm(r.product) || m.slug === norm(r.product)) : undefined;
-      let cfg: { config: LineConfig | null; unitPrice: number | null; status: "configurada" | "sin_configurar" } = { config: null, unitPrice: null, status: "sin_configurar" };
-      if (model && validateDimensions(model, r.width, r.height).length === 0) {
-        const priced = priceLine(catalog, { modelId: model.id, fabricId: 0, frameColorId: 0, drive: "manual", width: r.width, height: r.height })!;
-        cfg = { ...priced, status: "configurada" };
+      // Sin producto: la línea queda "sin configurar" (solo medidas), igual que en el editor.
+      const priced = r.modelId ? priceLine(catalog, { modelId: r.modelId, fabricId: r.fabricId ?? 0, frameColorId: r.frameColorId ?? 0, drive: r.drive ?? "manual", width: r.width!, height: r.height! }) : null;
+      const cfg = priced ? { ...priced, status: "configurada" as const } : { config: null, unitPrice: null, status: "sin_configurar" as const };
+      const values = { locationId: loc.id, width: r.width, height: r.height, quantity: r.quantity, note: r.note.slice(0, 400), ...cfg, sortOrder: i };
+      const current = r.id ? existing.find((l) => l.id === r.id) : undefined;
+      if (current) {
+        keep.add(current.id);
+        await db.update(schema.lines).set(values).where(eq(schema.lines.id, current.id));
+      } else {
+        const label = nextLabel(labels);
+        labels.push(label);
+        await db.insert(schema.lines).values({ projectId, label, ...values });
       }
-      const label = r.code && !labels.includes(r.code) ? r.code.slice(0, 12) : nextLabel(labels);
-      labels.push(label);
-      const note = [r.note, model || !r.product ? "" : `Producto indicado: ${r.product}`].filter(Boolean).join(" · ");
-      await db.insert(schema.lines).values({ projectId, locationId: loc.id, label, width: r.width, height: r.height, quantity: r.quantity, note, sortOrder: labels.length, ...cfg });
     }
+    const removed = existing.filter((l) => !keep.has(l.id) && !l.planId).map((l) => l.id);
+    if (removed.length) await db.delete(schema.lines).where(inArray(schema.lines.id, removed));
   });
 }
 
@@ -338,6 +382,14 @@ export async function sendProject(projectId: number) {
   return run(projectId, async () => {
     const data = (await loadProject(projectId))!;
     if (!data.lines.length && !data.project.measurementRequest) throw new ActionError("Agregue al menos una ventana o solicite la medición en obra.");
+    // Revalidamos con las reglas vigentes (pueden haber cambiado desde que se configuró).
+    const catalog = await getCatalog();
+    for (const l of data.lines) {
+      if (!l.config) continue;
+      const ev = evaluate(catalog, { modelId: l.config.modelId, fabricId: l.config.fabricId, frameColorId: l.config.frameColorId || null, drive: l.config.drive, width: l.width, height: l.height });
+      const err = Object.values(ev.errors)[0];
+      if (err) throw new ActionError(`${l.label}: ${err} Corríjala antes de enviar.`);
+    }
     await getDb().update(schema.projects).set({ status: "enviado", sentAt: new Date() }).where(eq(schema.projects.id, projectId));
     const windows = data.lines.reduce((s, l) => s + l.quantity, 0);
     await sendEmail({
@@ -351,15 +403,16 @@ export async function sendProject(projectId: number) {
 /** "Agregar al proyecto" desde la ficha de producto: crea la línea en la ubicación "Por ubicar". */
 export async function addFromCatalog(
   projectId: number,
-  input: { modelId: number; fabricId: number; drive: "manual" | "motor" | "sensor"; width: number; height: number; quantity: number },
+  input: { modelId: number; fabricId: number; frameColorId?: number | null; drive: "manual" | "motor" | "sensor"; width: number; height: number; quantity: number },
 ) {
   return run(projectId, async () => {
     const db = getDb();
-    let [loc] = await db.select().from(schema.locations).where(and(eq(schema.locations.projectId, projectId), eq(schema.locations.room, "Por ubicar")));
-    if (!loc) [loc] = await db.insert(schema.locations).values({ projectId, building: "", floor: "", room: "Por ubicar", sortOrder: 9999 }).returning();
+    // Se agrega a la primera ubicación; si no hay ninguna, se crea "Ubicación 1" (el cliente puede renombrarla).
+    let [loc] = await db.select().from(schema.locations).where(eq(schema.locations.projectId, projectId)).orderBy(schema.locations.sortOrder, schema.locations.id).limit(1);
+    if (!loc) [loc] = await db.insert(schema.locations).values({ projectId, building: "", floor: "", room: "Ubicación 1", sortOrder: 0 }).returning();
     const all = await db.select({ label: schema.lines.label }).from(schema.lines).where(eq(schema.lines.projectId, projectId));
     const label = nextLabel(all.map((l) => l.label));
-    const cfg = await resolveConfig({ ...input, locationId: loc.id, note: "", frameColorId: null }, label);
+    const cfg = await resolveConfig({ ...input, locationId: loc.id, note: "", frameColorId: input.frameColorId ?? null }, label);
     const [row] = await db
       .insert(schema.lines)
       .values({ projectId, locationId: loc.id, label, width: input.width, height: input.height, quantity: Math.max(1, Math.min(500, input.quantity)), sortOrder: all.length, ...cfg })
