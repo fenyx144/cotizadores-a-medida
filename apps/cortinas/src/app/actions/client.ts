@@ -108,6 +108,6 @@ export async function createProject(_prev: FormState, formData: FormData): Promi
   const [project] = await db.insert(schema.projects).values({ ...parsed.data, clientId: session.userId, kind: "empresa" }).returning();
   await db.update(schema.projects).set({ reference: projectReference(project.id) }).where(eq(schema.projects.id, project.id));
   // Primera ubicación vacía para que el editor no empiece en blanco.
-  await db.insert(schema.locations).values({ projectId: project.id, building: "Edificio principal", floor: "Piso 1", room: "Ambiente 1" });
+  await db.insert(schema.locations).values({ projectId: project.id, building: "", floor: "", room: "Ubicación 1" }); // nombre genérico, editable
   redirect(`/proyecto/${project.id}`);
 }

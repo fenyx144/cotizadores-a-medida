@@ -400,7 +400,7 @@ export async function sendProject(projectId: number) {
   });
 }
 
-/** "Agregar al proyecto" desde la ficha de producto: crea la línea en la ubicación "Por ubicar". */
+/** "Agregar al proyecto" desde la ficha de producto: la agrega a la primera ubicación (o crea "Ubicación 1"). */
 export async function addFromCatalog(
   projectId: number,
   input: { modelId: number; fabricId: number; frameColorId?: number | null; drive: "manual" | "motor" | "sensor"; width: number; height: number; quantity: number },
