@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import { formatMoney, type Drive } from "@portafolio/core/pricing";
 import { readSheetFile, saveGrid, type GridCellErrors, type GridRowInput } from "@/app/actions/project";
 import { priceLine } from "@/lib/line-price";
-import { evaluate, fabricsByType, firstEnabled, type Choice } from "@/lib/rules";
+import { evaluate, fabricsByType, firstEnabled, matchVariant, type Choice } from "@/lib/rules";
 import { btnLine, btnPrimary, labelCls, locName, type EditorContext } from "./shared";
 
 type Col = "location" | "model" | "width" | "height" | "quantity" | "fabric" | "frame" | "drive" | "note";
@@ -292,7 +292,10 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
                   <td className="py-1 align-top"><input type="checkbox" checked={sel.has(r.key)} onChange={() => toggle(r.key)} aria-label={`Seleccionar fila ${i + 1}`} className="mt-2 accent-[#1f3a5f]" /></td>
                   <td className="py-1 pt-2 align-top font-mono text-[11px] text-muted">{i + 1}</td>
                   {td("location", <input className={cell} value={r.location} disabled={readOnly} list="grid-locations" onChange={(e) => update(i, { location: e.target.value }, "location")} aria-label={`Ubicación fila ${i + 1}`} />)}
-                  {td("model", select(i, "model", r.modelId, catalog.models.map((m) => ({ value: m.id, label: m.name })), (v) => update(i, { modelId: v }, "model"), r.unmatched?.model ?? "Sin configurar"))}
+                  {td("model", <>
+                    {select(i, "model", r.modelId, catalog.models.map((m) => ({ value: m.id, label: m.name })), (v) => update(i, { modelId: v }, "model"), r.unmatched?.model ?? "Sin configurar")}
+                    {r.modelId && (() => { const v = matchVariant(catalog, { modelId: r.modelId!, fabricId: r.fabricId, frameColorId: r.frameColorId }); return v ? <span className="block px-1.5 pb-1 font-mono text-[11px] text-muted" data-testid="row-variant">{v.code}</span> : null; })()}
+                  </>)}
                   {td("width", <input className={`${cell} font-mono`} inputMode="numeric" value={r.width} disabled={readOnly} onChange={(e) => update(i, { width: e.target.value.replace(/\D/g, "") })} aria-label={`Ancho fila ${i + 1}`} placeholder={ev ? `${ev.limits.minWidth}–${ev.limits.maxWidth}` : ""} />)}
                   {td("height", <input className={`${cell} font-mono`} inputMode="numeric" value={r.height} disabled={readOnly} onChange={(e) => update(i, { height: e.target.value.replace(/\D/g, "") })} aria-label={`Alto fila ${i + 1}`} placeholder={ev ? `${ev.limits.minHeight}–${ev.limits.maxHeight}` : ""} />)}
                   {td("quantity", <input className={`${cell} font-mono`} inputMode="numeric" value={r.quantity} disabled={readOnly} onChange={(e) => update(i, { quantity: e.target.value.replace(/\D/g, "") })} aria-label={`Cantidad fila ${i + 1}`} />)}
@@ -300,7 +303,15 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
                   {td("frame", ev && !ev.requires.frame ? <span className="block px-1.5 py-1 text-muted">No aplica</span> : select(i, "frame", r.frameColorId, ev?.frames ?? [], (v) => update(i, { frameColorId: v }, "frame"), r.unmatched?.frame ?? "Perfil…"))}
                   {td("drive", select(i, "drive", r.drive, ev?.drives ?? [], (v) => update(i, { drive: v as Drive }, "drive"), r.unmatched?.drive ?? "Accionamiento…"))}
                   {td("note", <input className={cell} value={r.note} disabled={readOnly} onChange={(e) => update(i, { note: e.target.value })} aria-label={`Nota fila ${i + 1}`} />)}
-                  <td className="py-1 pt-2 pr-1 text-right align-top">{p != null ? formatMoney(p) : "—"}</td>
+                  <td className="py-1 pt-2 pr-1 text-right align-top">
+                    {p != null ? formatMoney(p) : "—"}
+                    {ctx.markOnPlan && ctx.data.plans.length > 0 && r.id && (() => {
+                      const placed = ctx.data.lines.find((l) => l.id === r.id)?.x != null;
+                      return placed
+                        ? <span className="block whitespace-nowrap pt-1 font-mono text-[11px] text-blue">✓ En plano</span>
+                        : <button type="button" className="block whitespace-nowrap pt-1 text-[11px] text-muted underline hover:text-ink" onClick={() => ctx.markOnPlan!(r.id!)} data-testid="mark-on-plan">Marcar en plano</button>;
+                    })()}
+                  </td>
                 </tr>
               );
             })}

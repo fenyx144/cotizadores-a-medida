@@ -166,9 +166,9 @@ export default function HomePage() {
       <section className="mx-auto mt-24 max-w-[1360px] px-5 md:px-10">
         <div className="grid gap-6 border-t border-ink pt-8 md:grid-cols-12">
           <h2 className="text-[2rem] leading-tight md:col-span-5">¿Es para su casa?</h2>
-          <p className="text-muted md:col-span-4">Sin cuenta: indique sus ventanas o pida que vayamos a medir. Respondemos en un día hábil.</p>
+          <p className="text-muted md:col-span-4">Cree una cuenta de particular: indique sus ventanas o pida que vayamos a medir. Respondemos en un día hábil.</p>
           <div className="md:col-span-3 md:text-right">
-            <Link href="/particulares" className="link-grow pb-0.5">Cotización rápida</Link>
+            <Link href="/cliente/registro?tipo=particular" className="link-grow pb-0.5">Pedir cotización</Link>
           </div>
         </div>
       </section>

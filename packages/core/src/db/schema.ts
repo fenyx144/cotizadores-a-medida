@@ -17,6 +17,23 @@ export const materials = pgTable("materials", {
   active: boolean("active").notNull().default(true),
 });
 
+/**
+ * Variantes de un producto con código propio (SKU). Cada una fija una combinación
+ * (tela y/o color de perfil; vacío = cualquiera) y puede sumar un ajuste de precio.
+ */
+export const productVariants = pgTable("product_variants", {
+  id: serial("id").primaryKey(),
+  modelId: integer("model_id").notNull(),
+  code: text("code").notNull(),
+  name: text("name").notNull(),
+  fabricId: integer("fabric_id"),
+  frameColorId: integer("frame_color_id"),
+  attributes: text("attributes").notNull().default(""),
+  priceAdjustment: integer("price_adjustment").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
 /** Plantilla / familia de productos: parámetros requeridos, medidas por defecto y opciones permitidas. */
 export const productFamilies = pgTable("product_families", {
   id: serial("id").primaryKey(),
@@ -200,6 +217,7 @@ export interface LeadConfiguration {
 }
 
 export type ProductModel = typeof productModels.$inferSelect;
+export type ProductVariant = typeof productVariants.$inferSelect;
 export type Material = typeof materials.$inferSelect;
 export type ProductFamily = typeof productFamilies.$inferSelect;
 export type ConstraintRule = typeof constraintRules.$inferSelect;

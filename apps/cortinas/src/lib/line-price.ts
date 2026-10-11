@@ -4,8 +4,8 @@
  */
 import { calculatePrice, type Drive, type PricingRule } from "@portafolio/core/pricing";
 import type { LineConfig } from "@portafolio/core/db/project-schema";
-import type { ConstraintRule, Fabric, FrameColor, ProductFamily, ProductModel } from "@portafolio/core/db/schema";
-import { selectionRefs } from "./rules";
+import type { ConstraintRule, Fabric, FrameColor, ProductFamily, ProductModel, ProductVariant } from "@portafolio/core/db/schema";
+import { matchVariant, selectionRefs } from "./rules";
 
 export interface CatalogData {
   models: ProductModel[];
@@ -14,6 +14,7 @@ export interface CatalogData {
   rules: PricingRule[];
   families?: ProductFamily[];
   constraints?: ConstraintRule[];
+  variants?: ProductVariant[];
 }
 
 /**
@@ -52,6 +53,9 @@ export function priceLine(catalog: CatalogData, input: LineInput): { config: Lin
     { modelId: model.id, width: input.width, projection: input.height, fabricId: fabric?.id ?? 0, frameColorId: frame?.id ?? 0, drive: input.drive },
     { model, fabric, frameColor: frame, rules: catalog.rules, refs },
   );
+  const variant = matchVariant(catalog, { modelId: model.id, fabricId: fabric?.id, frameColorId: frame?.id });
+  // El ajuste de la variante se suma al precio unitario (redondeado a la decena, como el resto).
+  const unitPrice = variant?.priceAdjustment ? Math.round((result.total + variant.priceAdjustment) / 10) * 10 : result.total;
   return {
     config: {
       modelId: model.id,
@@ -63,7 +67,10 @@ export function priceLine(catalog: CatalogData, input: LineInput): { config: Lin
       frameColorId: frame?.id ?? 0,
       frameColorName: frame?.name ?? "",
       drive: input.drive,
+      variantId: variant?.id ?? null,
+      variantCode: variant?.code ?? null,
+      variantName: variant?.name ?? null,
     },
-    unitPrice: result.total,
+    unitPrice,
   };
 }

@@ -9,6 +9,7 @@ import { formatMoney, type Drive } from "@portafolio/core/pricing";
 import { LINE_STATUS_COLORS, LINE_STATUS_LABELS, type LineStatus } from "@portafolio/core/projects";
 import { priceLine } from "@/lib/line-price";
 import { evaluate, firstEnabled } from "@/lib/rules";
+import { VariantPicker } from "@/components/VariantPicker";
 import { CurtainPreview } from "@/components/CurtainPreview";
 import { applyConfig, deleteLines, saveLine } from "@/app/actions/project";
 import { btnLine, btnPrimary, inputCls, labelCls, locName, type EditorContext, type Line } from "./shared";
@@ -98,6 +99,8 @@ export function LineEditor({ ctx, lines, isNew, defaultLocationId = null, sugges
             {catalog.models.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
         </label>
+        <VariantPicker catalog={catalog} modelId={modelId} fabricId={fabricSel} frameColorId={frameSel} disabled={readOnly} className={inputCls} labelClass={labelCls}
+          onPick={(v) => { if (v.fabricId) setFabricId(v.fabricId); if (v.frameColorId) setFrameId(v.frameColorId); }} />
         {ev.requires.fabric && (
           <label>
             <span className={labelCls}>Tela</span>

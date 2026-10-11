@@ -29,7 +29,7 @@ export function AttachmentsBlock({ ctx }: { ctx: EditorContext }) {
   return (
     <div data-testid="attachments">
       <h3 className="mt-10 text-[1.5rem]">Archivos adjuntos</h3>
-      <p className="mt-1 text-sm text-muted">Fotos de las ventanas o documentos en PDF, hasta 4 MB cada uno.</p>
+      <p className="mt-1 text-sm text-muted">Fotos de las ventanas, el plano de la obra u otros documentos en PDF, hasta 4 MB cada uno. El plano puede ir aquí sin marcar nada.</p>
       <ul className="mt-3 border-t border-line text-sm">
         {files.map((a) => (
           <li key={a.id} className="flex items-center gap-3 border-b border-line py-2">

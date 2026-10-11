@@ -10,6 +10,7 @@ import { formatMoney, type Drive } from "@portafolio/core/pricing";
 import { addFromCatalog } from "@/app/actions/project";
 import { priceLine, type CatalogData } from "@/lib/line-price";
 import { evaluate, firstEnabled } from "@/lib/rules";
+import { VariantPicker } from "./VariantPicker";
 
 const input = "w-full border-b border-line bg-transparent py-1.5 outline-none focus:border-ink";
 const label = "block font-mono text-[11px] text-muted";
@@ -54,6 +55,8 @@ export function AddToProject({ modelId, slug, catalog, projects, loggedIn }: Pro
 
   return (
     <div className="mt-4 grid grid-cols-2 gap-x-5 gap-y-4" data-testid="configurator">
+      <VariantPicker catalog={catalog} modelId={modelId} fabricId={fab} frameColorId={frm} className={input} labelClass={label}
+        onPick={(v) => { if (v.fabricId) setFabricId(v.fabricId); if (v.frameColorId) setFrameId(v.frameColorId); }} />
       {ev.requires.fabric && (
         <label><span className={label}>Tela</span>
           <select className={input} value={fab} onChange={(e) => setFabricId(Number(e.target.value))} name="fabricId">

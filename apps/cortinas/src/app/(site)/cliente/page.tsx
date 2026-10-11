@@ -5,11 +5,14 @@ import { getDb, schema } from "@/lib/db";
 import { requireClient } from "@/lib/client-session";
 import { logout } from "@/app/actions/client";
 import { NewProjectForm } from "@/components/forms/ClientForms";
+import { QuickQuote } from "@/components/QuickQuote";
+import { getCatalog } from "@/lib/catalog";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Mis proyectos — Cota" };
 
-export default async function ClientHome() {
+export default async function ClientHome({ searchParams }: { searchParams: Promise<{ enviado?: string }> }) {
+  const { enviado } = await searchParams;
   const session = await requireClient();
   const db = getDb();
   const [client] = await db.select().from(schema.clients).where(eq(schema.clients.id, session.userId));
@@ -24,19 +27,46 @@ export default async function ClientHome() {
     .where(eq(schema.projects.clientId, session.userId))
     .orderBy(desc(schema.projects.updatedAt));
 
+  if (client?.kind === "particular") {
+    const catalog = await getCatalog();
+    return (
+      <div className="mx-auto max-w-[1360px] px-5 pt-12 md:px-10" data-testid="particular-home">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
+          <div>
+            <p className="font-mono text-xs text-muted">Particular · {client.name}</p>
+            <h1 className="mt-3 text-[3rem] leading-none">Mis solicitudes</h1>
+          </div>
+          <form action={logout}><button className="text-sm text-muted hover:text-ink">Salir</button></form>
+        </div>
+        {enviado && <p className="mt-6 border-l-2 border-accent pl-4" data-testid="sent-ok">Solicitud {enviado} enviada. Le respondemos en un día hábil.</p>}
+        {projects.length > 0 && (
+          <ul className="mt-4 divide-y divide-line border-b border-line">
+            {projects.map((p) => (
+              <li key={p.id} className="flex flex-wrap items-baseline justify-between gap-3 py-4">
+                <Link href={`/proyecto/${p.id}`} className="font-serif text-xl hover:text-blue">{p.name}</Link>
+                <span className="font-mono text-xs text-muted">{p.reference} · {p.windows} cortinas · {p.updatedAt.toLocaleDateString("es-PE")}</span>
+                <span className="text-blue">{PROJECT_STATUS_LABELS[p.status as ProjectStatus]}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <section className="mt-12">
+          <h2 className="mb-6 text-[2rem] leading-tight">{projects.length ? "Nueva solicitud" : "Su solicitud"}</h2>
+          <QuickQuote catalog={catalog} defaults={{ name: client.name, email: client.email, phone: client.phone }} />
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-[1360px] px-5 pt-12 md:px-10">
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
         <div>
-          <p className="font-mono text-xs text-muted">{client?.company} · RUC {client?.ruc}</p>
+          <p className="font-mono text-xs text-muted">Empresa · {client?.company}{client?.ruc ? ` · ${client.ruc}` : ""}</p>
           <h1 className="mt-3 text-[3rem] leading-none">Mis proyectos</h1>
         </div>
         <form action={logout}><button className="text-sm text-muted hover:text-ink">Salir</button></form>
       </div>
-      <p className="mt-4 text-sm text-muted" data-testid="particulares-link">
-        Proyectos por ubicaciones para empresas e instituciones. ¿Es para su casa?{" "}
-        <Link href="/particulares" className="text-ink underline decoration-accent underline-offset-4">Cotización rápida para particulares</Link>.
-      </p>
 
       {projects.length === 0 ? (
         <p className="mt-8 text-muted">Aún no tiene proyectos. Cree el primero abajo.</p>

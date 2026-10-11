@@ -9,6 +9,7 @@ const NAV = [
   { href: "/admin", label: "Proyectos", group: "Ventas" },
   { href: "/admin/catalogo/familias", label: "Categorías / Familias", group: "Catálogo" },
   { href: "/admin/catalogo/productos", label: "Productos", group: "Catálogo" },
+  { href: "/admin/catalogo/variantes", label: "Variantes", group: "Catálogo" },
   { href: "/admin/catalogo/materiales", label: "Materiales", group: "Catálogo" },
   { href: "/admin/catalogo/telas", label: "Telas", group: "Catálogo" },
   { href: "/admin/catalogo/perfiles", label: "Perfiles", group: "Catálogo" },

@@ -46,7 +46,8 @@ export function ProjectEditor({ initial, catalog, initialTab }: { initial: Proje
     setMessage({ text: r.error, error: true });
     return null;
   };
-  const ctx: EditorContext = { data, catalog, readOnly, busy, act };
+  const [placing, setPlacing] = useState<number | null>(null);
+  const ctx: EditorContext = { data, catalog, readOnly, busy, act, markOnPlan: readOnly ? undefined : (id) => { setPlacing(id); setTab("plano"); } };
   const s = summarizeProject(data.lines.map((l) => ({ locationName: "", productName: l.config?.modelName ?? null, quantity: l.quantity, unitPrice: l.config ? l.unitPrice : null })));
 
   return (
@@ -101,7 +102,7 @@ export function ProjectEditor({ initial, catalog, initialTab }: { initial: Proje
       ) : (
       <div className="mt-8">
         {tab === "ubicaciones" && <LocationsTab ctx={ctx} />}
-        {tab === "plano" && <PlanTab ctx={ctx} onGoToSummary={() => setTab("resumen")} />}
+        {tab === "plano" && <PlanTab key={placing ?? 0} ctx={ctx} initialPlacing={placing} onGoToSummary={() => { setPlacing(null); setTab("resumen"); }} />}
         {tab === "resumen" && <SummaryTab ctx={ctx} />}
       </div>
       )}

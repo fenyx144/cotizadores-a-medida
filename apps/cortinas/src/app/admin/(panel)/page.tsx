@@ -2,21 +2,22 @@
  * Tablero de proyectos: una columna por estado. Filtro de texto en la URL (?q=).
  */
 import Link from "next/link";
-import { desc, eq, ilike, or } from "drizzle-orm";
+import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { formatMoney } from "@portafolio/core/pricing";
 import { PROJECT_STATUSES, PROJECT_STATUS_LABELS, summarizeProject } from "@portafolio/core/projects";
 import { getDb, schema } from "@/lib/db";
 
-export default async function Board({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
-  const { q = "" } = await searchParams;
+export default async function Board({ searchParams }: { searchParams: Promise<{ q?: string; tipo?: string }> }) {
+  const { q = "", tipo = "" } = await searchParams;
+  const kind = tipo === "particular" || tipo === "empresa" ? tipo : null;
   const db = getDb();
   const P = schema.projects;
   const C = schema.clients;
   const rows = await db
-    .select({ p: P, c: { name: C.name, company: C.company } })
+    .select({ p: P, c: { name: C.name, company: C.company, kind: C.kind } })
     .from(P)
     .innerJoin(C, eq(C.id, P.clientId))
-    .where(q ? or(ilike(P.name, `%${q}%`), ilike(P.reference, `%${q}%`), ilike(C.company, `%${q}%`), ilike(C.name, `%${q}%`)) : undefined)
+    .where(and(q ? or(ilike(P.name, `%${q}%`), ilike(P.reference, `%${q}%`), ilike(C.company, `%${q}%`), ilike(C.name, `%${q}%`)) : undefined, kind ? eq(C.kind, kind) : undefined))
     .orderBy(desc(P.updatedAt));
   const [lines, plans, files] = await Promise.all([
     db.select({ projectId: schema.lines.projectId, quantity: schema.lines.quantity, unitPrice: schema.lines.unitPrice, config: schema.lines.config, status: schema.lines.status }).from(schema.lines),
@@ -36,7 +37,12 @@ export default async function Board({ searchParams }: { searchParams: Promise<{ 
           <h1 className="text-4xl">Proyectos</h1>
           <p className="mt-1 text-sm text-muted">{rows.length} proyectos · los más recientes primero</p>
         </div>
-        <form className="flex items-end gap-3">
+        <form className="flex flex-wrap items-end gap-3">
+          <select name="tipo" defaultValue={kind ?? ""} aria-label="Tipo de cliente" className="border-b border-line bg-transparent py-1.5 text-sm outline-none focus:border-ink" data-testid="kind-filter">
+            <option value="">Todos los clientes</option>
+            <option value="empresa">Empresas</option>
+            <option value="particular">Particulares</option>
+          </select>
           <input name="q" defaultValue={q} placeholder="Buscar por cliente, nombre o referencia" className="w-72 border-b border-line bg-transparent py-1.5 text-sm outline-none focus:border-ink" />
           <button className="text-sm text-muted hover:text-ink">Buscar</button>
         </form>
@@ -58,7 +64,7 @@ export default async function Board({ searchParams }: { searchParams: Promise<{ 
                       <Link href={`/admin/proyectos/${p.id}`} className="block py-3 hover:bg-white-stone/60">
                         <p className="font-mono text-[11px] text-muted">{p.reference} · {p.updatedAt.toLocaleDateString("es-PE")}</p>
                         <p className="mt-1 font-serif text-lg leading-tight">{p.name}</p>
-                        <p className="text-sm text-muted">{c.company || `${c.name} (particular)`}</p>
+                        <p className="text-sm text-muted">{c.kind === "particular" ? c.name : c.company || c.name} <span className="font-mono text-[11px]" data-testid="client-kind">· {c.kind === "particular" ? "Particular" : "Empresa"}</span></p>
                         <p className="mt-1.5 flex flex-wrap gap-x-3 font-mono text-[11px]">
                           <span>{s.windows} cortinas</span>
                           {s.total > 0 && <span>{formatMoney(s.total)}</span>}

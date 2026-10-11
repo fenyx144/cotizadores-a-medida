@@ -1,6 +1,6 @@
 "use client";
 /** Formularios del área de cliente (ingreso, registro y nuevo proyecto). */
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { SelectField, TextField } from "@portafolio/core/ui/Field";
 import { createProject, login, loginDemo, register } from "@/app/actions/client";
 import { DISTRICTS } from "@/lib/content";
@@ -40,17 +40,29 @@ export function DemoAccessCard({ next }: { next?: string }) {
   );
 }
 
-export function RegisterForm({ next }: { next?: string }) {
+export function RegisterForm({ next, initialKind = "empresa" }: { next?: string; initialKind?: "empresa" | "particular" }) {
   const [state, action, pending] = useActionState(register, undefined);
   const f = state?.fields ?? {};
   const v = state?.values ?? {};
+  const [kind, setKind] = useState<"empresa" | "particular">((v.kind as "empresa" | "particular") || initialKind);
   return (
     <form action={action} className="grid gap-6 sm:grid-cols-2">
       <input type="hidden" name="next" value={next ?? "/cliente"} />
-      <div className="sm:col-span-2"><TextField label="Institución o empresa" name="company" defaultValue={v.company} error={f.company} placeholder="Colegio Los Álamos" /></div>
-      <TextField label="RUC" name="ruc" inputMode="numeric" maxLength={11} error={f.ruc} placeholder="20456789123" />
+      <input type="hidden" name="kind" value={kind} />
+      <div className="flex border border-line sm:col-span-2" role="radiogroup" aria-label="Tipo de cuenta" data-testid="account-kind">
+        {([["particular", "Particular", "Para su casa"], ["empresa", "Empresa", "Proyectos por ubicaciones"]] as const).map(([k, t, d], i) => (
+          <button key={k} type="button" role="radio" aria-checked={kind === k} onClick={() => setKind(k)}
+            className={`flex-1 px-4 py-3 text-left ${i ? "border-l border-line" : ""} ${kind === k ? "bg-ink text-white-stone" : "hover:bg-white-stone"}`}>
+            <span className="block">{t}</span><span className={`block text-xs ${kind === k ? "text-white-stone/70" : "text-muted"}`}>{d}</span>
+          </button>
+        ))}
+      </div>
+      {kind === "empresa" && <>
+        <div className="sm:col-span-2"><TextField label="Empresa o institución" name="company" defaultValue={v.company} error={f.company} placeholder="Colegio Los Álamos" /></div>
+        <TextField label="RUC o identificación fiscal" name="ruc" defaultValue={v.ruc} maxLength={20} error={f.ruc} placeholder="20456789123" />
+      </>}
       <TextField label="Teléfono" name="phone" defaultValue={v.phone} error={f.phone} placeholder="959 214 780" />
-      <div className="sm:col-span-2"><TextField label="Nombre de contacto" name="name" defaultValue={v.name} error={f.name} autoComplete="name" /></div>
+      <div className="sm:col-span-2"><TextField label={kind === "empresa" ? "Nombre de contacto" : "Nombre y apellido"} name="name" defaultValue={v.name} error={f.name} autoComplete="name" /></div>
       <TextField label="Correo" name="email" type="email" error={f.email} autoComplete="email" />
       <TextField label="Contraseña" name="password" type="password" error={f.password} hint="Mínimo 8 caracteres" autoComplete="new-password" />
       {state?.error && <p className="text-sm text-danger sm:col-span-2">{state.error}</p>}

@@ -20,7 +20,6 @@ export function SiteFooter() {
           <ul className="mt-2 space-y-1">
             <li><Link className="link-grow" href="/catalogo">Catálogo</Link></li>
             <li><Link className="link-grow" href="/proyectos">Proyectos</Link></li>
-            <li><Link className="link-grow" href="/particulares">Particulares</Link></li>
           </ul>
         </div>
         <div className="text-sm md:col-span-2">

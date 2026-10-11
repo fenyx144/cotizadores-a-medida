@@ -8,7 +8,7 @@
  * - los errores de la selección actual por campo.
  */
 import type { Drive } from "@portafolio/core/pricing";
-import type { ConstraintRule, Fabric, FrameColor, Material, ProductFamily, ProductModel } from "@portafolio/core/db/schema";
+import type { ConstraintRule, Fabric, FrameColor, Material, ProductFamily, ProductModel, ProductVariant } from "@portafolio/core/db/schema";
 
 export const DRIVES: Drive[] = ["manual", "motor", "sensor"];
 export const DRIVE_NAMES: Record<Drive, string> = { manual: "Cadena", motor: "Motor con mando", sensor: "Motor + control centralizado" };
@@ -21,6 +21,7 @@ export interface RulesCatalog {
   families?: ProductFamily[];
   constraints?: ConstraintRule[];
   materials?: Material[];
+  variants?: ProductVariant[];
 }
 
 export interface Selection {
@@ -164,4 +165,17 @@ export function evaluate(c: RulesCatalog, sel: Selection): Evaluation {
 export function firstEnabled<T>(choices: Choice<T>[], current?: T | null): T | undefined {
   const cur = choices.find((x) => x.value === current && !x.disabled);
   return cur ? cur.value : choices.find((x) => !x.disabled)?.value;
+}
+
+/** Variantes activas de un producto. */
+export function variantsFor(c: RulesCatalog, modelId: number) {
+  return (c.variants ?? []).filter((v) => v.active && v.modelId === modelId).sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
+}
+
+/** Variante que corresponde a una combinación: la más específica (tela y perfil) primero. */
+export function matchVariant(c: RulesCatalog, sel: { modelId: number; fabricId?: number | null; frameColorId?: number | null }) {
+  const score = (v: ProductVariant) => (v.fabricId ? 2 : 0) + (v.frameColorId ? 1 : 0);
+  return variantsFor(c, sel.modelId)
+    .filter((v) => (!v.fabricId || v.fabricId === sel.fabricId) && (!v.frameColorId || v.frameColorId === sel.frameColorId))
+    .sort((a, b) => score(b) - score(a))[0];
 }

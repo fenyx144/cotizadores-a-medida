@@ -4,10 +4,10 @@
  * herramientas de dibujo, calibración de escala y edición de las ventanas.
  */
 import dynamic from "next/dynamic";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { NewAnnotation, PlanTool } from "@portafolio/core/ui/PlanViewer";
 import { LINE_STATUS_COLORS, LINE_STATUS_LABELS, LINE_STATUSES, calibrate, suggestSize, type LineStatus } from "@portafolio/core/projects";
-import { calibratePlan, createAnnotation, deletePlan } from "@/app/actions/project";
+import { calibratePlan, createAnnotation, deletePlan, placeLine, removeMarks } from "@/app/actions/project";
 import { LineEditor } from "./LineEditor";
 import { PlanUpload } from "./PlanUpload";
 import { btnLine, inputCls, labelCls, locName, type EditorContext } from "./shared";
@@ -19,17 +19,19 @@ const PlanViewer = dynamic(() => import("@portafolio/core/ui/PlanViewer").then((
 });
 
 const TOOLS: { key: PlanTool; label: string; hint: string }[] = [
-  { key: "pan", label: "Mover", hint: "Arrastre para moverse. Clic en una marca para elegirla; Ctrl + clic para varias." },
+  { key: "pan", label: "Mover", hint: "Arrastre para moverse. Clic en una marca para elegirla (Ctrl + clic para varias); Supr la quita." },
   { key: "point", label: "Punto", hint: "Clic sobre cada ventana para numerarla." },
   { key: "rect", label: "Rectángulo", hint: "Arrastre sobre la ventana. Con escala calibrada se sugiere el ancho." },
   { key: "calibrate", label: "Calibrar", hint: "Marque dos puntos de una cota conocida y escriba la distancia real." },
 ];
 
-export function PlanTab({ ctx, onGoToSummary }: { ctx: EditorContext; onGoToSummary: () => void }) {
+export function PlanTab({ ctx, onGoToSummary, initialPlacing = null }: { ctx: EditorContext; onGoToSummary: () => void; initialPlacing?: number | null }) {
   const { data, readOnly } = ctx;
   const [planId, setPlanId] = useState<number | null>(data.plans[0]?.id ?? null);
   const plan = data.plans.find((p) => p.id === planId) ?? data.plans[0];
-  const [tool, setTool] = useState<PlanTool>("pan");
+  const [tool, setTool] = useState<PlanTool>(initialPlacing ? "rect" : "pan");
+  // Ventana de la tabla que se va a marcar con el próximo rectángulo o punto.
+  const [placing, setPlacing] = useState<number | null>(initialPlacing);
   const [selected, setSelected] = useState<number[]>([]);
   const [focusIds, setFocusIds] = useState<number[]>([]);
   const [newLocId, setNewLocId] = useState<number | null>(data.locations[0]?.id ?? null);
@@ -50,8 +52,37 @@ export function PlanTab({ ctx, onGoToSummary }: { ctx: EditorContext; onGoToSumm
     setSelected((s) => (additive ? (s.includes(ids[0]) ? s.filter((x) => x !== ids[0]) : [...s, ...ids]) : ids));
   }
 
+  const unplaced = data.lines.filter((l) => l.x == null || l.planId == null);
+  const placedInPlan = (id: number) => planLines.some((l) => l.id === id);
+
+  async function removeSelectedMarks() {
+    const marks = selected.filter(placedInPlan);
+    if (!marks.length || readOnly) return;
+    const labels = data.lines.filter((l) => marks.includes(l.id)).map((l) => l.label).join(", ");
+    if (!confirm(`¿Quitar la marca de ${labels}? La ventana sigue en la tabla (si está vacía, se elimina).`)) return;
+    if (await ctx.act(removeMarks(data.project.id, marks), marks.length > 1 ? "Marcas quitadas." : "Marca quitada.")) setSelected([]);
+  }
+
+  // Supr / Retroceso quitan la marca elegida (salvo que se esté escribiendo en un campo).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Delete" && e.key !== "Backspace") return;
+      const t = e.target as HTMLElement;
+      if (t.closest("input, textarea, select, [contenteditable]")) return;
+      if (selected.some(placedInPlan)) { e.preventDefault(); removeSelectedMarks(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
   async function onCreate(a: NewAnnotation) {
     if (!plan || readOnly) return;
+    if (placing) {
+      const id = placing;
+      const r = await ctx.act(placeLine(data.project.id, id, plan.id, a), "Ventana marcada en el plano.");
+      if (r) { setPlacing(null); setSelected([id]); setTool("pan"); }
+      return;
+    }
     // Con escala calibrada, el rectángulo sugiere el ancho de la cortina (+10 cm de traslape).
     const size = a.shape === "rect" && plan.metersPerPx ? suggestSize({ w: a.w!, h: a.h! }, plan, plan.metersPerPx) : null;
     const r = await ctx.act(
@@ -78,6 +109,7 @@ export function PlanTab({ ctx, onGoToSummary }: { ctx: EditorContext; onGoToSumm
           <h2 className="text-[2rem] leading-tight">Suba el plano de la obra</h2>
           <p className="mt-2 max-w-lg text-muted">Marque cada ventana con un punto o un rectángulo. También puede usar fotos de un ambiente.</p>
           <p className="mt-2 text-sm text-blue">Las ventanas marcadas en el plano aparecen en la tabla y viceversa.</p>
+          <p className="mt-2 text-sm text-muted">¿Solo quiere enviarlo? Adjúntelo como documento en el paso 3, sin marcar nada.</p>
           {!readOnly && <div className="mt-8"><PlanUpload ctx={ctx} onUploaded={setPlanId} /></div>}
         </div>
         <div className="border-t border-line pt-6 lg:col-span-4 lg:col-start-9 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
@@ -98,7 +130,7 @@ export function PlanTab({ ctx, onGoToSummary }: { ctx: EditorContext; onGoToSumm
 
   return (
     <div className="space-y-5">
-      <p className="text-sm text-blue" data-testid="plan-sync-note">Las ventanas marcadas en el plano aparecen en la tabla y viceversa.</p>
+      <p className="text-sm text-blue" data-testid="plan-sync-note">Las ventanas marcadas en el plano aparecen en la tabla y viceversa. Para quitar una marca, elíjala y pulse “Eliminar marca” o Supr.</p>
       {/* Selector de lienzo + subida */}
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4">
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
@@ -139,7 +171,9 @@ export function PlanTab({ ctx, onGoToSummary }: { ctx: EditorContext; onGoToSumm
           <p className="font-mono text-xs text-muted">
             Escala: {plan.metersPerPx ? `1 m = ${Math.round(1 / plan.metersPerPx)} px` : "sin calibrar"}
           </p>
-          <p className="basis-full text-xs text-muted">{TOOLS.find((t) => t.key === tool)?.hint}</p>
+          <p className="basis-full text-xs text-muted">
+            {placing ? <span className="text-blue">Marcando {data.lines.find((l) => l.id === placing)?.label}: dibuje su rectángulo en el plano.</span> : TOOLS.find((t) => t.key === tool)?.hint}
+          </p>
         </div>
       )}
 
@@ -188,11 +222,37 @@ export function PlanTab({ ctx, onGoToSummary }: { ctx: EditorContext; onGoToSumm
         <aside className="lg:col-span-4">
           {selLines.length ? (
             <div>
-              <button type="button" className="mb-3 font-mono text-xs text-muted hover:text-ink" onClick={() => setSelected([])}>← Volver a la lista</button>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <button type="button" className="font-mono text-xs text-muted hover:text-ink" onClick={() => setSelected([])}>← Volver a la lista</button>
+                {!readOnly && selected.some(placedInPlan) && (
+                  <button type="button" className="border border-danger/50 px-3 py-1.5 text-sm text-danger hover:border-danger" onClick={removeSelectedMarks} data-testid="remove-mark">
+                    Eliminar marca
+                  </button>
+                )}
+              </div>
               <LineEditor key={selLines.map((l) => `${l.id}:${l.status}:${l.unitPrice}:${l.locationId}`).join(",")} ctx={ctx} lines={selLines} onDone={() => setSelected([])} />
             </div>
           ) : (
             <>
+              {!readOnly && unplaced.length > 0 && (
+                <div className="mb-6 border border-line p-4" data-testid="unplaced">
+                  <p className={labelCls}>Sin marcar en el plano ({unplaced.length})</p>
+                  <p className="mt-1 text-xs text-muted">{placing ? "Dibuje el rectángulo sobre el plano." : "Elija una ventana y dibújela en el plano."}</p>
+                  <ul className="mt-2 max-h-48 divide-y divide-line overflow-auto text-sm">
+                    {unplaced.map((l) => (
+                      <li key={l.id}>
+                        <button type="button" onClick={() => { setPlacing(placing === l.id ? null : l.id); setTool("rect"); }}
+                          className={`flex w-full justify-between gap-2 py-1.5 text-left ${placing === l.id ? "text-ink underline decoration-accent underline-offset-4" : "text-muted hover:text-ink"}`}>
+                          <span className="font-mono text-xs">{l.label}</span>
+                          <span className="min-w-0 flex-1 truncate">{l.config?.modelName ?? "Sin configurar"} · {locName(l.locationId ? locById.get(l.locationId) : null)}</span>
+                          <span className="font-mono text-xs">{l.width && l.height ? `${l.width}×${l.height}` : ""}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                  {placing && <button type="button" className="mt-2 text-xs text-muted underline" onClick={() => { setPlacing(null); setTool("pan"); }}>Cancelar</button>}
+                </div>
+              )}
               <div className="flex gap-4 border-b border-line pb-2 text-xs">
                 {(["todas", ...LINE_STATUSES] as const).map((s) => (
                   <button key={s} type="button" onClick={() => setFilter(s)} className={filter === s ? "text-ink underline underline-offset-4" : "text-muted hover:text-ink"}>
@@ -211,7 +271,7 @@ export function PlanTab({ ctx, onGoToSummary }: { ctx: EditorContext; onGoToSumm
                         else { setFocusIds([l.id]); setSelected([l.id]); }
                       }}
                     >
-                      <span className="font-mono text-xs"><i className="mr-1.5 inline-block size-2 align-middle" style={{ background: LINE_STATUS_COLORS[l.status as LineStatus] }} />{l.label}</span>
+                      <span className="font-mono text-xs"><span className="mr-1 text-blue" aria-label="Marcada">✓</span>{l.label}</span>
                       <span className="truncate">
                         {l.config?.modelName ?? <span className="text-muted">Sin configurar</span>}
                         <span className="block truncate text-xs text-muted">{locName(l.locationId ? locById.get(l.locationId) : null)}</span>
@@ -220,7 +280,7 @@ export function PlanTab({ ctx, onGoToSummary }: { ctx: EditorContext; onGoToSumm
                     </button>
                   </li>
                 ))}
-                {listed.length === 0 && <li className="py-6 text-sm text-muted">Sin marcas. Elija Punto o Rectángulo y marque sobre el plano.</li>}
+                {listed.length === 0 && <li className="py-6 text-sm text-muted">Sin marcas todavía.</li>}
               </ul>
               {!readOnly && listed.length > 1 && (
                 <button type="button" className="mt-3 text-xs text-muted underline" onClick={() => {

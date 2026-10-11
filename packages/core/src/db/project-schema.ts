@@ -137,6 +137,10 @@ export interface LineConfig {
   frameColorId: number;
   frameColorName: string;
   drive: "manual" | "motor" | "sensor";
+  /** Variante (código de artículo) que corresponde a la combinación elegida. */
+  variantId?: number | null;
+  variantCode?: string | null;
+  variantName?: string | null;
 }
 
 export type Client = typeof clients.$inferSelect;

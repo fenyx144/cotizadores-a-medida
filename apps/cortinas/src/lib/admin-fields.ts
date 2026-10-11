@@ -105,3 +105,15 @@ export const MATERIAL_FIELDS: CrudField[] = [
   { name: "sortOrder", label: "Orden", type: "number" },
   { name: "active", label: "Visible", type: "boolean", column: true },
 ];
+
+export const variantFields = (models: Opt[], fabrics: Opt[], frames: Opt[]): CrudField[] => [
+  { name: "modelId", label: "Producto", type: "select", options: models, column: true },
+  { name: "code", label: "Código (SKU)", type: "text", column: true },
+  { name: "name", label: "Nombre", type: "text", column: true },
+  { name: "fabricId", label: "Tela", type: "select", nullable: true, options: fabrics, column: true },
+  { name: "frameColorId", label: "Color de perfil", type: "select", nullable: true, options: frames, column: true },
+  { name: "attributes", label: "Otros atributos", type: "text", hint: "Ej.: cofre 80 mm, guía lateral" },
+  { name: "priceAdjustment", label: "Ajuste de precio (S/ por unidad)", type: "number", column: true },
+  { name: "sortOrder", label: "Orden", type: "number" },
+  { name: "active", label: "Activa", type: "boolean", column: true },
+];

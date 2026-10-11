@@ -35,12 +35,18 @@ async function startSession(client: { id: number; email: string; name: string })
 }
 
 const registerSchema = z.object({
+  kind: z.enum(["empresa", "particular"]).catch("empresa"),
   name: z.string().trim().min(3, "Escriba su nombre completo"),
-  company: z.string().trim().min(2, "Indique la institución o empresa"),
-  ruc: z.string().trim().regex(RUC_REGEX, "RUC de 11 dígitos (empieza con 10, 15, 17 o 20)"),
+  company: z.string().trim().default(""),
+  ruc: z.string().trim().default(""),
   phone: z.string().trim().regex(PHONE_REGEX, "Teléfono no válido"),
   email: z.string().trim().toLowerCase().email("Correo no válido"),
   password: z.string().min(8, "Mínimo 8 caracteres"),
+}).superRefine((d, ctx) => {
+  if (d.kind !== "empresa") return;
+  if (d.company.length < 2) ctx.addIssue({ code: "custom", path: ["company"], message: "Indique la empresa o institución" });
+  // RUC peruano o, para empresas de fuera, otra identificación fiscal.
+  if (!RUC_REGEX.test(d.ruc) && !/^[A-Za-z0-9.-]{6,20}$/.test(d.ruc)) ctx.addIssue({ code: "custom", path: ["ruc"], message: "Indique el RUC (11 dígitos) o su identificación fiscal" });
 });
 
 export async function register(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -53,7 +59,8 @@ export async function register(_prev: FormState, formData: FormData): Promise<Fo
     const [existing] = await db.select().from(schema.clients).where(eq(schema.clients.email, data.email));
     if (existing?.passwordHash) return { fields: { email: "Ya existe una cuenta con este correo. Ingrese con su contraseña." }, values: kept };
 
-    const values = { name: data.name, company: data.company, ruc: data.ruc, phone: data.phone, kind: "empresa", passwordHash: await hashPassword(data.password) };
+    const empresa = data.kind === "empresa";
+    const values = { name: data.name, company: empresa ? data.company : "", ruc: empresa ? data.ruc : "", phone: data.phone, kind: data.kind, passwordHash: await hashPassword(data.password) };
     // Si antes pidió una cotización rápida sin cuenta, reutilizamos ese cliente.
     const [client] = existing
       ? await db.update(schema.clients).set(values).where(eq(schema.clients.id, existing.id)).returning()

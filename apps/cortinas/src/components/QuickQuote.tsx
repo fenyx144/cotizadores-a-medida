@@ -10,10 +10,10 @@ import { DISTRICTS } from "@/lib/content";
 type Row = { room: string; modelId: number; width: string; height: string; quantity: string };
 const cell = "w-full border-b border-line bg-transparent py-1.5 outline-none focus:border-ink";
 
-export function QuickQuote({ catalog }: { catalog: CatalogData }) {
+export function QuickQuote({ catalog, defaults }: { catalog: CatalogData; defaults?: { name: string; email: string; phone: string } }) {
   const [mode, setMode] = useState<"medidas" | "medicion">("medidas");
   const [rows, setRows] = useState<Row[]>([{ room: "Dormitorio principal", modelId: catalog.models[1]?.id ?? catalog.models[0].id, width: "160", height: "150", quantity: "1" }]);
-  const [contact, setContact] = useState({ name: "", email: "", phone: "", district: "", address: "", approxWindows: "" });
+  const [contact, setContact] = useState({ name: "", email: "", phone: "", ...defaults, district: "", address: "", approxWindows: "" });
   const [state, setState] = useState<{ error?: string; fields?: Record<string, string> }>({});
   const [pending, setPending] = useState(false);
 

@@ -34,6 +34,15 @@ const resources: Record<string, CrudResource> = {
     orderBy: schema.frameColors.sortOrder,
     schema: z.object({ name: z.string().min(2), ral: z.string(), hex, surcharge: money, sortOrder: z.number().int(), active: z.boolean() }),
   },
+  variants: {
+    table: schema.productVariants,
+    orderBy: schema.productVariants.sortOrder,
+    schema: z.object({
+      modelId: z.coerce.number().int().min(1, "Elija un producto"), code: z.string().trim().min(2, "Indique el código").max(40), name: z.string().trim().min(2).max(80),
+      fabricId: z.coerce.number().int().nullable().catch(null), frameColorId: z.coerce.number().int().nullable().catch(null),
+      attributes: z.string().max(200), priceAdjustment: z.number().int().min(-5000).max(5000), sortOrder: z.number().int(), active: z.boolean(),
+    }),
+  },
   materials: {
     table: schema.materials,
     orderBy: schema.materials.sortOrder,

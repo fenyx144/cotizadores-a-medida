@@ -15,6 +15,8 @@ export interface EditorContext {
   busy: boolean;
   /** Ejecuta una acción del servidor y actualiza el estado con el resultado. */
   act: (p: Promise<ActionResult>, okMessage?: string) => Promise<Extract<ActionResult, { ok: true }> | null>;
+  /** Ir al paso del plano para marcar una ventana de la tabla. */
+  markOnPlan?: (lineId: number) => void;
 }
 
 export function locName(l?: { building: string; floor: string; room: string } | null) {

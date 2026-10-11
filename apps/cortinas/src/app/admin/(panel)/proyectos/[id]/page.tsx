@@ -25,7 +25,7 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
       <Link href="/admin" className="font-mono text-xs text-muted hover:text-ink">← Proyectos</Link>
       <div className="mt-3 grid gap-6 border-b border-line pb-6 lg:grid-cols-12 lg:items-end">
         <div className="lg:col-span-7">
-          <p className="font-mono text-xs text-muted">{project.reference} · {project.kind === "particular" ? "Particular" : "Empresa"} · creado {project.createdAt.toLocaleDateString("es-PE")}</p>
+          <p className="font-mono text-xs text-muted">{project.reference} · {client.kind === "particular" ? "Particular" : "Empresa"} · creado {project.createdAt.toLocaleDateString("es-PE")}</p>
           <h1 className="mt-2 text-4xl leading-tight">{project.name}</h1>
         </div>
         <div className="flex flex-wrap items-end gap-4 lg:col-span-5 lg:justify-end">
@@ -97,7 +97,7 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="font-mono text-[11px] text-muted">
             <tr className="border-b border-line">
-              <th className="py-2 font-normal">Cód.</th><th className="py-2 font-normal">Ubicación</th><th className="py-2 font-normal">Producto</th><th className="py-2 font-normal">Accionamiento</th>
+              <th className="py-2 font-normal">Cód.</th><th className="py-2 font-normal">Ubicación</th><th className="py-2 font-normal">Código</th><th className="py-2 font-normal">Producto</th><th className="py-2 font-normal">Accionamiento</th>
               <th className="py-2 font-normal">Medidas</th><th className="py-2 text-right font-normal">Cant.</th><th className="py-2 text-right font-normal">Total</th><th className="py-2 pl-4 font-normal">Estado</th>
             </tr>
           </thead>
@@ -106,7 +106,8 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
               <tr key={l.id} className="border-b border-line">
                 <td className="py-2 font-mono text-xs">{l.label}</td>
                 <td className="py-2">{l.locationId && locs.get(l.locationId) ? locationName(locs.get(l.locationId)!) : "—"}</td>
-                <td className="py-2">{l.config ? `${l.config.modelName} · ${l.config.fabricName}` : "—"}</td>
+                <td className="py-2 font-mono text-xs" data-testid="line-variant">{l.config?.variantCode ?? "—"}</td>
+                <td className="py-2">{l.config ? [l.config.modelName, l.config.fabricName, l.config.frameColorName].filter(Boolean).join(" · ") : "—"}</td>
                 <td className="py-2 text-muted">{l.config ? DRIVE_LABELS[l.config.drive] : ""}</td>
                 <td className="py-2 font-mono text-xs">{l.width && l.height ? `${formatMeters(l.width)} × ${formatMeters(l.height)}` : "—"}</td>
                 <td className="py-2 text-right font-mono text-xs">{l.quantity}</td>

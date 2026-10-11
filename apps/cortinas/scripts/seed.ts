@@ -14,13 +14,15 @@ import { getStorage } from "@portafolio/core/storage";
 import { projectReference, type ProjectStatus } from "@portafolio/core/projects";
 import type { PricingRule, Drive } from "@portafolio/core/pricing";
 import { priceLine, fabricsFor, type CatalogData } from "../src/lib/line-price";
+// Catálogo editable (materiales, categorías, reglas, fichas técnicas y variantes), exportado de la demo.
+import seedCatalog from "./seed-catalog.json" with { type: "json" };
 
 const db = getDb();
 
 async function main() {
   console.log("Limpiando tablas…");
   await db.execute(
-    sql`TRUNCATE line_comments, lines, plans, locations, projects, clients, price_rules, frame_colors, fabrics, product_models, admin_users RESTART IDENTITY CASCADE`,
+    sql`TRUNCATE line_comments, project_notes, project_attachments, lines, plans, locations, projects, clients, price_rules, frame_colors, fabrics, product_models, materials, product_families, constraint_rules, product_variants, admin_users RESTART IDENTITY CASCADE`,
   );
 
   // --- Catálogo -----------------------------------------------------------
@@ -107,10 +109,26 @@ async function main() {
       { name: "Motor + control centralizado", kind: "fijo", amount: 520, drive: "sensor" },
       { name: "Instalación por cortina", kind: "fijo", amount: 25 },
       { name: "Tubo reforzado (paños grandes)", kind: "por_m2", amount: 12, minArea: 6 },
+      { name: "Perfil negro RAL 9005 (lacado especial)", kind: "fijo", amount: 18, optionRef: "perfil:3" },
     ])
     .returning()) as PricingRule[];
 
-  const catalog: CatalogData = { models, fabrics, frames, rules };
+  // --- Catálogo editable ------------------------------------------------------
+  // Mismos ids que la demo (modelos, telas y perfiles se insertan en el mismo orden).
+  const camel = (r: Record<string, unknown>) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k.replace(/_(\w)/g, (_, c: string) => c.toUpperCase()), v]));
+  const materials = await db.insert(schema.materials).values(seedCatalog.materials.map(camel) as never).returning();
+  const families = await db.insert(schema.productFamilies).values(seedCatalog.families.map(camel) as never).returning();
+  const constraints = await db.insert(schema.constraintRules).values(seedCatalog.constraints.map(camel) as never).returning();
+  const variants = await db.insert(schema.productVariants).values(seedCatalog.variants.map(camel) as never).returning();
+  for (const t of ["materials", "product_families", "constraint_rules", "product_variants"])
+    await db.execute(sql.raw(`SELECT setval(pg_get_serial_sequence('${t}', 'id'), (SELECT coalesce(max(id), 1) FROM ${t}))`));
+  for (const m of seedCatalog.models) {
+    const [row] = await db.update(schema.productModels).set({ familyId: m.family_id, material: m.material, specs: m.specs as never }).where(sql`slug = ${m.slug}`).returning();
+    Object.assign(models.find((x) => x.slug === m.slug)!, row);
+  }
+
+  const catalog: CatalogData = { models, fabrics, frames, rules, families, constraints, variants };
+  void materials;
   const bySlug = (slug: string) => models.find((m) => m.slug === slug)!;
 
   /** Línea configurada: calcula precio y snapshot de nombres. */
@@ -135,6 +153,8 @@ async function main() {
       { email: "infraestructura@ejemplo.pe", name: "Patricia Demo", company: "Universidad del Valle Sur (ficticia)", ruc: "20000000055", phone: "+51 900 000 005", passwordHash: pass, kind: "empresa" },
       { email: "lucia@ejemplo.pe", name: "Lucía Demo", phone: "+51 900 000 006", kind: "particular" },
       { email: "compras@ejemplo.pe", name: "Elena Demo", company: "Colegio Las Acacias (ficticio)", ruc: "20000000066", phone: "+51 900 000 007", passwordHash: pass, kind: "empresa" },
+      // Cuenta de particular para la demo (solicitud simplificada).
+      { email: "particular@demo.com", name: "Lucía Herrera", phone: "959 330 118", passwordHash: pass, kind: "particular" },
     ])
     .returning();
 

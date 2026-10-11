@@ -7,7 +7,7 @@ import { buildPdf, type PdfPlan } from "@portafolio/core/pdf";
 import { buildXlsx } from "@portafolio/core/xlsx";
 import { formatMeters, formatMoney } from "@portafolio/core/pricing";
 import { LINE_STATUS_COLORS, LINE_STATUS_LABELS, PROJECT_STATUS_LABELS, type LineStatus, type ProjectStatus } from "@portafolio/core/projects";
-import { getFileWithDemoFallback } from "@portafolio/core/storage";
+import { getFile } from "./files";
 import { BRAND, DRIVE_LABELS } from "./content";
 import { locationName, projectSummary, type ProjectData } from "./project";
 
@@ -18,7 +18,7 @@ function rowsFor(data: ProjectData) {
     return {
       line: l,
       location: loc ? locationName(loc) : "Sin ubicación",
-      product: l.config ? `${l.config.modelName} · ${l.config.fabricName}` : "Sin configurar",
+      product: l.config ? [l.config.variantCode, l.config.modelName, l.config.fabricName, l.config.frameColorName].filter(Boolean).join(" · ") : "Sin configurar",
       drive: l.config ? DRIVE_LABELS[l.config.drive] : "",
       size: l.width && l.height ? `${formatMeters(l.width)} x ${formatMeters(l.height)}` : "-",
       total: l.config && l.unitPrice ? l.unitPrice * l.quantity : null,
@@ -31,7 +31,7 @@ export async function projectPdf(data: ProjectData, origin: string): Promise<Uin
   const rows = rowsFor(data);
   const plans: PdfPlan[] = [];
   for (const plan of data.plans) {
-    const file = await getFileWithDemoFallback(plan.imageKey, origin);
+    const file = await getFile(plan.imageKey, origin);
     if (!file) continue;
     plans.push({
       heading: `${plan.kind === "foto" ? "Foto" : "Plano"}: ${plan.name}`,

@@ -12,6 +12,7 @@ import { projectReference } from "@portafolio/core/projects";
 import { sendEmail } from "@portafolio/core/email";
 import { getDb, schema } from "@/lib/db";
 import { getCatalog, priceLine } from "@/lib/catalog";
+import { getClientSession } from "@/lib/client-session";
 
 const schemaIn = z.object({
   name: z.string().trim().min(3, "Escriba su nombre"),
@@ -49,7 +50,11 @@ export async function submitQuickQuote(input: QuickInput): Promise<{ error?: str
   }
 
   const db = getDb();
-  let [client] = await db.select().from(schema.clients).where(eq(schema.clients.email, d.email));
+  // Con sesión iniciada (cuenta de particular), la solicitud queda en su área de cliente.
+  const session = await getClientSession();
+  let [client] = session
+    ? await db.select().from(schema.clients).where(eq(schema.clients.id, session.userId))
+    : await db.select().from(schema.clients).where(eq(schema.clients.email, d.email));
   if (!client) [client] = await db.insert(schema.clients).values({ email: d.email, name: d.name, phone: d.phone, kind: "particular" }).returning();
 
   const [project] = await db
@@ -70,5 +75,5 @@ export async function submitQuickQuote(input: QuickInput): Promise<{ error?: str
     }
   }
   await sendEmail({ to: process.env.NOTIFY_EMAIL || "hola@ejemplo.pe", subject: `Cotización rápida ${reference}`, html: `<p>${d.name} (${d.phone}) · ${d.district}</p>` });
-  redirect(`/particulares/gracias?ref=${reference}`);
+  redirect(session ? `/cliente?enviado=${reference}` : `/particulares/gracias?ref=${reference}`);
 }

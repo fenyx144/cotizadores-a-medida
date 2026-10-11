@@ -450,3 +450,32 @@ export async function deleteAttachment(projectId: number, attachmentId: number) 
     await deleteFile(a.storageKey).catch(() => {});
   });
 }
+
+/**
+ * Quita marcas del plano. La ventana se conserva en la tabla, salvo que esté vacía
+ * (creada desde la marca y sin producto ni nota): esa se elimina para no dejar filas huérfanas.
+ */
+export async function removeMarks(projectId: number, ids: number[]) {
+  return run(projectId, async () => {
+    const db = getDb();
+    const lines = ids.length ? await db.select().from(schema.lines).where(and(eq(schema.lines.projectId, projectId), inArray(schema.lines.id, ids))) : [];
+    const empty = lines.filter((l) => !l.config && !l.note.trim()).map((l) => l.id);
+    const keep = lines.filter((l) => !empty.includes(l.id)).map((l) => l.id);
+    if (empty.length) await db.delete(schema.lines).where(inArray(schema.lines.id, empty));
+    if (keep.length) await db.update(schema.lines).set({ planId: null, shape: null, x: null, y: null, w: null, h: null }).where(inArray(schema.lines.id, keep));
+  });
+}
+
+/** Marca en el plano una ventana que ya existe en la tabla. */
+export async function placeLine(projectId: number, lineId: number, planId: number, a: { shape: "point" | "rect"; x: number; y: number; w?: number; h?: number }) {
+  return run(projectId, async () => {
+    const db = getDb();
+    const [plan] = await db.select().from(schema.plans).where(and(eq(schema.plans.id, planId), eq(schema.plans.projectId, projectId)));
+    if (!plan) throw new ActionError("Plano no encontrado.");
+    const clamp = (v: number) => Math.min(1, Math.max(0, v));
+    await db
+      .update(schema.lines)
+      .set({ planId, shape: a.shape, x: clamp(a.x), y: clamp(a.y), w: a.shape === "rect" ? clamp(a.w ?? 0) : null, h: a.shape === "rect" ? clamp(a.h ?? 0) : null })
+      .where(and(eq(schema.lines.id, lineId), eq(schema.lines.projectId, projectId)));
+  });
+}
