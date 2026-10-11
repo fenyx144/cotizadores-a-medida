@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ConstraintRule } from "@portafolio/core/db/schema";
-import { cleanValues, evaluate, findConflicts, matchVariant, parseAttributeCell, ruleSentence, withDefaults } from "./rules";
+import { cleanValues, evaluate, findConflicts, matchVariant, variantValues, parseAttributeCell, ruleSentence, withDefaults } from "./rules";
 import { priceLine } from "./line-price";
 import { ACC, CENEFA, LADO, PERFIL, TELA, attributes, catalog as c, constraints } from "./test-catalog";
 
@@ -100,5 +100,13 @@ describe("motor de reglas (atributos genéricos)", () => {
     const lt = { ...r, conditions: [{ kind: "alto", attributeId: 0, valueIds: [], op: "lt", value: 100 }] } as ConstraintRule;
     expect(f(evaluate({ ...c, constraints: [lt] }, { modelId: 1, values: {}, height: 80 }), ACC)!.choices.find((x) => x.value === 16)?.disabled).toBeTruthy();
     expect(ruleSentence(cc, r)).toBe("En todos los productos, si Material es blackout y Ancho mayor que 200 cm: bloquear Accionamiento Cadena.");
+  });
+
+  it("cambiar un valor fijado por la variante la quita (configuración libre)", () => {
+    const v = c.variants![0]; const fixed = variantValues(c, v);
+    expect(matchVariant(c, { modelId: v.modelId, values: fixed })?.id).toBe(v.id);
+    const [attr] = Object.keys(fixed).map(Number);
+    const other = c.values.find((x) => x.attributeId === attr && x.id !== fixed[attr])!;
+    expect(matchVariant(c, { modelId: v.modelId, values: { ...fixed, [attr]: other.id } })?.id).not.toBe(v.id);
   });
 });

@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { addFromWizard } from "@/app/actions/project";
 import type { CatalogData } from "@/lib/line-price";
-import { evaluate, type Values } from "@/lib/rules";
+import { evaluate, matchVariant, variantValues, variantsFor, type Values } from "@/lib/rules";
 
 type Step = { key: string; title: string };
 interface Props {
@@ -25,6 +25,8 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
   const [modelId, setModelId] = useState<number | null>(startModel?.id ?? null);
   const [material, setMaterial] = useState("");
   const [values, setValues] = useState<Values>({});
+  // Variante elegida en el asistente: fija sus atributos (esos pasos se saltan). null = libre; undefined = sin decidir.
+  const [variantId, setVariantId] = useState<number | null | undefined>(undefined);
   const [dims, setDims] = useState({ width: "", height: "", quantity: "1" });
   const [place, setPlace] = useState({ room: "", note: "" });
   const [projectId, setProjectId] = useState<number | 0>(initial?.projectId ?? projects[0]?.id ?? 0);
@@ -37,16 +39,27 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
   const w = Number(dims.width) || null, h = Number(dims.height) || null;
   const ev = model ? evaluate(catalog, { modelId: model.id, values, width: w, height: h }) : null;
   const fields = ev?.fields ?? [];
+  const variants = model ? variantsFor(catalog, model.id) : [];
+  const chosenVariant = variants.find((v) => v.id === variantId);
+  const locked = chosenVariant ? Object.keys(variantValues(catalog, chosenVariant)).map(Number) : [];
   const steps: Step[] = [
     { key: "categoria", title: "¿Qué tipo de cortina busca?" },
     { key: "producto", title: "Elija el producto" },
-    ...fields.map((f) => ({ key: `a${f.attribute.id}`, title: f.attribute.name })),
+    ...(variants.length ? [{ key: "variante", title: "¿Usar una variante?" }] : []),
+    ...fields.filter((f) => !locked.includes(f.attribute.id)).map((f) => ({ key: `a${f.attribute.id}`, title: f.attribute.name })),
     { key: "medidas", title: "Medidas y cantidad" },
     { key: "ubicacion", title: "¿Dónde va?" },
     { key: "resumen", title: "Resumen" },
   ];
   const [i, setI] = useState(startModel ? 2 : initial?.familyId ? 1 : 0);
   const step = steps[Math.min(i, steps.length - 1)];
+  // Progreso estable: 6 fases fijas; las opciones (variante y atributos) cuentan como una sola.
+  const PHASES = ["categoria", "producto", "opciones", "medidas", "ubicacion", "resumen"];
+  const isOption = step.key === "variante" || step.key.startsWith("a");
+  const phase = isOption ? 2 : PHASES.indexOf(step.key);
+  const optSteps = steps.filter((x) => x.key === "variante" || x.key.startsWith("a"));
+  const optIndex = optSteps.findIndex((x) => x.key === step.key);
+  const currentVariant = model ? matchVariant(catalog, { modelId: model.id, values }) : undefined;
   const go = (d: number) => { setError(null); setI((x) => Math.max(0, Math.min(steps.length - 1, x + d))); };
 
   const families = (catalog.families ?? []).filter((f) => catalog.models.some((m) => m.familyId === f.id));
@@ -58,7 +71,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
   const dimErr = ev?.errors.width ?? ev?.errors.height ?? (Number(dims.quantity) < 1 ? "Indique la cantidad." : undefined);
   const attrErr = attr ? ev?.errors[attr.attribute.id] : undefined;
   const canNext =
-    step.key === "categoria" ? !!familyId : step.key === "producto" ? !!model :
+    step.key === "categoria" ? !!familyId : step.key === "producto" ? !!model : step.key === "variante" ? variantId !== undefined :
     attr ? !attrErr && (!attr.required || attr.kind === "sino" || values[attr.attribute.id] != null) :
     step.key === "medidas" ? !!w && !!h && !dimErr : true;
 
@@ -70,7 +83,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
     if (res.ok) { setDone(res.projectId); setProjectId(res.projectId); } else setError(res.error);
   }
   function again() {
-    setDone(null); setModelId(null); setValues({}); setDims({ width: "", height: "", quantity: "1" }); setPlace({ room: place.room, note: "" }); setI(familyId ? 1 : 0);
+    setDone(null); setModelId(null); setValues({}); setVariantId(undefined); setDims({ width: "", height: "", quantity: "1" }); setPlace({ room: place.room, note: "" }); setI(familyId ? 1 : 0);
   }
 
   const valueName = (id: number) => catalog.values.find((v) => v.id === id)?.name ?? "";
@@ -95,17 +108,17 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
   return (
     <div className="mx-auto max-w-xl" data-testid="wizard">
       <div className="flex items-center justify-between font-mono text-xs text-muted">
-        <span data-testid="wizard-progress">Paso {i + 1} de {steps.length}</span>
+        <span data-testid="wizard-progress">Paso {phase + 1} de {PHASES.length}{isOption && optSteps.length > 1 ? ` · opción ${optIndex + 1} de ${optSteps.length}` : ""}</span>
         {i > 0 && <button onClick={() => go(-1)} className="hover:text-ink">← Atrás</button>}
       </div>
-      <div className="mt-2 h-0.5 bg-line"><div className="h-full bg-accent transition-all" style={{ width: `${((i + 1) / steps.length) * 100}%` }} /></div>
+      <div className="mt-2 h-0.5 bg-line"><div className="h-full bg-accent transition-all" style={{ width: `${((phase + (isOption ? (optIndex + 1) / (optSteps.length + 1) : 1)) / PHASES.length) * 100}%` }} /></div>
       <h1 className="mt-8 font-serif text-[2.2rem] leading-tight" data-testid="wizard-title">{step.title}{attr && !attr.required ? <span className="ml-2 font-sans text-sm text-muted">opcional</span> : null}</h1>
 
       <div className="mt-6 space-y-2">
         {step.key === "categoria" && families.map((f) => {
           const img = catalog.models.find((m) => m.familyId === f.id)?.image;
           return (
-            <button key={f.id} className={`${big(familyId === f.id)} flex items-center gap-4`} onClick={() => { if (familyId !== f.id) { setModelId(null); setMaterial(""); setValues({}); } setFamilyId(f.id); go(1); }}>
+            <button key={f.id} className={`${big(familyId === f.id)} flex items-center gap-4`} onClick={() => { if (familyId !== f.id) { setModelId(null); setMaterial(""); setValues({}); setVariantId(undefined); } setFamilyId(f.id); go(1); }}>
               {img && <span className="relative size-14 shrink-0 overflow-hidden bg-paper-deep"><Image src={img} alt="" fill sizes="56px" className="object-cover" /></span>}
               <span><span className="block text-lg">{f.name}</span>{f.description && <span className="block text-sm text-muted">{f.description}</span>}</span>
             </button>
@@ -122,11 +135,26 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
               </div>
             )}
             {inFamily.filter((m) => !material || m.material === material).map((m) => (
-              <button key={m.id} className={`${big(modelId === m.id)} flex items-center gap-4`} onClick={() => { if (modelId !== m.id) setValues({}); setModelId(m.id); go(1); }}>
+              <button key={m.id} className={`${big(modelId === m.id)} flex items-center gap-4`} onClick={() => { if (modelId !== m.id) { setValues({}); setVariantId(undefined); } setModelId(m.id); go(1); }}>
                 {m.image && <span className="relative size-14 shrink-0 overflow-hidden bg-paper-deep"><Image src={m.image} alt="" fill sizes="56px" className="object-cover" /></span>}
                 <span><span className="block text-lg">{m.name}</span><span className="block text-sm text-muted">{catalog.materials?.find((x) => x.slug === m.material)?.name} · {m.tagline}</span></span>
               </button>
             ))}
+          </>
+        )}
+
+        {step.key === "variante" && (
+          <>
+            {variants.map((v) => {
+              const fixed = Object.values(variantValues(catalog, v)).map((x) => (typeof x === "number" ? catalog.values.find((y) => y.id === x)?.name : x === true ? "Sí" : null)).filter(Boolean).join(" · ");
+              return (
+                <button key={v.id} className={big(variantId === v.id)} data-testid="wizard-variant" onClick={() => { setVariantId(v.id); setValues({ ...values, ...variantValues(catalog, v) }); go(1); }}>
+                  <span className="block"><span className="font-mono text-sm">{v.code}</span> · {v.name}</span>
+                  {fixed && <span className="block text-sm text-muted">{fixed}</span>}
+                </button>
+              );
+            })}
+            <button className={big(variantId === null)} onClick={() => { if (chosenVariant) setValues({}); setVariantId(null); go(1); }} data-testid="wizard-free">Configurar libremente</button>
           </>
         )}
 
@@ -185,7 +213,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
         {step.key === "resumen" && model && (
           <div className="space-y-6" data-testid="wizard-summary">
             <dl className="divide-y divide-line border-y border-line text-sm">
-              {[["Producto", model.name], ...summary, ["Medidas", `${w} × ${h} cm`], ["Cantidad", dims.quantity], ["Ambiente", place.room || "—"], ...(place.note ? [["Nota", place.note]] : [])].map(([k, v]) => (
+              {[["Producto", model.name], ...(currentVariant ? [["Variante", `${currentVariant.code} · ${currentVariant.name}`]] : []), ...summary, ["Medidas", `${w} × ${h} cm`], ["Cantidad", dims.quantity], ["Ambiente", place.room || "—"], ...(place.note ? [["Nota", place.note]] : [])].map(([k, v]) => (
                 <div key={k} className="flex justify-between gap-4 py-2"><dt className="text-muted">{k}</dt><dd className="text-right">{v}</dd></div>
               ))}
             </dl>
@@ -211,7 +239,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
         )}
       </div>
 
-      {step.key !== "resumen" && step.key !== "categoria" && step.key !== "producto" && (
+      {step.key !== "resumen" && step.key !== "categoria" && step.key !== "producto" && step.key !== "variante" && (
         <button disabled={!canNext} onClick={() => go(1)} className="mt-8 w-full bg-ink px-5 py-3 text-paper disabled:opacity-40 sm:w-auto" data-testid="wizard-next">Siguiente →</button>
       )}
     </div>
