@@ -254,12 +254,12 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
               Importar Excel/CSV
               <input type="file" accept=".csv,.xlsx,.txt" className="sr-only" onChange={onImport} data-testid="grid-import" />
             </label>
-            <span className="text-muted">Plantilla: <a className="underline underline-offset-4" href="/api/plantilla-medidas?formato=xlsx">Excel</a> · <a className="underline underline-offset-4" href="/api/plantilla-medidas">CSV</a></span>
+            <a className={btnLine} href="/api/plantilla-medidas?formato=xlsx" data-testid="grid-template">Descargar plantilla</a><a className="text-muted underline underline-offset-4" href="/api/plantilla-medidas">CSV</a>
           </span>
         </div>
       )}
       <p className="mt-3 text-xs text-muted">
-        Puede pegar filas copiadas de Excel (Ctrl + V) con las columnas de la plantilla.
+        Rellene la hoja «Pedido» de la plantilla e impórtela, o pegue las filas (Ctrl + V).
       </p>
       {importMsg && <p className="mt-2 text-sm text-blue" data-testid="grid-message">{importMsg}</p>}
 

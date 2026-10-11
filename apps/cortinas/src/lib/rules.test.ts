@@ -153,3 +153,28 @@ describe("varios materiales a la vez: reglas y variantes", () => {
     expect(fixed[TELA]).toBe(1); expect(fixed[PERFIL]).toBe(13); expect(fixed[ACC]).toBeUndefined();
   });
 });
+
+describe("reglas por producto", () => {
+  it("Si Producto = Roller Blackout y ancho > 250 → limitar alto (solo en ese producto)", () => {
+    const r = { ...constraints[0], id: 77, active: true, kind: "medidas", modelId: 2, familyId: null, targetAttributeId: null, targetValueIds: [],
+      conditions: [{ kind: "ancho", attributeId: 0, valueIds: [], op: "gt", value: 250 }], maxHeight: 200, message: "Más de 2,50 m de ancho: alto máx. 2,00 m." } as ConstraintRule;
+    const cc = { ...c, constraints: [r] };
+    expect(evaluate(cc, { modelId: 2, width: 260 }).limits.maxHeight).toBe(200);
+    expect(evaluate(cc, { modelId: 2, width: 200 }).limits.maxHeight).toBe(320);
+    expect(evaluate(cc, { modelId: 1, width: 260 }).limits.maxHeight).toBe(320);
+    expect(evaluate(cc, { modelId: 2, width: 260, height: 250 }).errors.height).toBeTruthy();
+    expect(ruleSentence(cc, r)).toMatch(/Roller Blackout/);
+  });
+});
+
+describe("plantilla de pedido", () => {
+  it("la importación lee la hoja Pedido aunque haya más hojas", async () => {
+    const { buildXlsx } = await import("@portafolio/core/xlsx");
+    const { readTable } = await import("@portafolio/core/import");
+    const buf = await buildXlsx([
+      { name: "Productos", columns: [{ header: "producto", key: "p" }], rows: [{ p: "x" }] },
+      { name: "Pedido", columns: [{ header: "ubicacion", key: "u" }, { header: "producto", key: "p" }], rows: [{ u: "Aula 1", p: "Roller Screen 5%" }] },
+    ]);
+    expect(await readTable(buf, "plantilla.xlsx")).toEqual([["ubicacion", "producto"], ["Aula 1", "Roller Screen 5%"]]);
+  });
+});

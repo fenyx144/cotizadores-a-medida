@@ -175,7 +175,7 @@ export async function readTable(data: Uint8Array, fileName: string): Promise<str
   if (/\.xlsx$/i.test(fileName)) {
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength) as ArrayBuffer);
-    const sheet = wb.worksheets[0];
+    const sheet = wb.worksheets.find((w) => w.name.toLowerCase() === "pedido") ?? wb.worksheets[0];
     const table: string[][] = [];
     sheet?.eachRow({ includeEmpty: false }, (row) => {
       const values = (row.values as unknown[]).slice(1);
