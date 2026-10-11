@@ -3,6 +3,7 @@
  * Configurador de la ficha de producto: aplica el motor de reglas en vivo
  * (opciones bloqueadas con motivo, límites de medidas) y suma el producto a un proyecto en borrador.
  */
+import { SHOW_PRICES } from "@/lib/flags";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -58,10 +59,10 @@ export function AddToProject({ modelId, slug, catalog, projects, loggedIn, parti
       <label><span className={`${label} flex justify-between`}>Alto (cm)<span className="font-mono" data-testid="range-height">{ev.limits.minHeight}–{ev.limits.maxHeight}</span></span><input className={`${input} font-mono ${ev.errors.height ? "border-danger" : ""}`} value={height} onChange={(e) => setHeight(e.target.value.replace(/\D/g, ""))} name="height" /></label>
       {(ev.errors.width || ev.errors.height) && <p className="col-span-2 -mt-2 text-sm text-danger" data-testid="dim-error">{ev.errors.width ?? ev.errors.height}</p>}
       <label><span className={label}>Cantidad</span><input className={`${input} font-mono`} value={quantity} onChange={(e) => setQuantity(e.target.value.replace(/\D/g, ""))} name="quantity" /></label>
-      <div className="text-right">
+      {SHOW_PRICES && <div className="text-right">
         <p className={label}>Precio con IGV × {qty}</p>
         <p className="font-serif text-[1.8rem] leading-none" data-testid="config-price">{price ? formatMoney(price.unitPrice * qty) : "—"}</p>
-      </div>
+      </div>}
 
       <div className="col-span-2 border-t border-line pt-4">
         {!loggedIn ? (

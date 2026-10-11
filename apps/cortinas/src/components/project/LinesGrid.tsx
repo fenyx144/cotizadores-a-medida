@@ -5,6 +5,7 @@
  * e importar CSV/XLSX. Valida en vivo con el motor de reglas (errores por celda)
  * y el servidor vuelve a validar al guardar.
  */
+import { SHOW_PRICES } from "@/lib/flags";
 import { useEffect, useMemo, useState } from "react";
 import { formatMoney } from "@portafolio/core/pricing";
 import { readSheetFile, saveGrid, type GridCellErrors, type GridRowInput } from "@/app/actions/project";
@@ -270,7 +271,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
               <th className="w-8 py-2" />
               <th className="w-8 py-2 font-normal">#</th>
               {COLS.map((c) => <th key={c.key} className={`py-2 pl-1.5 font-normal ${c.w}`}>{c.label}</th>)}
-              <th className="py-2 pr-1 text-right font-normal">Total</th>
+              <th className="py-2 pr-1 text-right font-normal">{SHOW_PRICES ? "Total" : ""}</th>
             </tr>
           </thead>
           <tbody>
@@ -299,7 +300,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
                   {attrs.map((a) => td(`a${a.id}`, attrCell(i, r, a.id)))}
                   {td("note", <input className={cell} value={r.note} disabled={readOnly} onChange={(e) => update(i, { note: e.target.value })} aria-label={`Nota fila ${i + 1}`} />)}
                   <td className="py-1 pt-2 pr-1 text-right align-top">
-                    {p != null ? formatMoney(p) : "—"}
+                    {SHOW_PRICES && (p != null ? formatMoney(p) : "—")}
                     {ctx.markOnPlan && ctx.data.plans.length > 0 && r.id && (() => {
                       const placed = ctx.data.lines.find((l) => l.id === r.id)?.x != null;
                       return placed
@@ -317,7 +318,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-ink pt-4">
-        <p className={labelCls}>{rows.length} filas · {windows} ventanas · {formatMoney(total)}</p>
+        <p className={labelCls}>{rows.length} filas · {windows} ventanas{SHOW_PRICES ? ` · ${formatMoney(total)}` : ""}</p>
         {badRows > 0 && <p className="text-sm text-danger" data-testid="grid-bad-rows">{badRows} {badRows === 1 ? "fila con errores" : "filas con errores"}</p>}
         {!readOnly && (
           <button type="button" className={`${btnPrimary} ml-auto`} disabled={ctx.busy || !dirty} onClick={save} data-testid="grid-save">

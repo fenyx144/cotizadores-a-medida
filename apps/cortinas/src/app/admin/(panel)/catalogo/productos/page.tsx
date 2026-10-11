@@ -12,5 +12,5 @@ export default async function Page() {
   ]);
   const fields = productFields(families.map((f) => ({ value: String(f.id), label: f.name })), materials.map((m) => ({ value: m.slug, label: m.name })),
     Object.fromEntries(families.map((f) => [String(f.id), f.materials.split(",").filter(Boolean)])));
-  return <CrudManager resource="products" title="4 · Productos" description="Fotos, categoría, medidas, precio y ficha técnica." fields={fields} initialRows={rows} newLabel="Añadir producto" />;
+  return <CrudManager resource="products" title="4 · Productos" description="Fotos, categoría, medidas y ficha técnica." fields={fields} initialRows={rows} newLabel="Añadir producto" />;
 }

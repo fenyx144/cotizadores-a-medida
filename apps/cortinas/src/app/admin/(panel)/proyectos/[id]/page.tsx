@@ -1,3 +1,4 @@
+import { SHOW_PRICES } from "@/lib/flags";
 import { StatusChip } from "@/components/StatusChip";
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
@@ -48,8 +49,8 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
         <div><p className="font-mono text-[11px] text-muted">Contacto</p><p className="mt-1">{client.name}</p><p className="text-muted">{client.phone} · {client.email}</p></div>
         <div><p className="font-mono text-[11px] text-muted">Obra</p><p className="mt-1">{project.address}</p><p className="text-muted">{project.district}</p></div>
         <div>
-          <p className="font-mono text-[11px] text-muted">Total con IGV</p>
-          <p className="mt-1 font-serif text-3xl leading-none">{formatMoney(s.total)}</p>
+          <p className="font-mono text-[11px] text-muted">{SHOW_PRICES ? "Total con IGV" : "Cortinas"}</p>
+          {SHOW_PRICES && <p className="mt-1 font-serif text-3xl leading-none">{formatMoney(s.total)}</p>}
           <p className="text-muted">{s.windows} cortinas · {s.pending} pendientes{s.discountPercent ? ` · −${s.discountPercent}%` : ""}</p>
         </div>
       </div>
@@ -100,7 +101,7 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
           <thead className="font-mono text-[11px] text-muted">
             <tr className="border-b border-line">
               <th className="py-2 font-normal">Cód.</th><th className="py-2 font-normal">Ubicación</th><th className="py-2 font-normal">Código</th><th className="py-2 font-normal">Producto</th><th className="py-2 font-normal">Opciones</th>
-              <th className="py-2 font-normal">Medidas</th><th className="py-2 text-right font-normal">Cant.</th><th className="py-2 text-right font-normal">Total</th><th className="py-2 pl-4 font-normal">Estado</th>
+              <th className="py-2 font-normal">Medidas</th><th className="py-2 text-right font-normal">Cant.</th>{SHOW_PRICES && <th className="py-2 text-right font-normal">Total</th>}<th className="py-2 pl-4 font-normal">Estado</th>
             </tr>
           </thead>
           <tbody>
@@ -113,7 +114,7 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
                 <td className="py-2 text-muted">{configSummary(l.config)}</td>
                 <td className="py-2 font-mono text-xs">{l.width && l.height ? `${formatMeters(l.width)} × ${formatMeters(l.height)}` : "—"}</td>
                 <td className="py-2 text-right font-mono text-xs">{l.quantity}</td>
-                <td className="py-2 text-right">{l.config && l.unitPrice ? formatMoney(l.unitPrice * l.quantity) : "—"}</td>
+                {SHOW_PRICES && <td className="py-2 text-right">{l.config && l.unitPrice ? formatMoney(l.unitPrice * l.quantity) : "—"}</td>}
                 <td className="py-2 pl-4 text-xs" style={{ color: LINE_STATUS_COLORS[l.status as LineStatus] }}>{LINE_STATUS_LABELS[l.status as LineStatus]}</td>
               </tr>
             ))}

@@ -3,6 +3,7 @@
  * Pestaña "Ubicaciones y líneas": árbol edificio > piso > ambiente a la
  * izquierda, líneas de la ubicación elegida a la derecha y el editor.
  */
+import { SHOW_PRICES } from "@/lib/flags";
 import { useMemo, useState } from "react";
 import { formatMoney, formatMeters } from "@portafolio/core/pricing";
 import { LINE_STATUS_COLORS, type LineStatus } from "@portafolio/core/projects";
@@ -168,7 +169,7 @@ function ByLocation({ ctx }: { ctx: EditorContext }) {
                 <th className="py-2 font-normal">Producto</th>
                 <th className="py-2 font-normal">Medidas</th>
                 <th className="py-2 text-right font-normal">Cant.</th>
-                <th className="py-2 text-right font-normal">Total</th>
+                {SHOW_PRICES && <th className="py-2 text-right font-normal">Total</th>}
               </tr>
             </thead>
             <tbody>
@@ -195,7 +196,7 @@ function ByLocation({ ctx }: { ctx: EditorContext }) {
                   </td>
                   <td className="py-2 font-mono text-xs">{l.width && l.height ? `${formatMeters(l.width)} × ${formatMeters(l.height)}` : "—"}</td>
                   <td className="py-2 text-right font-mono text-xs">{l.quantity}</td>
-                  <td className="py-2 text-right">{l.config && l.unitPrice ? formatMoney(l.unitPrice * l.quantity) : "—"}</td>
+                  {SHOW_PRICES && <td className="py-2 text-right">{l.config && l.unitPrice ? formatMoney(l.unitPrice * l.quantity) : "—"}</td>}
                 </tr>
               ))}
             </tbody>

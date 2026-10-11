@@ -1,3 +1,4 @@
+import { SHOW_PRICES } from "@/lib/flags";
 import { StatusChip } from "@/components/StatusChip";
 /**
  * Tablero de proyectos: una columna por estado. Filtro de texto en la URL (?q=).
@@ -68,7 +69,7 @@ export default async function Board({ searchParams }: { searchParams: Promise<{ 
                         <p className="text-sm text-muted">{c.kind === "particular" ? c.name : c.company || c.name} <span className="font-mono text-[11px]" data-testid="client-kind">· {c.kind === "particular" ? "Particular" : "Empresa"}</span></p>
                         <p className="mt-1.5 flex flex-wrap gap-x-3 font-mono text-[11px]">
                           <span>{s.windows} cortinas</span>
-                          {s.total > 0 && <span>{formatMoney(s.total)}</span>}
+                          {SHOW_PRICES && s.total > 0 && <span>{formatMoney(s.total)}</span>}
                           {s.hasPlan && <span className="text-blue">Plano</span>}
                           {s.files > 0 && <span className="text-blue">{s.files} adj.</span>}
                           {p.measurementRequest && <span className="text-blue">Medición</span>}

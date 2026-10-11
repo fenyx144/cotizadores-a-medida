@@ -3,6 +3,7 @@
  * Vista del plano para el admin: mismo visor (solo lectura), lista lateral
  * sincronizada y comentarios por anotación (pueden marcarla como observada).
  */
+import { SHOW_PRICES } from "@/lib/flags";
 import dynamic from "next/dynamic";
 import { configSummary } from "@portafolio/core/db/project-schema";
 import { useMemo, useState } from "react";
@@ -83,7 +84,7 @@ export function AdminPlanView({ plans, lines: initialLines, comments: initialCom
                 <div className="flex justify-between py-1.5"><dt className="text-muted">Producto</dt><dd>{current.config?.modelName ?? "Sin configurar"}</dd></div>
                 <div className="flex justify-between py-1.5"><dt className="text-muted">Opciones</dt><dd className="text-right">{configSummary(current.config) || "—"}</dd></div>
                 <div className="flex justify-between py-1.5"><dt className="text-muted">Medidas</dt><dd className="font-mono text-xs">{current.width ?? "—"} × {current.height ?? "—"} cm</dd></div>
-                <div className="flex justify-between py-1.5"><dt className="text-muted">Cantidad · precio</dt><dd>{current.quantity} · {current.config && current.unitPrice ? formatMoney(current.unitPrice * current.quantity) : "—"}</dd></div>
+                <div className="flex justify-between py-1.5"><dt className="text-muted">{SHOW_PRICES ? "Cantidad · precio" : "Cantidad"}</dt><dd>{current.quantity}{SHOW_PRICES ? ` · ${current.config && current.unitPrice ? formatMoney(current.unitPrice * current.quantity) : "—"}` : ""}</dd></div>
                 {current.note && <div className="py-1.5"><dt className="text-muted">Nota del cliente</dt><dd>{current.note}</dd></div>}
               </dl>
               <ul className="mt-4 space-y-3 text-sm">

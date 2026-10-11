@@ -38,6 +38,8 @@ export interface CrudField {
   noRequired?: boolean;
   /** Mostrar en la tabla. */
   column?: boolean;
+  /** Oculto en tabla y formulario (se conserva su valor al guardar). */
+  hidden?: boolean;
 }
 
 type Row = Record<string, unknown> & { id: number };
@@ -62,7 +64,7 @@ export function CrudManager({
   const [editing, setEditing] = useState<Partial<Row> | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
-  const columns = fields.filter((f) => f.column);
+  const columns = fields.filter((f) => f.column && !f.hidden);
 
   function emptyRow(): Partial<Row> {
     const r: Record<string, unknown> = {};
@@ -189,7 +191,7 @@ export function CrudManager({
             className="space-y-4 self-start border-t border-ink pt-4 lg:sticky lg:top-8"
           >
             <p className="font-serif text-xl">{editing.id ? "Editar" : "Nuevo registro"}</p>
-            {fields.filter((f) => !f.readOnly).map((f) => f.type === "image" || f.type === "gallery" ? (
+            {fields.filter((f) => !f.readOnly && !f.hidden).map((f) => f.type === "image" || f.type === "gallery" ? (
               <PhotoField key={f.name} field={f} value={editing[f.name]} error={errors[f.name]} onChange={(v) => setEditing({ ...editing, [f.name]: v })} />
             ) : f.type === "attrs" ? (
               <AttrsEditor key={f.name} field={f} error={errors[f.name]} value={(editing[f.name] as AttrConf[] | undefined) ?? []} linked={f.materialLinks ? String(editing[f.materialLinks.field] ?? "") : ""}

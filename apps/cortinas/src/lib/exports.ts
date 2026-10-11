@@ -2,6 +2,7 @@
  * Exportaciones de un proyecto: PDF (resumen + tabla de líneas + plano con
  * anotaciones numeradas) y Excel (líneas y resumen). Las usan cliente y admin.
  */
+import { SHOW_PRICES } from "./flags";
 import "server-only";
 import { buildPdf, type PdfPlan } from "@portafolio/core/pdf";
 import { buildXlsx } from "@portafolio/core/xlsx";
@@ -65,7 +66,7 @@ export async function projectPdf(data: ProjectData, origin: string): Promise<Uin
         heading: "Resumen",
         rows: [
           ["Cortinas", `${s.windows} (${s.configured} configuradas, ${s.pending} pendientes)`],
-          ...s.byProduct.map((g) => [g.name, `${g.quantity} u. · ${formatMoney(g.amount)}`] as [string, string]),
+          ...s.byProduct.map((g) => [g.name, `${g.quantity} u.${SHOW_PRICES ? ` · ${formatMoney(g.amount)}` : ""}`] as [string, string]),
         ],
       },
     ],
@@ -78,11 +79,10 @@ export async function projectPdf(data: ProjectData, origin: string): Promise<Uin
           { label: "Producto", width: 130 },
           { label: "Medidas", width: 84 },
           { label: "Cant.", width: 30, align: "right" },
-          { label: "P. unit.", width: 38, align: "right" },
-          { label: "Total", width: 39, align: "right" },
+          ...(SHOW_PRICES ? [{ label: "P. unit.", width: 38, align: "right" as const }, { label: "Total", width: 39, align: "right" as const }] : []),
         ],
-        rows: rows.map((r) => [r.line.label, r.location, [r.product, r.drive].filter(Boolean).join(" · "), r.size, String(r.line.quantity), r.line.unitPrice && r.line.config ? String(r.line.unitPrice) : "-", r.total ? String(r.total) : "-"]),
-        totals: [
+        rows: rows.map((r) => [r.line.label, r.location, [r.product, r.drive].filter(Boolean).join(" · "), r.size, String(r.line.quantity), ...(SHOW_PRICES ? [r.line.unitPrice && r.line.config ? String(r.line.unitPrice) : "-", r.total ? String(r.total) : "-"] : [])]),
+        totals: !SHOW_PRICES ? [] : [
           ["Subtotal", formatMoney(s.subtotal)],
           ...(s.discountPercent ? ([[`Descuento por volumen (${s.discountPercent}%)`, `- ${formatMoney(s.discount)}`]] as [string, string][]) : []),
           ["Total con IGV", formatMoney(s.total)],
@@ -91,7 +91,7 @@ export async function projectPdf(data: ProjectData, origin: string): Promise<Uin
       },
     ],
     plans,
-    footer: `${BRAND.name} · ${BRAND.email} · ${BRAND.phone} · Cotización referencial sujeta a medición en obra.`,
+    footer: `${BRAND.name} · ${BRAND.email} · ${BRAND.phone} · ${SHOW_PRICES ? "Cotización referencial sujeta a medición en obra." : "Solicitud de cotización."}`,
   });
 }
 
@@ -110,8 +110,7 @@ export async function projectXlsx(data: ProjectData): Promise<Uint8Array> {
           { header: "Ancho (cm)", key: "width", width: 11 },
           { header: "Alto (cm)", key: "height", width: 11 },
           { header: "Cantidad", key: "qty", width: 10 },
-          { header: "P. unitario (S/)", key: "unit", width: 15, numFmt: "#,##0" },
-          { header: "Total (S/)", key: "total", width: 13, numFmt: "#,##0" },
+          ...(SHOW_PRICES ? [{ header: "P. unitario (S/)", key: "unit", width: 15, numFmt: "#,##0" }, { header: "Total (S/)", key: "total", width: 13, numFmt: "#,##0" }] : []),
           { header: "Estado", key: "status", width: 15 },
           { header: "Nota", key: "note", width: 40 },
         ],
@@ -125,9 +124,9 @@ export async function projectXlsx(data: ProjectData): Promise<Uint8Array> {
         columns: [
           { header: "Concepto", key: "k", width: 40 },
           { header: "Cantidad", key: "q", width: 10 },
-          { header: "Importe (S/)", key: "v", width: 14, numFmt: "#,##0" },
+          ...(SHOW_PRICES ? [{ header: "Importe (S/)", key: "v", width: 14, numFmt: "#,##0" }] : []),
         ],
-        rows: [
+        rows: !SHOW_PRICES ? s.byLocation.map((g) => ({ k: g.name, q: g.quantity, v: null })) : [
           ...s.byLocation.map((g) => ({ k: g.name, q: g.quantity, v: g.amount })),
           { k: "", q: null, v: null },
           { k: "Subtotal", q: s.configured, v: s.subtotal },

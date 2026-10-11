@@ -1,3 +1,4 @@
+import { SHOW_PRICES } from "@/lib/flags";
 import { asc } from "drizzle-orm";
 import { CrudManager } from "@portafolio/core/ui/CrudManager";
 import { getDb, schema } from "@/lib/db";
@@ -16,11 +17,11 @@ export default async function Page() {
   return (
     <div className="space-y-16">
       <RulesStudio catalog={catalog} initialRules={constraints} />
-      <div data-testid="price-rules">
+      {SHOW_PRICES && <div data-testid="price-rules">
         <CrudManager resource="rules" title="Recargos generales" newLabel="Añadir recargo"
           description="Importes por tipo de producto o superficie (instalación, tubo reforzado)."
           fields={ruleFields(optionChoices(catalog))} initialRows={rules} />
-      </div>
+      </div>}
     </div>
   );
 }

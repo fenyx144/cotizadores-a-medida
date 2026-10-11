@@ -1,3 +1,4 @@
+import { SHOW_PRICES } from "@/lib/flags";
 import { StepBar } from "@/components/StepBar";
 import Image from "next/image";
 import Link from "next/link";
@@ -71,7 +72,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <dl className="mt-8 divide-y divide-line border-y border-line text-[0.95rem]">
             <div className="flex justify-between py-3"><dt className="text-muted">Ancho</dt><dd className="font-mono text-sm">{formatMeters(model.minWidth)} – {formatMeters(model.maxWidth)}</dd></div>
             <div className="flex justify-between py-3"><dt className="text-muted">Alto</dt><dd className="font-mono text-sm">{formatMeters(model.minProjection)} – {formatMeters(model.maxProjection)}</dd></div>
-            <div className="flex justify-between py-3"><dt className="text-muted">Precio base</dt><dd>{formatMoney(model.basePrice)} + {formatMoney(model.pricePerM2)}/m²</dd></div>
+            {SHOW_PRICES && <div className="flex justify-between py-3"><dt className="text-muted">Precio base</dt><dd>{formatMoney(model.basePrice)} + {formatMoney(model.pricePerM2)}/m²</dd></div>}
           </dl>
 
           {model.specs?.length > 0 && (
@@ -98,7 +99,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                       {c.image ? <img src={c.image} alt="" className="size-8 shrink-0 border border-line object-cover" /> : c.hex && <span className={`size-8 shrink-0 border border-line ${f.attribute.name.toLowerCase().includes("perfil") ? "rounded-full" : ""}`} style={{ background: c.hex }} />}
                       <span>
                         {v.name}
-                        {(v.code || v.surcharge > 0) && <span className="block font-mono text-[11px] text-muted">{v.code}{v.surcharge > 0 ? `${v.code ? " · " : ""}+${formatMoney(v.surcharge)}${v.surchargeKind === "por_m2" ? "/m²" : ""}` : ""}</span>}
+                        {(v.code || (SHOW_PRICES && v.surcharge > 0)) && <span className="block font-mono text-[11px] text-muted">{v.code}{SHOW_PRICES && v.surcharge > 0 ? `${v.code ? " · " : ""}+${formatMoney(v.surcharge)}${v.surchargeKind === "por_m2" ? "/m²" : ""}` : ""}</span>}
                       </span>
                     </li>
                   );
@@ -111,7 +112,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <div className="mt-10 border-t border-ink pt-6">
             <div className="flex flex-wrap items-baseline justify-between gap-3"><h2 className="text-[1.6rem]">Configurar y cotizar</h2><Link href={`/configurar?modelo=${model.slug}`} className="text-sm underline underline-offset-4" data-testid="wizard-cta">Paso a paso</Link></div>
             <AddToProject modelId={model.id} slug={model.slug} catalog={catalog} projects={drafts} loggedIn={!!session} particular={me?.kind === "particular"} />
-            <p className="mt-4 text-xs text-muted">Precios con IGV.</p>
+            {SHOW_PRICES && <p className="mt-4 text-xs text-muted">Precios con IGV.</p>}
           </div>
         </div>
       </div>

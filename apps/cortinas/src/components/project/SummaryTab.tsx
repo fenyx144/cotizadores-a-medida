@@ -1,5 +1,6 @@
 "use client";
 /** Pestaña "Resumen y envío": totales, descuento por volumen, notas, medición en obra y envío. */
+import { SHOW_PRICES } from "@/lib/flags";
 import { useState } from "react";
 import { formatMoney } from "@portafolio/core/pricing";
 import { summarizeProject } from "@portafolio/core/projects";
@@ -52,7 +53,7 @@ export function SummaryTab({ ctx }: { ctx: EditorContext }) {
               <tr key={g.name} className="border-b border-line">
                 <td className="py-2">{g.name}</td>
                 <td className="py-2 text-right font-mono text-xs text-muted">{g.quantity} u.</td>
-                <td className="w-32 py-2 text-right">{g.amount ? formatMoney(g.amount) : "—"}</td>
+                {SHOW_PRICES && <td className="w-32 py-2 text-right">{g.amount ? formatMoney(g.amount) : "—"}</td>}
               </tr>
             ))}
           </tbody>
@@ -65,7 +66,7 @@ export function SummaryTab({ ctx }: { ctx: EditorContext }) {
               <tr key={g.name} className="border-b border-line">
                 <td className="py-2">{g.name}</td>
                 <td className="py-2 text-right font-mono text-xs text-muted">{g.quantity} u.</td>
-                <td className="w-32 py-2 text-right">{formatMoney(g.amount)}</td>
+                {SHOW_PRICES && <td className="w-32 py-2 text-right">{formatMoney(g.amount)}</td>}
               </tr>
             ))}
           </tbody>
@@ -75,7 +76,7 @@ export function SummaryTab({ ctx }: { ctx: EditorContext }) {
 
       <aside className="space-y-10 lg:col-span-5">
         <div className="border border-line bg-white-stone p-6" data-testid="summary-totals">
-          <dl className="space-y-2 text-[0.95rem]">
+          {SHOW_PRICES && <dl className="space-y-2 text-[0.95rem]">
             <div className="flex justify-between"><dt className="text-muted">Subtotal</dt><dd>{formatMoney(s.subtotal)}</dd></div>
             <div className="flex justify-between">
               <dt className="text-muted">Descuento por volumen {s.discountPercent ? `(${s.discountPercent}%)` : ""}</dt>
@@ -86,8 +87,8 @@ export function SummaryTab({ ctx }: { ctx: EditorContext }) {
               <dd className="font-serif text-[2.4rem] leading-none">{formatMoney(s.total)}</dd>
             </div>
             <p className="text-xs text-muted">IGV incluido: {formatMoney(s.igv)}. Descuentos: 5% desde 20 cortinas, 8% desde 50, 12% desde 100. Precio referencial sujeto a medición.</p>
-          </dl>
-          <div className="mt-6 flex flex-wrap gap-3">
+          </dl>}
+          <div className={`${SHOW_PRICES ? "mt-6 " : ""}flex flex-wrap gap-3`}>
             <a href={`/api/proyecto/${data.project.id}/pdf`} target="_blank" className={btnLine} data-testid="pdf-link">Descargar PDF</a>
             <a href={`/api/proyecto/${data.project.id}/xlsx`} className={btnLine}>Excel</a>
           </div>
