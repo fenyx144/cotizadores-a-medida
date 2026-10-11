@@ -108,7 +108,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
   return (
     <div className="mx-auto max-w-xl" data-testid="wizard">
       <div className="flex items-center justify-between font-mono text-xs text-muted">
-        <span data-testid="wizard-progress">Paso {phase + 1} de {PHASES.length}{isOption && optSteps.length > 1 ? ` · opción ${optIndex + 1} de ${optSteps.length}` : ""}</span>
+        <span data-testid="wizard-progress">Paso {phase + 1} de {PHASES.length}{isOption ? " · Opciones" : ""}</span>
         {i > 0 && <button onClick={() => go(-1)} className="hover:text-ink">← Atrás</button>}
       </div>
       <div className="mt-2 h-0.5 bg-line"><div className="h-full bg-accent transition-all" style={{ width: `${((phase + (isOption ? (optIndex + 1) / (optSteps.length + 1) : 1)) / PHASES.length) * 100}%` }} /></div>
