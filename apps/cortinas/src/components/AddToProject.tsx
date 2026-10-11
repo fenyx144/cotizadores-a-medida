@@ -20,10 +20,10 @@ interface Props {
   slug: string;
   catalog: CatalogData;
   projects: { id: number; name: string }[];
-  loggedIn: boolean;
+  loggedIn: boolean; particular?: boolean;
 }
 
-export function AddToProject({ modelId, slug, catalog, projects, loggedIn }: Props) {
+export function AddToProject({ modelId, slug, catalog, projects, loggedIn, particular }: Props) {
   const router = useRouter();
   const [projectId, setProjectId] = useState(projects[0]?.id ?? 0);
   const [fabricId, setFabricId] = useState(0);
@@ -94,6 +94,8 @@ export function AddToProject({ modelId, slug, catalog, projects, loggedIn }: Pro
             <Link href={`/cliente/ingresar?next=/catalogo/${slug}`} className="text-ink underline decoration-accent underline-offset-4">Ingrese</Link> o{" "}
             <Link href="/cliente/registro" className="text-ink underline decoration-accent underline-offset-4">cree una cuenta</Link> para agregar esta configuración a un proyecto.
           </p>
+        ) : particular ? (
+          <p className="text-muted"><Link href="/cliente" className="text-ink underline decoration-accent underline-offset-4">Pida su cotización</Link> desde su área de cliente con estas medidas.</p>
         ) : !projects.length ? (
           <p className="text-muted">No tiene proyectos en borrador. <Link href="/cliente" className="text-ink underline decoration-accent underline-offset-4">Cree uno</Link> y vuelva a esta ficha.</p>
         ) : (

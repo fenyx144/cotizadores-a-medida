@@ -28,6 +28,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         .where(and(eq(schema.projects.clientId, session.userId), eq(schema.projects.status, "borrador")))
         .orderBy(desc(schema.projects.updatedAt))
     : [];
+  const [me] = session ? await getDb().select({ kind: schema.clients.kind }).from(schema.clients).where(eq(schema.clients.id, session.userId)) : [];
   const motorRule = catalog.rules.find((r) => r.drive === "motor");
   const photos = [model.image, ...model.gallery].filter(Boolean);
   // Variantes: telas × colores de perfil × accionamientos permitidos por la categoría.
@@ -125,7 +126,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
           <div className="mt-10 border-t border-ink pt-6">
             <h2 className="text-[1.6rem]">Configurar y cotizar</h2>
-            <AddToProject modelId={model.id} slug={model.slug} catalog={catalog} projects={drafts} loggedIn={!!session} />
+            <AddToProject modelId={model.id} slug={model.slug} catalog={catalog} projects={drafts} loggedIn={!!session} particular={me?.kind === "particular"} />
             {motorRule && <p className="mt-4 text-xs text-muted">Motorización desde {formatMoney(motorRule.amount)} por cortina. Precios con IGV.</p>}
           </div>
         </div>
