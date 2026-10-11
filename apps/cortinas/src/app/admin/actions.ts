@@ -48,3 +48,13 @@ export async function commentLine(lineId: number, body: string, status?: LineSta
   ]);
   return { ok: true as const, lines, comments };
 }
+
+/** Nota interna del equipo (privada: el cliente nunca la ve). */
+export async function addProjectNote(formData: FormData) {
+  const session = await requireAdmin();
+  const projectId = Number(formData.get("id"));
+  const body = String(formData.get("body") ?? "").trim().slice(0, 2000);
+  if (!projectId || !body) return;
+  await getDb().insert(schema.projectNotes).values({ projectId, body, author: session.name });
+  revalidatePath(`/admin/proyectos/${projectId}`);
+}

@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { desc, eq } from "drizzle-orm";
+import { getDb, schema } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { formatMeters, formatMoney } from "@portafolio/core/pricing";
 import { LINE_STATUS_COLORS, LINE_STATUS_LABELS, PROJECT_STATUSES, PROJECT_STATUS_LABELS, type LineStatus } from "@portafolio/core/projects";
 import { loadProject, locationName, projectSummary } from "@/lib/project";
 import { DRIVE_LABELS } from "@/lib/content";
-import { updateProjectStatus } from "@/app/admin/actions";
+import { addProjectNote, updateProjectStatus } from "@/app/admin/actions";
 import { AdminPlanView } from "@/components/admin/AdminPlanView";
 
 export default async function AdminProject({ params }: { params: Promise<{ id: string }> }) {
@@ -14,6 +16,8 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
   const s = projectSummary(data);
   const locs = new Map(data.locations.map((l) => [l.id, l]));
   const mr = project.measurementRequest;
+  // Notas internas: se consultan solo aquí (panel admin), no en loadProject, para que nunca lleguen al cliente.
+  const notes = await getDb().select().from(schema.projectNotes).where(eq(schema.projectNotes.projectId, project.id)).orderBy(desc(schema.projectNotes.createdAt));
 
   return (
     <div>
@@ -52,6 +56,28 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
           {mr && <p className="text-blue"><span className="font-mono text-[11px] text-muted">Medición en obra · </span>{mr.approxWindows} ventanas aprox. · {mr.address}, {mr.district}{mr.preferredDate ? ` · ${mr.preferredDate}` : ""}</p>}
         </div>
       )}
+
+
+      <section className="mt-10 grid gap-6 border-t border-ink pt-4 lg:grid-cols-12" data-testid="internal-notes">
+        <div className="lg:col-span-4">
+          <h2 className="text-2xl">Notas internas</h2>
+          <p className="mt-1 text-sm text-muted">Solo las ve el equipo. El cliente no tiene acceso.</p>
+          <form action={addProjectNote} className="mt-4 space-y-3">
+            <input type="hidden" name="id" value={project.id} />
+            <textarea name="body" required rows={3} maxLength={2000} placeholder="Ej.: confirmar acceso a obra el sábado; cliente prefiere motor en aulas 101–105." className="w-full resize-none border-b border-line bg-transparent py-2 text-sm outline-none focus:border-ink" />
+            <button className="border border-line px-3 py-1.5 text-sm hover:border-ink">Añadir nota</button>
+          </form>
+        </div>
+        <ul className="border-t border-line text-sm lg:col-span-7 lg:col-start-6 lg:border-t-0">
+          {notes.length === 0 && <li className="py-3 text-muted">Sin notas todavía.</li>}
+          {notes.map((n) => (
+            <li key={n.id} className="border-b border-line py-3">
+              <p className="whitespace-pre-line">{n.body}</p>
+              <p className="mt-1 font-mono text-[11px] text-muted">{n.author} · {n.createdAt.toLocaleString("es-PE", { timeZone: "America/Lima", day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
 
       {data.plans.length > 0 && (
         <section className="mt-10">

@@ -107,6 +107,17 @@ export const lineComments = pgTable("line_comments", {
   createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
 });
 
+/** Notas internas del equipo sobre un proyecto. Solo se leen en el panel admin, nunca en el área de cliente. */
+export const projectNotes = pgTable("project_notes", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  body: text("body").notNull(),
+  author: text("author").notNull(),
+  createdAt: timestamp("created_at", { mode: "date" }).notNull().defaultNow(),
+});
+
 export interface MeasurementRequest {
   approxWindows: number;
   address: string;
@@ -134,3 +145,4 @@ export type Location = typeof locations.$inferSelect;
 export type Plan = typeof plans.$inferSelect;
 export type Line = typeof lines.$inferSelect;
 export type LineComment = typeof lineComments.$inferSelect;
+export type ProjectNote = typeof projectNotes.$inferSelect;
