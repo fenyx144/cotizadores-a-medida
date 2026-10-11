@@ -302,7 +302,7 @@ export type GridResult = ActionResult | { ok: false; error: string; cells: GridC
  * líneas y borra las que se quitaron (las anotadas en un plano se conservan).
  */
 export async function saveGrid(projectId: number, rows: GridRowInput[]): Promise<GridResult> {
-  if (rows.length > 1000) return { ok: false, error: "Máximo 1000 filas por planilla." };
+  if (rows.length > 1000) return { ok: false, error: "Máximo 1000 filas." };
   const catalog = await getCatalog();
   const cells: GridCellErrors = {};
   rows.forEach((r, i) => {

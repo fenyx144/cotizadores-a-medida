@@ -211,7 +211,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
     }
     setDirty(false);
     setImportMsg(null);
-    await ctx.act(Promise.resolve(res), `Planilla guardada: ${payload.length} filas.`);
+    await ctx.act(Promise.resolve(res), `Tabla guardada: ${payload.length} filas.`);
   }
 
   const toggle = (k: string) => setSel((s) => { const n = new Set(s); if (n.has(k)) n.delete(k); else n.add(k); return n; });
@@ -315,7 +315,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
         {badRows > 0 && <p className="text-sm text-danger" data-testid="grid-bad-rows">{badRows} {badRows === 1 ? "fila con errores" : "filas con errores"}</p>}
         {!readOnly && (
           <button type="button" className={`${btnPrimary} ml-auto`} disabled={ctx.busy || !dirty} onClick={save} data-testid="grid-save">
-            {dirty ? "Guardar planilla" : "Planilla guardada"}
+            {dirty ? "Guardar tabla" : "Tabla guardada"}
           </button>
         )}
       </div>

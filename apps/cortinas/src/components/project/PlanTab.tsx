@@ -76,7 +76,8 @@ export function PlanTab({ ctx, onGoToSummary }: { ctx: EditorContext; onGoToSumm
       <div className="grid gap-10 lg:grid-cols-12">
         <div className="lg:col-span-7">
           <h2 className="text-[2rem] leading-tight">Suba el plano de la obra</h2>
-          <p className="mt-2 max-w-lg text-muted">Marque cada ventana con un punto o un rectángulo y configúrela. También puede subir fotos de un ambiente y marcar sobre ellas.</p>
+          <p className="mt-2 max-w-lg text-muted">Marque cada ventana con un punto o un rectángulo. También puede usar fotos de un ambiente.</p>
+          <p className="mt-2 text-sm text-blue">Las ventanas marcadas en el plano aparecen en la tabla y viceversa.</p>
           {!readOnly && <div className="mt-8"><PlanUpload ctx={ctx} onUploaded={setPlanId} /></div>}
         </div>
         <div className="border-t border-line pt-6 lg:col-span-4 lg:col-start-9 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
@@ -97,6 +98,7 @@ export function PlanTab({ ctx, onGoToSummary }: { ctx: EditorContext; onGoToSumm
 
   return (
     <div className="space-y-5">
+      <p className="text-sm text-blue" data-testid="plan-sync-note">Las ventanas marcadas en el plano aparecen en la tabla y viceversa.</p>
       {/* Selector de lienzo + subida */}
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-4">
         <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm">

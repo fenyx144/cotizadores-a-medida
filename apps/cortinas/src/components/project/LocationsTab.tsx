@@ -16,7 +16,7 @@ export function LocationsTab({ ctx }: { ctx: EditorContext }) {
   return (
     <div>
       <div className="mb-6 flex items-center gap-5 text-sm" role="tablist" aria-label="Vista">
-        {([["planilla", "Planilla (todas las líneas)"], ["ubicaciones", "Por ubicación"]] as const).map(([k, label]) => (
+        {([["planilla", "Tabla"], ["ubicaciones", "Por ubicación"]] as const).map(([k, label]) => (
           <button key={k} type="button" role="tab" aria-selected={view === k} onClick={() => setView(k)}
             className={`border-b pb-1 ${view === k ? "border-accent text-ink" : "border-transparent text-muted hover:text-ink"}`}>{label}</button>
         ))}

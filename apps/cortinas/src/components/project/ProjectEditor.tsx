@@ -14,9 +14,9 @@ import type { ActionResult, CatalogData, EditorContext, ProjectData } from "./sh
 
 type Tab = "ubicaciones" | "plano" | "resumen";
 const TABS: { key: Tab; label: string }[] = [
-  { key: "ubicaciones", label: "Ubicaciones y líneas" },
-  { key: "resumen", label: "Resumen y envío" },
-  { key: "plano", label: "Plano y fotos (opcional)" },
+  { key: "ubicaciones", label: "Ventanas" },
+  { key: "plano", label: "Plano (opcional)" },
+  { key: "resumen", label: "Revisar y enviar" },
 ];
 
 export function ProjectEditor({ initial, catalog, initialTab }: { initial: ProjectData; catalog: CatalogData; initialTab?: string }) {
@@ -25,6 +25,8 @@ export function ProjectEditor({ initial, catalog, initialTab }: { initial: Proje
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
   const readOnly = data.project.status !== "borrador";
+  // Proyecto nuevo y vacío: preguntamos si hay plano antes de mostrar la tabla.
+  const [askPlan, setAskPlan] = useState(!readOnly && initial.lines.length === 0 && initial.plans.length === 0 && !initialTab);
 
   const act: EditorContext["act"] = async (p, okMessage) => {
     setBusy(true);
@@ -63,10 +65,11 @@ export function ProjectEditor({ initial, catalog, initialTab }: { initial: Proje
         </dl>
       </header>
 
-      <nav className="sticky top-[61px] z-[900] -mx-5 flex gap-7 overflow-x-auto border-b border-line bg-paper/95 px-5 text-[0.95rem] backdrop-blur md:-mx-10 md:px-10" role="tablist">
-        {TABS.map((t) => (
-          <button key={t.key} role="tab" aria-selected={tab === t.key} type="button" onClick={() => setTab(t.key)}
-            className={`-mb-px shrink-0 border-b py-3 ${tab === t.key ? "border-ink text-ink" : "border-transparent text-muted hover:text-ink"}`}>
+      <nav className="sticky top-[61px] z-[900] -mx-5 flex gap-6 overflow-x-auto border-b border-line bg-paper/95 px-5 text-[0.95rem] backdrop-blur md:-mx-10 md:gap-10 md:px-10" role="tablist" aria-label="Pasos">
+        {TABS.map((t, i) => (
+          <button key={t.key} role="tab" aria-selected={tab === t.key && !askPlan} type="button" onClick={() => { setAskPlan(false); setTab(t.key); }}
+            className={`-mb-px flex shrink-0 items-center gap-2 border-b py-3 ${tab === t.key && !askPlan ? "border-ink text-ink" : "border-transparent text-muted hover:text-ink"}`}>
+            <span className={`inline-flex size-6 items-center justify-center rounded-full border font-mono text-xs ${tab === t.key && !askPlan ? "border-ink bg-ink text-paper" : "border-line"}`}>{i + 1}</span>
             {t.label}
           </button>
         ))}
@@ -81,11 +84,27 @@ export function ProjectEditor({ initial, catalog, initialTab }: { initial: Proje
         </p>
       )}
 
+      {askPlan ? (
+        <section className="mx-auto mt-14 max-w-2xl text-center" data-testid="plan-choice">
+          <h2 className="text-[2.2rem] leading-tight">¿Tiene un plano de la obra?</h2>
+          <div className="mt-8 grid gap-4 text-left sm:grid-cols-2">
+            <button type="button" onClick={() => { setAskPlan(false); setTab("plano"); }} className="border border-line p-6 hover:border-ink">
+              <span className="font-serif text-2xl">Sí</span>
+              <span className="mt-2 block text-sm text-muted">Súbalo, marque las ventanas y complete los datos en la tabla.</span>
+            </button>
+            <button type="button" onClick={() => { setAskPlan(false); setTab("ubicaciones"); }} className="border border-line p-6 hover:border-ink">
+              <span className="font-serif text-2xl">No</span>
+              <span className="mt-2 block text-sm text-muted">Vaya directo a la tabla de ventanas.</span>
+            </button>
+          </div>
+        </section>
+      ) : (
       <div className="mt-8">
         {tab === "ubicaciones" && <LocationsTab ctx={ctx} />}
         {tab === "plano" && <PlanTab ctx={ctx} onGoToSummary={() => setTab("resumen")} />}
         {tab === "resumen" && <SummaryTab ctx={ctx} />}
       </div>
+      )}
     </div>
   );
 }
