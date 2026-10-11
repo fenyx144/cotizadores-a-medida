@@ -10,7 +10,7 @@ import { getClientSession } from "@/lib/client-session";
 import { getDb, schema } from "@/lib/db";
 import { CurtainPreview } from "@/components/CurtainPreview";
 import { AddToProject } from "@/components/AddToProject";
-import { evaluate } from "@/lib/rules";
+import { evaluate , MATERIAL_ATTR, productMaterials } from "@/lib/rules";
 
 export const dynamic = "force-dynamic";
 
@@ -33,7 +33,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const family = catalog.families.find((f) => f.id === model.familyId);
   const photos = [model.image, ...model.gallery].filter(Boolean);
   // Opciones: los atributos que pide la categoría, con sus valores permitidos.
-  const options = evaluate(catalog, { modelId: model.id }).fields.filter((f) => f.choices.length && f.kind !== "sino");
+  const options = evaluate(catalog, { modelId: model.id }).fields.filter((f) => f.choices.length && f.kind !== "sino" && f.attribute.id !== MATERIAL_ATTR);
+  const mats = productMaterials(catalog, model);
   const extras = evaluate(catalog, { modelId: model.id }).fields.filter((f) => f.kind === "sino" || f.kind === "numero");
   const firstHex = options.flatMap((f) => f.choices).find((c) => c.hex)?.hex ?? "#ccc";
 
@@ -63,7 +64,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
         {/* Ficha */}
         <div className="md:col-span-5">
-          <p className="font-mono text-xs text-muted">{catalog.materials.find((x) => x.slug === model.material)?.name ?? MATERIAL_LABELS[model.material]} · {model.uses.split(",").map((u) => USE_LABELS[u]).join(", ")}</p>
+          <p className="font-mono text-xs text-muted">{mats.length ? mats.map((x) => x.name).join(" · ") : MATERIAL_LABELS[model.material]} · {model.uses.split(",").map((u) => USE_LABELS[u]).join(", ")}</p>
           <h1 className="mt-3 text-[2.8rem] leading-[1.02] md:text-[3.4rem]">{model.name}</h1>
           <p className="mt-4 text-lg text-muted">{model.description}</p>
 

@@ -23,6 +23,7 @@ export function lineOptions(catalog: RulesCatalog, sel: { modelId: number; value
   for (const f of evaluate(catalog, { modelId: sel.modelId, values: sel.values }).fields) {
     const raw = sel.values[f.attribute.id];
     if (raw == null || raw === false) continue;
+    if (f.attribute.id === -1) { const m = catalog.materials?.find((x) => x.id === raw); if (m) out.push({ attributeId: -1, attribute: "Material", value: m.name, code: m.slug }); continue; }
     if (f.kind === "numero") { out.push({ attributeId: f.attribute.id, attribute: f.attribute.name, value: `${raw}${f.attribute.unit ? ` ${f.attribute.unit}` : ""}` }); continue; }
     const v = f.kind === "sino" ? catalog.values.find((x) => x.attributeId === f.attribute.id && x.active) : catalog.values.find((x) => x.id === raw);
     if (!v) continue;

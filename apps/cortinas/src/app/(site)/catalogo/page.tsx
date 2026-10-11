@@ -4,6 +4,7 @@ import { formatMoney } from "@portafolio/core/pricing";
 import { getCatalog } from "@/lib/catalog";
 import { TYPE_LABELS, USE_LABELS } from "@/lib/content";
 import { StepBar } from "@/components/StepBar";
+import { productMaterials } from "@/lib/rules";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Catálogo — Cota" };
@@ -36,7 +37,9 @@ function FilterGroup({ title, param, options, current, params }: { title: string
 
 export default async function CatalogPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
-  const { models, families, materials } = await getCatalog();
+  const catalog = await getCatalog();
+  const { models, families, materials } = catalog;
+  const offers = (m: (typeof models)[number], slug?: string) => !slug || productMaterials(catalog, m).some((x) => x.slug === slug);
   const materialOptions = Object.fromEntries(materials.filter((x) => x.active).map((x) => [x.slug, x.name]));
   const family = families.find((f) => String(f.id) === params.categoria);
 
@@ -71,8 +74,8 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
   if (family) {
     const inFamily = models.filter((m) => m.familyId === family.id);
     const allowedMats = family.materials.split(",").filter(Boolean);
-    const mats = Object.fromEntries(materials.filter((x) => x.active && (allowedMats.length ? allowedMats.includes(x.slug) : inFamily.some((m) => m.material === x.slug))).map((x) => [x.slug, x.name]));
-    const items = inFamily.filter((m) => !params.material || m.material === params.material);
+    const mats = Object.fromEntries(materials.filter((x) => x.active && (allowedMats.length ? allowedMats.includes(x.slug) : inFamily.some((m) => offers(m, x.slug)))).map((x) => [x.slug, x.name]));
+    const items = inFamily.filter((m) => offers(m, params.material));
     return (
       <div className="mx-auto max-w-[1360px] px-5 pt-8 md:px-10">
         <nav className="font-mono text-xs text-muted"><Link href="/catalogo" className="hover:text-ink">Catálogo</Link> / {family.name}</nav>
@@ -99,7 +102,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
               </div>
               <div className="mt-4 flex items-baseline justify-between gap-4">
                 <h3 className="text-[1.6rem] leading-tight group-hover:text-blue">{m.name}</h3>
-                <span className="shrink-0 font-mono text-xs text-muted">{materials.find((x) => x.slug === m.material)?.name}</span>
+                <span className="shrink-0 font-mono text-xs text-muted">{productMaterials(catalog, m).map((x) => x.name).join(" · ")}</span>
               </div>
               <p className="mt-1 text-muted">{m.tagline}</p>
             </Link>
@@ -110,7 +113,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
   }
 
   const list = models.filter(
-    (m) => (!params.tipo || m.type === params.tipo) && (!params.material || m.material === params.material) && (!params.uso || m.uses.split(",").includes(params.uso)),
+    (m) => (!params.tipo || m.type === params.tipo) && offers(m, params.material) && (!params.uso || m.uses.split(",").includes(params.uso)),
   );
 
   return (

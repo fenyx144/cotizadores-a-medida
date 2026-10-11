@@ -9,12 +9,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
   const { producto } = await searchParams;
   const db = getDb();
   const modelId = Number(producto) || null;
-  const [rows, models, { valueOptions }] = await Promise.all([
+  const [rows, models, { valueOptions }, materials] = await Promise.all([
     db.select().from(schema.productVariants).where(modelId ? eq(schema.productVariants.modelId, modelId) : undefined).orderBy(asc(schema.productVariants.modelId), asc(schema.productVariants.sortOrder), asc(schema.productVariants.id)),
     db.select().from(schema.productModels).orderBy(asc(schema.productModels.sortOrder)),
     attributeData(),
+    db.select().from(schema.materials).orderBy(asc(schema.materials.sortOrder)),
   ]);
-  const fields = variantFields(models.map((m) => ({ value: String(m.id), label: m.name })), valueOptions);
+  const fields = variantFields(models.map((m) => ({ value: String(m.id), label: m.name })), valueOptions, materials.map((m) => ({ value: m.slug, label: m.name })));
   return (
     <div>
       <nav className="mb-6 flex flex-wrap gap-x-5 gap-y-2 text-sm" aria-label="Filtrar por producto">

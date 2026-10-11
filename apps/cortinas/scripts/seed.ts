@@ -124,13 +124,12 @@ async function main() {
   for (const t of ["materials", "product_families", "constraint_rules", "product_variants", "attributes", "attribute_values"])
     await db.execute(sql.raw(`SELECT setval(pg_get_serial_sequence('${t}', 'id'), (SELECT coalesce(max(id), 1) FROM ${t}))`));
   for (const m of seedCatalog.models) {
-    const [row] = await db.update(schema.productModels).set({ familyId: m.family_id, material: m.material, specs: m.specs as never }).where(sql`slug = ${m.slug}`).returning();
+    const [row] = await db.update(schema.productModels).set({ familyId: m.family_id, material: m.material, materials: (m as { materials?: string }).materials ?? m.material, specs: m.specs as never }).where(sql`slug = ${m.slug}`).returning();
     Object.assign(models.find((x) => x.slug === m.slug)!, row);
   }
 
-  const catalog: CatalogData = { models, attributes, values, rules, families, constraints, variants };
+  const catalog: CatalogData = { models, attributes, values, rules, families, constraints, variants, materials };
   void fabrics; void frames; // tablas antiguas (compartidas con toldos); cortinas usa atributos
-  void materials;
   const bySlug = (slug: string) => models.find((m) => m.slug === slug)!;
 
   /** Línea configurada: calcula precio y snapshot de nombres. */

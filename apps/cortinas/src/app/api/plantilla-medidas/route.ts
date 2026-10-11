@@ -24,6 +24,7 @@ export async function GET(req: Request) {
       const v = values[a.id];
       if (a.kind === "sino") return v === true ? "sí" : v === false ? "no" : "";
       if (a.kind === "numero") return v == null ? "" : String(v);
+      if (a.id === -1) return catalog.materials.find((x) => x.id === v)?.name ?? "";
       return catalog.values.find((x) => x.id === v)?.name ?? "";
     });
     return [[loc, model.name, w, h, q, ...cells, ""]];

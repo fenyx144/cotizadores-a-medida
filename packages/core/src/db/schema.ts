@@ -33,6 +33,8 @@ export const productVariants = pgTable("product_variants", {
   attributes: text("attributes").notNull().default(""),
   /** Valores de atributo que fija la variante (ids separados por coma). */
   valueIds: text("value_ids").notNull().default(""),
+  /** Material de la variante (slug); vacío = cualquiera. */
+  material: text("material").notNull().default(""),
   priceAdjustment: integer("price_adjustment").notNull().default(0),
   active: boolean("active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
@@ -140,6 +142,8 @@ export const productModels = pgTable("product_models", {
   image: text("image").notNull().default(""),
   // Campos extra para catálogos con filtros (los usa la app de cortinas).
   material: text("material").notNull().default(""),
+  /** Materiales disponibles (slugs, comas). Vacío = todos los de la categoría. */
+  materials: text("materials").notNull().default(""),
   uses: text("uses").notNull().default(""), // lista separada por comas: "educacion,oficinas"
   gallery: jsonb("gallery").$type<string[]>().notNull().default([]),
   /** Ficha técnica: filas clave/valor ("Mecanismo" -> "Cadena con freno"). */

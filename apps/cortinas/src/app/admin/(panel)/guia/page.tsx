@@ -6,7 +6,7 @@ const STEPS = [
   { n: 1, title: "Atributos", href: "/admin/catalogo/atributos", text: "Cree las opciones y sus valores: genéricas o según material." },
   { n: 2, title: "Materiales", href: "/admin/catalogo/materiales", text: "Marque qué atributos y valores admite cada material." },
   { n: 3, title: "Categorías", href: "/admin/catalogo/familias", text: "Elija sus materiales permitidos y qué atributos pide." },
-  { n: 4, title: "Productos", href: "/admin/catalogo/productos", text: "Dé a cada producto su categoría y material: hereda lo que ambos permiten." },
+  { n: 4, title: "Productos", href: "/admin/catalogo/productos", text: "Dé a cada producto su categoría y uno o varios materiales." },
   { n: 5, title: "Variantes", href: "/admin/catalogo/variantes", text: "Dé un código propio a las combinaciones que vende con SKU." },
   { n: 6, title: "Reglas", href: "/admin/catalogo/reglas", text: "Bloquee combinaciones, limite medidas y sume recargos." },
   { n: 7, title: "El cliente configura", href: "/catalogo", text: "Con la ficha o el asistente paso a paso, ve solo lo permitido." },

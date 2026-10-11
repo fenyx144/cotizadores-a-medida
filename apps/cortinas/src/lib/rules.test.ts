@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ConstraintRule } from "@portafolio/core/db/schema";
-import { cleanValues, evaluate, findConflicts, matchVariant, variantValues, parseAttributeCell, ruleSentence, withDefaults } from "./rules";
+import { MATERIAL_ATTR, cleanValues, evaluate, findConflicts, matchVariant, variantValues, parseAttributeCell, ruleSentence, withDefaults } from "./rules";
 import { priceLine } from "./line-price";
 import { ACC, CENEFA, LADO, PERFIL, TELA, attributes, catalog as c, constraints } from "./test-catalog";
 
@@ -81,7 +81,7 @@ describe("motor de reglas (atributos genéricos)", () => {
 
   it("material ∩ categoría: atributos y valores", () => {
     const bambu = { id: 9, slug: "bambu", name: "Bambú", description: "", sortOrder: 9, active: true, attributes: [{ attributeId: TELA, required: false, valueIds: [6] }, { attributeId: PERFIL, required: false, valueIds: [-1] }, { attributeId: ACC, required: false, valueIds: [-1] }, { attributeId: CENEFA, required: false, valueIds: [-1] }] };
-    const cc = { ...c, materials: [...c.materials!, bambu], models: [...c.models, { ...c.models[1], id: 9, material: "bambu" }] };
+    const cc = { ...c, materials: [...c.materials!, bambu], models: [...c.models, { ...c.models[1], id: 9, material: "bambu", materials: "bambu" }] };
     const ev = evaluate(cc, { modelId: 9, values: {} });
     expect(ev.fields.map((x) => x.attribute.name)).toEqual(["Tela", "Lado del mando"]);
     expect(f(ev, TELA)!.choices.map((x) => x.value)).toEqual([6]);
@@ -117,4 +117,16 @@ describe("motor de reglas (atributos genéricos)", () => {
     expect(withDefaults(cc, { modelId: 2, values: { [ACC]: 16, [LADO]: 20 } })[LADO]).toBe(19);
   });
 
+
+  it("producto con varios materiales: primero Material y luego sus atributos", () => {
+    const cc = { ...c, models: c.models.map((m) => (m.id === 1 ? { ...m, materials: "screen,blackout" } : m)) };
+    const ev = evaluate(cc, { modelId: 1, values: {} });
+    expect(ev.fields[0].attribute.name).toBe("Material");
+    expect(ev.fields[0].choices.map((x) => x.label)).toEqual(["screen", "blackout"]);
+    expect(f(ev, TELA)!.choices.map((x) => x.value)).toEqual([1]);
+    const bk = evaluate(cc, { modelId: 1, values: { [MATERIAL_ATTR]: 2 } });
+    expect(f(bk, TELA)!.choices.map((x) => x.value)).toEqual([5, 6]);
+    expect(withDefaults(cc, { modelId: 1, values: { [MATERIAL_ATTR]: 2 } })[TELA]).toBe(5);
+    expect(cleanValues(cc, 1, { [MATERIAL_ATTR]: 2, [TELA]: 6 })).toEqual({ [MATERIAL_ATTR]: 2, [TELA]: 6 });
+  });
 });

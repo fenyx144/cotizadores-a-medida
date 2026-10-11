@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { addFromWizard } from "@/app/actions/project";
 import type { CatalogData } from "@/lib/line-price";
-import { evaluate, matchVariant, variantValues, variantsFor, type Values } from "@/lib/rules";
+import { MATERIAL_ATTR, evaluate, matchVariant, productMaterials, variantValues, variantsFor, type Values } from "@/lib/rules";
 
 type Step = { key: string; title: string };
 interface Props {
@@ -64,7 +64,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
 
   const families = (catalog.families ?? []).filter((f) => catalog.models.some((m) => m.familyId === f.id));
   const inFamily = catalog.models.filter((m) => m.familyId === familyId);
-  const famMats = inFamily.map((m) => m.material).filter((x, k, a) => a.indexOf(x) === k);
+  const famMats = inFamily.flatMap((m) => productMaterials(catalog, m).map((x) => x.slug)).filter((x, k, a) => a.indexOf(x) === k);
   const allowed = (catalog.families?.find((f) => f.id === familyId)?.materials ?? "").split(",").filter(Boolean);
   const matOptions = (catalog.materials ?? []).filter((m) => (allowed.length ? allowed.includes(m.slug) : famMats.includes(m.slug)) && famMats.includes(m.slug));
   const attr = fields.find((f) => `a${f.attribute.id}` === step.key);
@@ -89,7 +89,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
   const valueName = (id: number) => catalog.values.find((v) => v.id === id)?.name ?? "";
   const summary = fields.map((f) => {
     const v = values[f.attribute.id];
-    return [f.attribute.name, v == null || v === false ? "—" : v === true ? "Sí" : f.kind === "numero" ? `${v} ${f.attribute.unit}` : valueName(v as number)] as const;
+    return [f.attribute.name, v == null || v === false ? "—" : v === true ? "Sí" : f.kind === "numero" ? `${v} ${f.attribute.unit}` : f.attribute.id === MATERIAL_ATTR ? catalog.materials?.find((m) => m.id === v)?.name ?? "" : valueName(v as number)] as const;
   });
 
   if (done) {
@@ -134,10 +134,10 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
                 ))}
               </div>
             )}
-            {inFamily.filter((m) => !material || m.material === material).map((m) => (
-              <button key={m.id} className={`${big(modelId === m.id)} flex items-center gap-4`} onClick={() => { if (modelId !== m.id) { setValues({}); setVariantId(undefined); } setModelId(m.id); go(1); }}>
+            {inFamily.filter((m) => !material || productMaterials(catalog, m).some((x) => x.slug === material)).map((m) => (
+              <button key={m.id} className={`${big(modelId === m.id)} flex items-center gap-4`} onClick={() => { if (modelId !== m.id) { const mat = productMaterials(catalog, m).find((x) => x.slug === material); setValues(mat ? { [MATERIAL_ATTR]: mat.id } : {}); setVariantId(undefined); } setModelId(m.id); go(1); }}>
                 {m.image && <span className="relative size-14 shrink-0 overflow-hidden bg-paper-deep"><Image src={m.image} alt="" fill sizes="56px" className="object-cover" /></span>}
-                <span><span className="block text-lg">{m.name}</span><span className="block text-sm text-muted">{catalog.materials?.find((x) => x.slug === m.material)?.name} · {m.tagline}</span></span>
+                <span><span className="block text-lg">{m.name}</span><span className="block text-sm text-muted">{productMaterials(catalog, m).map((x) => x.name).join(" · ")} · {m.tagline}</span></span>
               </button>
             ))}
           </>

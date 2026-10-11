@@ -681,7 +681,8 @@
       "price_adjustment": 0,
       "active": true,
       "sort_order": 1,
-      "value_ids": "24,1,13"
+      "value_ids": "24,1,13",
+      "material": ""
     },
     {
       "id": 2,
@@ -694,7 +695,8 @@
       "price_adjustment": 0,
       "active": true,
       "sort_order": 2,
-      "value_ids": "24,2,14"
+      "value_ids": "24,2,14",
+      "material": ""
     },
     {
       "id": 3,
@@ -707,7 +709,8 @@
       "price_adjustment": 30,
       "active": true,
       "sort_order": 3,
-      "value_ids": "25,4,15"
+      "value_ids": "25,4,15",
+      "material": ""
     },
     {
       "id": 4,
@@ -720,7 +723,8 @@
       "price_adjustment": 0,
       "active": true,
       "sort_order": 1,
-      "value_ids": "26,5,13"
+      "value_ids": "26,5,13",
+      "material": ""
     },
     {
       "id": 5,
@@ -733,7 +737,8 @@
       "price_adjustment": 30,
       "active": true,
       "sort_order": 2,
-      "value_ids": "26,7,15"
+      "value_ids": "26,7,15",
+      "material": ""
     },
     {
       "id": 6,
@@ -746,7 +751,8 @@
       "price_adjustment": 0,
       "active": true,
       "sort_order": 1,
-      "value_ids": "27,8"
+      "value_ids": "27,8",
+      "material": ""
     },
     {
       "id": 7,
@@ -759,7 +765,8 @@
       "price_adjustment": 0,
       "active": true,
       "sort_order": 2,
-      "value_ids": "27,9"
+      "value_ids": "27,9",
+      "material": ""
     },
     {
       "id": 8,
@@ -772,7 +779,8 @@
       "price_adjustment": 0,
       "active": true,
       "sort_order": 1,
-      "value_ids": "28,10"
+      "value_ids": "28,10",
+      "material": ""
     },
     {
       "id": 9,
@@ -785,7 +793,8 @@
       "price_adjustment": 20,
       "active": true,
       "sort_order": 2,
-      "value_ids": "28,12"
+      "value_ids": "28,12",
+      "material": ""
     }
   ],
   "attributes": [
@@ -1214,9 +1223,27 @@
   ],
   "models": [
     {
+      "id": 1,
       "slug": "roller-screen",
-      "family_id": 1,
+      "name": "Roller Screen 5%",
+      "type": "enrollable",
+      "tagline": "Filtra el sol y deja ver hacia afuera.",
+      "description": "Tela screen con 5% de apertura: corta el reflejo en pizarras y pantallas sin apagar el aula. Tubo de aluminio de 38 mm y cadena con tope de seguridad.",
+      "image": "/img/producto-roller.webp",
       "material": "screen",
+      "uses": "educacion,oficinas,salud",
+      "gallery": [
+        "/img/producto-detalle.webp",
+        "/img/sector-oficinas.webp"
+      ],
+      "min_width": 40,
+      "max_width": 300,
+      "min_projection": 40,
+      "max_projection": 320,
+      "base_price": 60,
+      "price_per_m2": 85,
+      "active": true,
+      "sort_order": 1,
       "specs": [
         {
           "label": "Tejido",
@@ -1246,12 +1273,31 @@
           "label": "Garantía",
           "value": "3 años en tejido y mecanismo"
         }
-      ]
+      ],
+      "family_id": 1,
+      "materials": "screen"
     },
     {
+      "id": 2,
       "slug": "roller-blackout",
-      "family_id": 1,
+      "name": "Roller Blackout",
+      "type": "enrollable",
+      "tagline": "Oscuridad total para proyectar.",
+      "description": "Tela de tres capas que bloquea la luz. Para laboratorios, salas de cómputo, auditorios y tópicos. Opcional con guías laterales.",
+      "image": "/img/sector-educacion.webp",
       "material": "blackout",
+      "uses": "educacion,salud,oficinas",
+      "gallery": [
+        "/img/proyecto-colegio.webp"
+      ],
+      "min_width": 40,
+      "max_width": 300,
+      "min_projection": 40,
+      "max_projection": 320,
+      "base_price": 60,
+      "price_per_m2": 95,
+      "active": true,
+      "sort_order": 2,
       "specs": [
         {
           "label": "Tejido",
@@ -1281,12 +1327,31 @@
           "label": "Garantía",
           "value": "3 años"
         }
-      ]
+      ],
+      "family_id": 1,
+      "materials": "blackout"
     },
     {
+      "id": 3,
       "slug": "doble-roller",
-      "family_id": 2,
+      "name": "Doble roller día y noche",
+      "type": "dual",
+      "tagline": "Screen y blackout en un mismo soporte.",
+      "description": "Dos telas en un soporte doble: screen para el día a día y blackout para presentaciones. Cada una con su cadena.",
+      "image": "/img/producto-detalle.webp",
       "material": "mixto",
+      "uses": "oficinas,educacion",
+      "gallery": [
+        "/img/producto-roller.webp"
+      ],
+      "min_width": 60,
+      "max_width": 280,
+      "min_projection": 60,
+      "max_projection": 300,
+      "base_price": 120,
+      "price_per_m2": 130,
+      "active": true,
+      "sort_order": 3,
       "specs": [
         {
           "label": "Tejido",
@@ -1316,12 +1381,31 @@
           "label": "Garantía",
           "value": "2 años"
         }
-      ]
+      ],
+      "family_id": 2,
+      "materials": "mixto"
     },
     {
+      "id": 4,
       "slug": "vertical-pvc",
-      "family_id": 4,
+      "name": "Vertical PVC 89 mm",
+      "type": "vertical",
+      "tagline": "Lamas lavables para ventanales anchos.",
+      "description": "Lamas de PVC de 89 mm que giran 180°. Se limpian con un paño húmedo: pensadas para consultorios y salas de espera.",
+      "image": "/img/sector-salud.webp",
       "material": "pvc",
+      "uses": "salud,educacion,oficinas",
+      "gallery": [
+        "/img/producto-vertical.webp"
+      ],
+      "min_width": 60,
+      "max_width": 500,
+      "min_projection": 60,
+      "max_projection": 350,
+      "base_price": 50,
+      "price_per_m2": 70,
+      "active": true,
+      "sort_order": 4,
       "specs": [
         {
           "label": "Lamas",
@@ -1351,12 +1435,31 @@
           "label": "Garantía",
           "value": "2 años"
         }
-      ]
+      ],
+      "family_id": 4,
+      "materials": "pvc"
     },
     {
+      "id": 5,
       "slug": "roller-gran-formato",
-      "family_id": 3,
+      "name": "Roller gran formato",
+      "type": "enrollable",
+      "tagline": "Para auditorios y fachadas de doble altura.",
+      "description": "Tubo reforzado de 70 mm para paños de hasta 5 m de ancho. Se recomienda con motor y control centralizado por fachada.",
+      "image": "/img/hero-aula-magna.webp",
       "material": "screen",
+      "uses": "educacion,oficinas",
+      "gallery": [
+        "/img/proyecto-universidad.webp"
+      ],
+      "min_width": 250,
+      "max_width": 500,
+      "min_projection": 200,
+      "max_projection": 600,
+      "base_price": 220,
+      "price_per_m2": 95,
+      "active": true,
+      "sort_order": 5,
       "specs": [
         {
           "label": "Tejido",
@@ -1386,12 +1489,31 @@
           "label": "Garantía",
           "value": "5 años en motor, 3 en tejido"
         }
-      ]
+      ],
+      "family_id": 3,
+      "materials": "screen"
     },
     {
+      "id": 6,
       "slug": "persiana-aluminio",
-      "family_id": 5,
+      "name": "Persiana de aluminio 25 mm",
+      "type": "veneciana",
+      "tagline": "Regula la luz lama por lama.",
+      "description": "Lamas de aluminio de 25 mm con varilla para orientar y cordón para subir. Ocupa poco y resiste el uso diario.",
+      "image": "/img/producto-veneciana.webp",
       "material": "aluminio",
+      "uses": "oficinas,salud",
+      "gallery": [
+        "/img/producto-blackout.webp"
+      ],
+      "min_width": 40,
+      "max_width": 240,
+      "min_projection": 40,
+      "max_projection": 260,
+      "base_price": 40,
+      "price_per_m2": 120,
+      "active": true,
+      "sort_order": 6,
       "specs": [
         {
           "label": "Lamas",
@@ -1421,7 +1543,9 @@
           "label": "Garantía",
           "value": "3 años"
         }
-      ]
+      ],
+      "family_id": 5,
+      "materials": "aluminio"
     }
   ],
   "priceRules": [

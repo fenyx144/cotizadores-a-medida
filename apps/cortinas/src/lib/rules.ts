@@ -83,6 +83,29 @@ export function materialAttribute(c: RulesCatalog, model: ProductModel, attribut
 /** ¿El material del producto admite el atributo? */
 export const materialAllows = (c: RulesCatalog, model: ProductModel, attributeId: number) => materialAttribute(c, model, attributeId)?.valueIds[0] !== -1;
 
+/** Atributo sintético "Material": se pregunta primero cuando el producto admite varios. Clave en Values: -1; valor = id del material. */
+export const MATERIAL_ATTR = -1;
+export const materialAttribute0 = { id: MATERIAL_ATTR, name: "Material", kind: "lista", scope: "generico", unit: "", sortOrder: -1000 } as Attribute;
+
+/** Materiales en que se ofrece un producto: los suyos, o todos los de la categoría (o el principal). */
+export function productMaterials(c: RulesCatalog, model: ProductModel): Material[] {
+  const all = (c.materials ?? []).filter((m) => m.active !== false);
+  const own = (model.materials ?? "").split(",").filter(Boolean);
+  const fam = (c.families?.find((f) => f.id === model.familyId)?.materials ?? "").split(",").filter(Boolean);
+  const slugs = own.length ? own : fam.length ? fam : all.map((m) => m.slug);
+  const list = all.filter((m) => slugs.includes(m.slug));
+  return list.length ? list : all.filter((m) => m.slug === model.material);
+}
+
+/** Producto con el material elegido en la selección (si es uno de los suyos); si no, su material principal. */
+export function selModel(c: RulesCatalog, sel: Selection): ProductModel | undefined {
+  const model = c.models.find((x) => x.id === sel.modelId);
+  if (!model) return undefined;
+  const mats = productMaterials(c, model);
+  const chosen = mats.find((m) => m.id === sel.values?.[MATERIAL_ATTR]) ?? mats.find((m) => m.slug === model.material) ?? mats[0];
+  return chosen && chosen.slug !== model.material ? { ...model, material: chosen.slug } : model;
+}
+
 /** Valores activos de un atributo que sirven para el producto y la familia. */
 export function valuesFor(c: RulesCatalog, attributeId: number, model?: ProductModel, allowed: number[] = []) {
   return c.values
@@ -138,7 +161,7 @@ export function selectedValueIds(c: RulesCatalog, sel: Selection, exceptAttr?: n
 /** Referencias de la selección ("v:12", "producto:2", "material:blackout"…). */
 export function selectionRefs(c: RulesCatalog, sel: Selection, exceptAttr?: number): Set<string> {
   const refs = new Set<string>();
-  const model = c.models.find((x) => x.id === sel.modelId);
+  const model = selModel(c, sel);
   if (model) {
     refs.add(`producto:${model.id}`);
     refs.add(`material:${model.material}`);
@@ -238,14 +261,14 @@ export function blockReason(c: RulesCatalog, model: ProductModel, attributeId: n
 
 /** Recargos de reglas que aplican a la selección. */
 export function ruleSurcharges(c: RulesCatalog, sel: Selection) {
-  const model = c.models.find((x) => x.id === sel.modelId);
+  const model = selModel(c, sel);
   if (!model) return [];
   const chosen = chosenByAttr(c, sel);
   return (c.constraints ?? []).filter((r) => r.kind === "recargo" && r.surcharge && ruleInScope(r, model) && conditionsMet(r.conditions, chosen, { model, width: sel.width, height: sel.height }));
 }
 
 export function evaluate(c: RulesCatalog, sel: Selection): Evaluation {
-  const model = c.models.find((x) => x.id === sel.modelId);
+  const model = selModel(c, sel);
   if (!model) return { fields: [], limits: { minWidth: 0, maxWidth: 0, minHeight: 0, maxHeight: 0 }, errors: { model: "Elija un producto." } };
   const family = model.familyId ? c.families?.find((f) => f.id === model.familyId) : undefined;
   const vals = sel.values ?? {};
@@ -257,6 +280,8 @@ export function evaluate(c: RulesCatalog, sel: Selection): Evaluation {
     });
     return { attribute, kind: (attribute.kind as AttributeKind) ?? "lista", required, choices };
   });
+  const mats = productMaterials(c, model);
+  if (mats.length > 1) fields.unshift({ attribute: materialAttribute0, kind: "lista", required: true, choices: mats.map((m) => ({ value: m.id, label: m.name })) });
 
   // Límites: producto ∩ familia ∩ reglas de dimensión que apliquen.
   const limits = { minWidth: model.minWidth, maxWidth: model.maxWidth, minHeight: model.minProjection, maxHeight: model.maxProjection };
@@ -304,10 +329,12 @@ export function firstEnabled<T>(choices: Choice<T>[]): T | undefined {
  * Con keepBlocked se conservan los valores bloqueados por una regla (la tabla los marca en rojo).
  */
 export function withDefaults(c: RulesCatalog, sel: Selection, keepBlocked = false): Values {
-  const model = c.models.find((x) => x.id === sel.modelId);
+  const model = selModel(c, sel);
   if (!model) return {};
   const fas = familyAttributes(c, model);
   const out: Values = {};
+  const mats = productMaterials(c, c.models.find((x) => x.id === sel.modelId)!);
+  if (mats.length > 1) out[MATERIAL_ATTR] = mats.find((m) => m.slug === model.material)?.id ?? mats[0].id;
   for (const fa of fas) if (sel.values?.[fa.attributeId] != null) out[fa.attributeId] = sel.values[fa.attributeId];
   for (const fa of fas) {
     const kind = fa.attribute.kind;
@@ -330,7 +357,9 @@ export function variantsFor(c: RulesCatalog, modelId: number) {
 /** Variante que corresponde a una selección: todos sus valores elegidos; la más específica primero. */
 export function matchVariant(c: RulesCatalog, sel: Selection) {
   const chosen = new Set(selectedValueIds(c, sel));
+  const mat = selModel(c, sel)?.material;
   return variantsFor(c, sel.modelId)
+    .filter((v) => !v.material || v.material === mat)
     .map((v) => ({ v, need: ids(v.valueIds) }))
     .filter(({ need }) => need.every((id) => chosen.has(id)))
     .sort((a, b) => b.need.length - a.need.length)[0]?.v;
@@ -345,6 +374,8 @@ export function variantValues(c: RulesCatalog, variant: ProductVariant): Values 
     const a = c.attributes.find((x) => x.id === v.attributeId);
     out[v.attributeId] = a?.kind === "sino" ? true : v.id;
   }
+  const mat = variant.material ? c.materials?.find((m) => m.slug === variant.material) : undefined;
+  if (mat) out[MATERIAL_ATTR] = mat.id;
   return out;
 }
 
@@ -353,7 +384,10 @@ export function cleanValues(c: RulesCatalog, modelId: number, values: Values | n
   const model = c.models.find((x) => x.id === modelId);
   if (!model || !values) return {};
   const out: Values = {};
-  for (const fa of familyAttributes(c, model)) {
+  const base = c.models.find((x) => x.id === modelId)!;
+  if (productMaterials(c, base).length > 1 && typeof values[MATERIAL_ATTR] === "number") out[MATERIAL_ATTR] = values[MATERIAL_ATTR];
+  const m = selModel(c, { modelId, values: out }) ?? model;
+  for (const fa of familyAttributes(c, m)) {
     const v = values[fa.attributeId];
     if (v != null) out[fa.attributeId] = v;
   }
@@ -364,7 +398,9 @@ export function cleanValues(c: RulesCatalog, modelId: number, values: Values | n
 export function gridAttributes(c: RulesCatalog): Attribute[] {
   const used = new Set<number>();
   for (const m of c.models) for (const fa of familyAttributes(c, m)) used.add(fa.attributeId);
-  return c.attributes.filter((a) => used.has(a.id)).sort(byOrder);
+  for (const m of c.models) for (const mat of productMaterials(c, m)) for (const fa of familyAttributes(c, { ...m, material: mat.slug })) used.add(fa.attributeId);
+  const multi = c.models.some((m) => productMaterials(c, m).length > 1);
+  return [...(multi ? [materialAttribute0] : []), ...c.attributes.filter((a) => used.has(a.id)).sort(byOrder)];
 }
 
 const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
@@ -375,6 +411,7 @@ export function parseAttributeCell(c: RulesCatalog, attr: Attribute, text: strin
   if (!t) return null;
   if (attr.kind === "sino") return /^(si|s|x|1|true|yes)$/.test(t) ? true : /^(no|n|0|false|-)$/.test(t) ? false : undefined;
   if (attr.kind === "numero") { const n = Number(t.replace(",", ".").replace(/[^\d.-]/g, "")); return Number.isFinite(n) && t.match(/\d/) ? n : undefined; }
+  if (attr.id === MATERIAL_ATTR) { const mats = model ? productMaterials(c, model) : c.materials ?? []; return mats.find((m) => fold(m.name) === t || fold(m.slug) === t || fold(m.name).startsWith(t))?.id; }
   const vals = valuesFor(c, attr.id, model);
   const digits = t.replace(/\D/g, "");
   const hit =
@@ -395,22 +432,24 @@ export interface Conflict { model: string; when: string; attribute: string }
 export function findConflicts(c: RulesCatalog): Conflict[] {
   const out: Conflict[] = [];
   const seen = new Set<string>();
-  for (const model of c.models) {
+  for (const base of c.models) for (const mat of productMaterials(c, base)) {
+    const model = { ...base, material: mat.slug };
+    const pre: Values = productMaterials(c, base).length > 1 ? { [MATERIAL_ATTR]: mat.id } : {};
     const fas = familyAttributes(c, model);
-    const cases: Values[] = [{}];
-    for (const fa of fas) for (const v of valuesFor(c, fa.attributeId, model, fa.valueIds)) cases.push({ [fa.attributeId]: fa.attribute.kind === "sino" ? true : v.id });
+    const cases: Values[] = [{ ...pre }];
+    for (const fa of fas) for (const v of valuesFor(c, fa.attributeId, model, fa.valueIds)) cases.push({ ...pre, [fa.attributeId]: fa.attribute.kind === "sino" ? true : v.id });
     for (const r of c.constraints ?? []) {
       if (!ruleInScope(r, model) || (r.conditions?.length ?? 0) < 2) continue;
-      cases.push(Object.fromEntries(r.conditions.filter((k) => condKind(k) === "atributo").map((k) => [k.attributeId, k.valueIds[0]])));
+      cases.push({ ...pre, ...Object.fromEntries(r.conditions.filter((k) => condKind(k) === "atributo").map((k) => [k.attributeId, k.valueIds[0]])) });
     }
     for (const vals of cases) {
       const ev = evaluate(c, { modelId: model.id, values: vals });
       for (const f of ev.fields) {
         if (!f.required || f.kind === "numero" || f.kind === "sino" || vals[f.attribute.id] != null) continue;
         if (f.choices.length && f.choices.every((x) => x.disabled)) {
-          const when = Object.entries(vals).map(([a, v]) => `${attrName(c, Number(a))} = ${typeof v === "number" ? valueNames(c, [v])[0] : "sí"}`).join(" y ") || "sin elegir nada";
+          const when = Object.entries(vals).filter(([a]) => Number(a) !== MATERIAL_ATTR).map(([a, v]) => `${attrName(c, Number(a))} = ${typeof v === "number" ? valueNames(c, [v])[0] : "sí"}`).join(" y ") || "sin elegir nada";
           const key = `${model.id}|${when}|${f.attribute.id}`;
-          if (!seen.has(key)) { seen.add(key); out.push({ model: model.name, when, attribute: f.attribute.name }); }
+          if (!seen.has(key)) { seen.add(key); out.push({ model: productMaterials(c, base).length > 1 ? `${model.name} (${mat.name})` : model.name, when, attribute: f.attribute.name }); }
         }
       }
     }

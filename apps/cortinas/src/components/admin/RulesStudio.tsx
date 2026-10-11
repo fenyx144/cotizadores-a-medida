@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ConstraintRule, RuleCondition } from "@portafolio/core/db/schema";
 import type { CatalogData } from "@/lib/line-price";
-import { RULE_EFFECTS, evaluate, familyAttributes, findConflicts, ruleSentence, valuesFor, type RuleEffect, type Values } from "@/lib/rules";
+import { MATERIAL_ATTR, RULE_EFFECTS, evaluate, familyAttributes, findConflicts, productMaterials, ruleSentence, selModel, valuesFor, type RuleEffect, type Values } from "@/lib/rules";
 
 type Draft = {
   id?: number; name: string; scope: "todas" | "familia" | "producto"; familyId: number | null; modelId: number | null;
@@ -309,7 +309,9 @@ function Tester({ catalog }: { catalog: CatalogData }) {
   const [modelId, setModelId] = useState(catalog.models[0]?.id ?? 0);
   const [values, setValues] = useState<Values>({});
   const [dims, setDims] = useState({ width: "", height: "" });
-  const model = catalog.models.find((m) => m.id === modelId);
+  const base = catalog.models.find((m) => m.id === modelId);
+  const mats = base ? productMaterials(catalog, base) : [];
+  const model = selModel(catalog, { modelId, values });
   const ev = evaluate(catalog, { modelId, values, width: Number(dims.width) || null, height: Number(dims.height) || null });
   const fas = model ? familyAttributes(catalog, model) : [];
   return (
@@ -330,6 +332,14 @@ function Tester({ catalog }: { catalog: CatalogData }) {
               </label>
             ))}
           </div>
+          {mats.length > 1 && (
+            <label className="block"><span className="block text-xs text-muted">Material</span>
+              <select className={`${sel} w-full`} value={typeof values[MATERIAL_ATTR] === "number" ? (values[MATERIAL_ATTR] as number) : (mats.find((m) => m.slug === model?.material)?.id ?? "")} aria-label="Probar Material"
+                onChange={(e) => setValues({ [MATERIAL_ATTR]: Number(e.target.value) })}>
+                {mats.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+              </select>
+            </label>
+          )}
           {fas.filter((f) => f.attribute.kind !== "numero").map((f) => (
             <label key={f.attributeId} className="block"><span className="block text-xs text-muted">{f.attribute.name}</span>
               {f.attribute.kind === "sino" ? (
@@ -347,7 +357,7 @@ function Tester({ catalog }: { catalog: CatalogData }) {
         <div className="space-y-4 text-sm" data-testid="tester-result">
           {model && <p className="text-xs text-muted" data-testid="tester-scope">Categoría {catalog.families?.find((x) => x.id === model.familyId)?.name ?? "—"} · material {catalog.materials?.find((x) => x.slug === model.material)?.name ?? model.material}: se muestran solo los atributos y valores que ambos permiten.</p>}
           <p className="font-mono text-xs text-muted">Medidas: ancho {ev.limits.minWidth}–{ev.limits.maxWidth} cm · alto {ev.limits.minHeight}–{ev.limits.maxHeight} cm</p>
-          {ev.fields.filter((f) => f.kind !== "numero" && f.kind !== "sino").map((f) => (
+          {ev.fields.filter((f) => f.kind !== "numero" && f.kind !== "sino" && f.attribute.id !== MATERIAL_ATTR).map((f) => (
             <div key={f.attribute.id}>
               <p className="text-xs text-muted">{f.attribute.name} · {f.choices.filter((c) => !c.disabled).length} de {f.choices.length} disponibles</p>
               <ul className="mt-1 grid gap-x-6 sm:grid-cols-2">

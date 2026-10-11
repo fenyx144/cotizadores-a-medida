@@ -8,9 +8,9 @@ const val = (id: number, attributeId: number, name: string, extra: Partial<Attri
   ({ id, attributeId, name, code: "", hex: "", surcharge: 0, surchargeKind: "fijo", onlyFor: "", active: true, sortOrder: id, ...extra }) as AttributeValue;
 
 export const models = [
-  { id: 1, slug: "roller-screen", name: "Roller Screen 5%", type: "enrollable", material: "screen", familyId: 1, minWidth: 40, maxWidth: 300, minProjection: 40, maxProjection: 320, basePrice: 60, pricePerM2: 85 },
-  { id: 2, slug: "roller-blackout", name: "Roller Blackout", type: "enrollable", material: "blackout", familyId: 1, minWidth: 40, maxWidth: 300, minProjection: 40, maxProjection: 320, basePrice: 60, pricePerM2: 90 },
-  { id: 4, slug: "vertical", name: "Vertical", type: "vertical", material: "pvc", familyId: 4, minWidth: 60, maxWidth: 500, minProjection: 60, maxProjection: 350, basePrice: 60, pricePerM2: 70 },
+  { id: 1, slug: "roller-screen", name: "Roller Screen 5%", type: "enrollable", material: "screen", materials: "screen", familyId: 1, minWidth: 40, maxWidth: 300, minProjection: 40, maxProjection: 320, basePrice: 60, pricePerM2: 85 },
+  { id: 2, slug: "roller-blackout", name: "Roller Blackout", type: "enrollable", material: "blackout", materials: "blackout", familyId: 1, minWidth: 40, maxWidth: 300, minProjection: 40, maxProjection: 320, basePrice: 60, pricePerM2: 90 },
+  { id: 4, slug: "vertical", name: "Vertical", type: "vertical", material: "pvc", materials: "pvc", familyId: 4, minWidth: 60, maxWidth: 500, minProjection: 60, maxProjection: 350, basePrice: 60, pricePerM2: 70 },
 ] as ProductModel[];
 export const attributes = [
   { id: TELA, name: "Tela", kind: "lista", scope: "material", unit: "", sortOrder: 1 },

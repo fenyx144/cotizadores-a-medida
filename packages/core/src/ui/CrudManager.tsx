@@ -221,7 +221,7 @@ export function CrudManager({
                         </label>
                       );
                     })()}
-                    {f.options?.map((o) => {
+                    {(f.filterBy && f.filterBy.map[String(editing[f.filterBy.field] ?? "")]?.length ? f.options?.filter((o) => f.filterBy!.map[String(editing[f.filterBy!.field] ?? "")].includes(o.value)) : f.options)?.map((o) => {
                       const all = !!f.allLabel && !String(editing[f.name] ?? "");
                       const cur = String(editing[f.name] ?? "").split(",").filter(Boolean);
                       const on = all || cur.includes(o.value);
@@ -378,7 +378,19 @@ function AttrsEditor({ field, value, error, onChange, linked = "" }: { field: Cr
     <div className="block text-sm" data-testid="attrs-editor">
       <span className="text-muted">{field.label}</span>
       <div className="mt-1 divide-y divide-line border-y border-line">
-        {(field.attrOptions ?? []).filter((a) => !field.materialLinks?.scoped.includes(a.id) || sourcesFor(field, linked, a.id).length).map((a) => {
+        {(() => {
+          const opts = (field.attrOptions ?? []).filter((a) => !field.materialLinks?.scoped.includes(a.id) || sourcesFor(field, linked, a.id).length);
+          const ml = field.materialLinks;
+          if (!ml) return [{ title: "", list: opts }];
+          const sel = linked.split(",").filter(Boolean);
+          return [
+            { title: "Genéricos", list: opts.filter((a) => !ml.scoped.includes(a.id)) },
+            ...ml.materials.filter((m) => !sel.length || sel.includes(m.slug)).map((m) => ({ title: m.name, list: opts.filter((a) => ml.scoped.includes(a.id) && m.attrs.some((e) => e.attributeId === a.id && e.valueIds[0] !== -1)) })),
+          ].filter((g) => g.list.length);
+        })().map((g) => (
+          <div key={g.title || "all"} className="divide-y divide-line" data-testid={g.title ? "attr-group" : undefined}>
+            {g.title && <p className="pt-3 font-mono text-[11px] uppercase tracking-wide text-muted">{g.title}</p>}
+            {g.list.map((a) => {
           const src = field.materialLinks?.scoped.includes(a.id) ? sourcesFor(field, linked, a.id) : [];
           const srcValues = src.some((x) => !x.e!.valueIds.length) ? [] : [...new Set(src.flatMap((x) => x.e!.valueIds))];
           a = srcValues.length ? { ...a, values: a.values.filter((v) => srcValues.includes(v.id)) } : a;
@@ -424,7 +436,9 @@ function AttrsEditor({ field, value, error, onChange, linked = "" }: { field: Cr
               )}
             </div>
           );
-        })}
+            })}
+          </div>
+        ))}
       </div>
       {field.hint && <span className="mt-1 block text-xs text-muted">{field.hint}</span>}
       {error && <span className="mt-1 block text-xs text-danger">{error}</span>}

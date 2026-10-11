@@ -15,7 +15,8 @@ export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_
   { name: "familyId", label: "Categoría", type: "select", nullable: true, options: families, column: true },
   { name: "slug", label: "Dirección web", type: "text" },
   { name: "type", label: "Mecanismo", type: "select", options: opts(TYPE_LABELS), column: true, hint: "Define el dibujo de la vista previa y los recargos generales por mecanismo." },
-  { name: "material", label: "Material", type: "select", options: materials, column: true, filterBy: { field: "familyId", map: familyMaterials }, hint: "Solo los que permite la categoría." },
+  { name: "material", label: "Material principal", type: "select", options: materials, column: true, filterBy: { field: "familyId", map: familyMaterials }, hint: "El que se propone por defecto." },
+  { name: "materials", label: "Materiales disponibles", type: "multiselect", options: materials, allLabel: "Todos los de la categoría", filterBy: { field: "familyId", map: familyMaterials }, column: true, hint: "Con varios, el cliente elige primero el material." },
   { name: "uses", label: "Usos", type: "text", hint: "Separados por comas: educacion,oficinas,salud" },
   { name: "tagline", label: "Frase corta", type: "text" },
   { name: "description", label: "Descripción", type: "textarea" },
@@ -89,10 +90,11 @@ export const MATERIAL_FIELDS: CrudField[] = [
   { name: "active", label: "Visible", type: "boolean", column: true },
 ];
 
-export const variantFields = (models: Opt[], values: Opt[]): CrudField[] => [
+export const variantFields = (models: Opt[], values: Opt[], materials: Opt[] = []): CrudField[] => [
   { name: "modelId", label: "Producto", type: "select", options: models, column: true },
   { name: "code", label: "Código (SKU)", type: "text", column: true },
   { name: "name", label: "Nombre", type: "text", column: true },
+  { name: "material", label: "Material", type: "select", nullable: true, options: materials, column: true, hint: "Vacío = cualquiera." },
   { name: "valueIds", label: "Combinación", type: "multiselect", options: values, column: true, hint: "Valores que fija esta variante." },
   { name: "attributes", label: "Otros datos", type: "text", hint: "Ej.: cofre 80 mm" },
   { name: "priceAdjustment", label: "Ajuste de precio (S/ por unidad)", type: "number", column: true },
