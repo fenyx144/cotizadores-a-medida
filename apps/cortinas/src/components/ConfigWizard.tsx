@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { addFromWizard } from "@/app/actions/project";
+import { GuidePanel } from "./GuidePanel";
 import type { CatalogData } from "@/lib/line-price";
 import { MATERIAL_ATTR, evaluate, matchVariant, productMaterials, variantValues, variantsFor, type Values } from "@/lib/rules";
 
@@ -24,6 +25,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
   const [familyId, setFamilyId] = useState<number | null>(startModel?.familyId ?? initial?.familyId ?? null);
   const [modelId, setModelId] = useState<number | null>(startModel?.id ?? null);
   const [material, setMaterial] = useState("");
+  const [guided, setGuided] = useState(false);
   const [values, setValues] = useState<Values>({});
   // Variante elegida en el asistente: fija sus atributos (esos pasos se saltan). null = libre; undefined = sin decidir.
   const [variantId, setVariantId] = useState<number | null | undefined>(undefined);
@@ -126,8 +128,17 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
           );
         })}
 
-        {step.key === "producto" && (
+        {step.key === "producto" && guided && familyId && (
+          <GuidePanel catalog={catalog} familyId={familyId} onCancel={() => setGuided(false)}
+            onPick={(id, pre, v) => {
+              setModelId(id);
+              if (v) { setVariantId(v.id); setValues({ ...pre, ...variantValues(catalog, v) }); } else { setVariantId(undefined); setValues(pre); }
+              setGuided(false); go(v ? 2 : 1);
+            }} />
+        )}
+        {step.key === "producto" && !guided && (
           <>
+            {inFamily.length > 1 && <button className={`${big(false)} border-dashed`} data-testid="wizard-guide" onClick={() => setGuided(true)}>No sé qué modelo, ayúdame a elegir</button>}
             {matOptions.length > 1 && (
               <div className="mb-3 flex flex-wrap gap-2 text-sm" data-testid="wizard-material">
                 {[{ slug: "", name: "Todos" }, ...matOptions].map((m) => (
