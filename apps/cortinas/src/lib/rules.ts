@@ -9,7 +9,7 @@
  * Referencias usadas por reglas, recargos y variantes: "v:<id de valor>", "producto:<id>",
  * "familia:<id>", "material:<slug>".
  */
-import type { Attribute, AttributeValue, ConstraintRule, FamilyAttribute, Material, ProductFamily, ProductModel, ProductVariant } from "@portafolio/core/db/schema";
+import type { Attribute, AttributeValue, ConstraintRule, FamilyAttribute, Material, ProductFamily, ProductModel, ProductVariant, RuleCondition } from "@portafolio/core/db/schema";
 
 export const ATTRIBUTE_KINDS = { lista: "Lista de opciones", color: "Color (con muestra)", numero: "Número", sino: "Sí / no" } as const;
 export type AttributeKind = keyof typeof ATTRIBUTE_KINDS;
@@ -35,7 +35,7 @@ export interface Selection {
   height?: number | null;
 }
 
-export interface Choice<T> { value: T; label: string; disabled?: string; hex?: string }
+export interface Choice<T> { value: T; label: string; disabled?: string; hex?: string; /** Regla que lo bloquea. */ rule?: string }
 
 export interface EvalField {
   attribute: Attribute;
@@ -134,20 +134,80 @@ export function selectionRefs(c: RulesCatalog, sel: Selection, exceptAttr?: numb
   return refs;
 }
 
-function ruleScopeMatches(r: ConstraintRule, model: ProductModel) {
+export const RULE_EFFECTS = { bloquear: "Bloquear valores", permitir: "Permitir solo valores", medidas: "Limitar medidas", recargo: "Sumar recargo" } as const;
+export type RuleEffect = keyof typeof RULE_EFFECTS;
+
+/** Valor elegido por atributo (sí/no marcado = su valor "Sí"), opcionalmente sin un atributo. */
+export function chosenByAttr(c: RulesCatalog, sel: Selection, exceptAttr?: number): Map<number, number> {
+  const out = new Map<number, number>();
+  for (const id of selectedValueIds(c, sel, exceptAttr)) {
+    const v = c.values.find((x) => x.id === id);
+    if (v) out.set(v.attributeId, id);
+  }
+  return out;
+}
+
+export function ruleInScope(r: ConstraintRule, model: ProductModel) {
+  if (!r.active) return false;
   if (r.modelId && r.modelId !== model.id) return false;
   if (r.familyId && r.familyId !== model.familyId) return false;
   return true;
 }
 
-/** Motivo por el que `ref` queda bloqueada dadas las demás opciones elegidas (o undefined). */
-function blockedBy(c: RulesCatalog, model: ProductModel, ref: string, others: Set<string>): string | undefined {
+/** ¿Se cumplen todas las condiciones (Y)? Cada una: el valor elegido del atributo es uno de los indicados. */
+export const conditionsMet = (conds: RuleCondition[] | null | undefined, chosen: Map<number, number>) =>
+  (conds ?? []).every((k) => { const v = chosen.get(k.attributeId); return v != null && k.valueIds.includes(v); });
+
+const valueNames = (c: RulesCatalog, ids: number[]) => ids.map((id) => c.values.find((v) => v.id === id)?.name ?? `#${id}`);
+const orList = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} o ${xs[xs.length - 1]}` : xs[0] ?? "");
+const attrName = (c: RulesCatalog, id: number | null | undefined) => c.attributes.find((a) => a.id === id)?.name ?? "";
+
+/** Condiciones como texto: "Tela es Arena y Accionamiento es uno de Cadena o Motor". */
+export function conditionsText(c: RulesCatalog, conds: RuleCondition[] | null | undefined) {
+  return (conds ?? []).map((k) => `${attrName(c, k.attributeId)} ${k.valueIds.length > 1 ? "es uno de" : "es"} ${orList(valueNames(c, k.valueIds))}`).join(" y ");
+}
+
+/** La regla como frase, para el panel. */
+export function ruleSentence(c: RulesCatalog, r: ConstraintRule): string {
+  const scope = r.modelId ? `En ${c.models.find((m) => m.id === r.modelId)?.name ?? "el producto"}` : r.familyId ? `En la categoría ${c.families?.find((f) => f.id === r.familyId)?.name ?? ""}` : "En todos los productos";
+  const cond = conditionsText(c, r.conditions);
+  const when = cond ? `, si ${cond}` : "";
+  const targets = orList(valueNames(c, r.targetValueIds ?? []));
+  const m2 = (v: number | null, k: string) => (v != null ? `${k} ${(v / 100).toFixed(2).replace(".", ",")} m` : "");
+  const effect =
+    r.kind === "bloquear" ? `bloquear ${attrName(c, r.targetAttributeId)} ${targets}` :
+    r.kind === "permitir" ? `permitir solo ${attrName(c, r.targetAttributeId)} ${targets}` :
+    r.kind === "medidas" ? `limitar medidas: ${[m2(r.minWidth, "ancho mín."), m2(r.maxWidth, "ancho máx."), m2(r.minHeight, "alto mín."), m2(r.maxHeight, "alto máx.")].filter(Boolean).join(", ")}` :
+    `sumar S/ ${r.surcharge}${r.surchargeKind === "por_m2" ? " por m²" : " por unidad"}`;
+  return `${scope}${when}: ${effect}.`;
+}
+
+/** Motivo (y regla) por el que el valor queda bloqueado dada la selección, o undefined. */
+export function blockReason(c: RulesCatalog, model: ProductModel, attributeId: number, valueId: number, sel: Selection): { message: string; rule: string } | undefined {
+  const others = chosenByAttr(c, sel, attributeId);
   for (const r of c.constraints ?? []) {
-    if (!r.active || r.kind !== "incompatibilidad" || !r.ifOption || !r.thenOption || !ruleScopeMatches(r, model)) continue;
-    const hit = (r.thenOption === ref && others.has(r.ifOption)) || (r.ifOption === ref && others.has(r.thenOption));
-    if (hit) return r.message || `No disponible con ${optionLabel(c, r.thenOption === ref ? r.ifOption : r.thenOption)}.`;
+    if (!ruleInScope(r, model)) continue;
+    const targets = r.targetValueIds ?? [];
+    const cond = conditionsText(c, r.conditions);
+    let hit = false;
+    if (r.kind === "bloquear" && r.targetAttributeId === attributeId && targets.includes(valueId) && conditionsMet(r.conditions, others)) hit = true;
+    else if (r.kind === "permitir" && r.targetAttributeId === attributeId && !targets.includes(valueId) && conditionsMet(r.conditions, others)) hit = true;
+    // Simetría en bloqueos de una condición: si ya se eligió el valor bloqueado, se bloquea el que lo causa.
+    else if (r.kind === "bloquear" && r.conditions?.length === 1 && r.conditions[0].attributeId === attributeId && r.conditions[0].valueIds.includes(valueId)) {
+      const t = r.targetAttributeId != null ? others.get(r.targetAttributeId) : undefined;
+      if (t != null && targets.includes(t)) hit = true;
+    }
+    if (hit) return { message: r.message || (cond ? `No disponible si ${cond}.` : `No disponible para ${model.name}.`), rule: r.name };
   }
   return undefined;
+}
+
+/** Recargos de reglas que aplican a la selección. */
+export function ruleSurcharges(c: RulesCatalog, sel: Selection) {
+  const model = c.models.find((x) => x.id === sel.modelId);
+  if (!model) return [];
+  const chosen = chosenByAttr(c, sel);
+  return (c.constraints ?? []).filter((r) => r.kind === "recargo" && r.surcharge && ruleInScope(r, model) && conditionsMet(r.conditions, chosen));
 }
 
 export function evaluate(c: RulesCatalog, sel: Selection): Evaluation {
@@ -157,10 +217,10 @@ export function evaluate(c: RulesCatalog, sel: Selection): Evaluation {
   const vals = sel.values ?? {};
 
   const fields: EvalField[] = familyAttributes(c, model).map(({ attribute, required, valueIds }) => {
-    const others = selectionRefs(c, sel, attribute.id);
-    const choices = valuesFor(c, attribute.id, model, valueIds).map((v) => ({
-      value: v.id, label: valueText(v), hex: attribute.kind === "color" ? v.hex || undefined : undefined, disabled: blockedBy(c, model, `v:${v.id}`, others),
-    }));
+    const choices = valuesFor(c, attribute.id, model, valueIds).map((v) => {
+      const why = blockReason(c, model, attribute.id, v.id, sel);
+      return { value: v.id, label: valueText(v), hex: attribute.kind === "color" ? v.hex || undefined : undefined, disabled: why?.message, rule: why?.rule };
+    });
     return { attribute, kind: (attribute.kind as AttributeKind) ?? "lista", required, choices };
   });
 
@@ -173,10 +233,9 @@ export function evaluate(c: RulesCatalog, sel: Selection): Evaluation {
     if (isMin ? v > limits[k] : v < limits[k]) { limits[k] = v; if (msg) why[k] = msg; }
   };
   if (family) { tighten("minWidth", family.minWidth); tighten("maxWidth", family.maxWidth); tighten("minHeight", family.minHeight); tighten("maxHeight", family.maxHeight); }
-  const refs = selectionRefs(c, sel);
+  const chosen = chosenByAttr(c, sel);
   for (const r of c.constraints ?? []) {
-    if (!r.active || r.kind !== "dimension" || !ruleScopeMatches(r, model)) continue;
-    if (r.ifOption && !refs.has(r.ifOption)) continue;
+    if (r.kind !== "medidas" || !ruleInScope(r, model) || !conditionsMet(r.conditions, chosen)) continue;
     const msg = r.message || r.name;
     tighten("minWidth", r.minWidth, msg); tighten("maxWidth", r.maxWidth, msg); tighten("minHeight", r.minHeight, msg); tighten("maxHeight", r.maxHeight, msg);
   }
@@ -290,4 +349,37 @@ export function parseAttributeCell(c: RulesCatalog, attr: Attribute, text: strin
     vals.find((v) => fold(v.name).startsWith(t) || t.startsWith(fold(v.name))) ??
     vals.find((v) => fold(v.name).includes(t) || t.includes(fold(v.name)));
   return hit ? hit.id : undefined;
+}
+
+export interface Conflict { model: string; when: string; attribute: string }
+
+/**
+ * Combinaciones alcanzables que dejan un atributo obligatorio sin ningún valor posible.
+ * Revisa cada producto sin selección y con cada valor elegido de a uno (casos de una condición),
+ * y con las combinaciones que piden las reglas de varias condiciones.
+ */
+export function findConflicts(c: RulesCatalog): Conflict[] {
+  const out: Conflict[] = [];
+  const seen = new Set<string>();
+  for (const model of c.models) {
+    const fas = familyAttributes(c, model);
+    const cases: Values[] = [{}];
+    for (const fa of fas) for (const v of valuesFor(c, fa.attributeId, model, fa.valueIds)) cases.push({ [fa.attributeId]: fa.attribute.kind === "sino" ? true : v.id });
+    for (const r of c.constraints ?? []) {
+      if (!ruleInScope(r, model) || (r.conditions?.length ?? 0) < 2) continue;
+      cases.push(Object.fromEntries(r.conditions.map((k) => [k.attributeId, k.valueIds[0]])));
+    }
+    for (const vals of cases) {
+      const ev = evaluate(c, { modelId: model.id, values: vals });
+      for (const f of ev.fields) {
+        if (!f.required || f.kind === "numero" || f.kind === "sino" || vals[f.attribute.id] != null) continue;
+        if (f.choices.length && f.choices.every((x) => x.disabled)) {
+          const when = Object.entries(vals).map(([a, v]) => `${attrName(c, Number(a))} = ${typeof v === "number" ? valueNames(c, [v])[0] : "sí"}`).join(" y ") || "sin elegir nada";
+          const key = `${model.id}|${when}|${f.attribute.id}`;
+          if (!seen.has(key)) { seen.add(key); out.push({ model: model.name, when, attribute: f.attribute.name }); }
+        }
+      }
+    }
+  }
+  return out;
 }

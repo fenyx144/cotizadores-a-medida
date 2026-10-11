@@ -74,20 +74,6 @@ export const familyFields = (attrOptions: AttrOption[]): CrudField[] => [
   { name: "sortOrder", label: "Orden", type: "number" },
 ];
 
-export const constraintFields = (families: Opt[], models: Opt[], options: Opt[]): CrudField[] => [
-  { name: "name", label: "Nombre", type: "text", column: true },
-  { name: "kind", label: "Tipo", type: "select", options: [{ value: "incompatibilidad", label: "Incompatibilidad (A bloquea B)" }, { value: "dimension", label: "Medidas (mín./máx.)" }], column: true },
-  { name: "familyId", label: "Solo categoría", type: "select", nullable: true, options: families, column: true },
-  { name: "modelId", label: "Solo producto", type: "select", nullable: true, options: models },
-  { name: "ifOption", label: "Si se elige (A)", type: "select", nullable: true, options, column: true, hint: "En reglas de medidas es opcional (p. ej. solo con cadena)." },
-  { name: "thenOption", label: "Bloquear (B)", type: "select", nullable: true, options, column: true, hint: "Funciona en ambos sentidos." },
-  { name: "minWidth", label: "Ancho mínimo (cm)", type: "number", nullable: true },
-  { name: "maxWidth", label: "Ancho máximo (cm)", type: "number", nullable: true, column: true },
-  { name: "minHeight", label: "Alto mínimo (cm)", type: "number", nullable: true },
-  { name: "maxHeight", label: "Alto máximo (cm)", type: "number", nullable: true, column: true },
-  { name: "message", label: "Mensaje para el cliente", type: "text", hint: "Ej.: Tela Arena no disponible con perfil negro RAL 9005." },
-  { name: "active", label: "Activa", type: "boolean", column: true },
-];
 
 export const MATERIAL_FIELDS: CrudField[] = [
   { name: "name", label: "Nombre", type: "text", column: true },

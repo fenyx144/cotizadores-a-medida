@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { cleanValues, evaluate, matchVariant, parseAttributeCell, withDefaults } from "./rules";
+import type { ConstraintRule } from "@portafolio/core/db/schema";
+import { cleanValues, evaluate, findConflicts, matchVariant, parseAttributeCell, ruleSentence, withDefaults } from "./rules";
 import { priceLine } from "./line-price";
-import { ACC, CENEFA, LADO, PERFIL, TELA, attributes, catalog as c } from "./test-catalog";
+import { ACC, CENEFA, LADO, PERFIL, TELA, attributes, catalog as c, constraints } from "./test-catalog";
 
 const f = (ev: ReturnType<typeof evaluate>, id: number) => ev.fields.find((x) => x.attribute.id === id);
 
@@ -59,5 +60,22 @@ describe("motor de reglas (atributos genéricos)", () => {
     expect(parseAttributeCell(c, acc, "Motor")).toBe(17);
     expect(parseAttributeCell(c, cenefa, "sí")).toBe(true);
     expect(parseAttributeCell(c, tela, "Terciopelo", c.models[1])).toBeUndefined();
+  });
+
+  it("varias condiciones con Y y 'es uno de'", () => {
+    const r = { ...constraints[0], id: 10, name: "Combo", conditions: [{ attributeId: TELA, valueIds: [5, 6] }, { attributeId: ACC, valueIds: [17] }], targetAttributeId: LADO, targetValueIds: [20], message: "Solo izquierda." } as ConstraintRule;
+    const cc = { ...c, constraints: [r] };
+    expect(f(evaluate(cc, { modelId: 2, values: { [TELA]: 5, [ACC]: 17 } }), LADO)!.choices.find((x) => x.value === 20)?.disabled).toBe("Solo izquierda.");
+    expect(f(evaluate(cc, { modelId: 2, values: { [TELA]: 5, [ACC]: 16 } }), LADO)!.choices.find((x) => x.value === 20)?.disabled).toBeUndefined();
+    expect(f(evaluate(cc, { modelId: 2, values: { [TELA]: 5, [ACC]: 17 } }), LADO)!.choices.find((x) => x.value === 20)?.rule).toBe("Combo");
+    expect(ruleSentence(cc, r)).toBe("En todos los productos, si Tela es uno de Blanco o Arena y Accionamiento es Motor con mando: bloquear Lado del mando Derecha.");
+  });
+  it("permitir solo valores y aviso de conflicto", () => {
+    const allow = { ...constraints[0], id: 11, name: "Solo cadena con Arena", kind: "permitir", conditions: [{ attributeId: TELA, valueIds: [6] }], targetAttributeId: ACC, targetValueIds: [16], message: "" } as ConstraintRule;
+    const ev = evaluate({ ...c, constraints: [allow] }, { modelId: 2, values: { [TELA]: 6 } });
+    expect(f(ev, ACC)!.choices.map((x) => !x.disabled)).toEqual([true, false, false]);
+    expect(findConflicts({ ...c, constraints: [allow] })).toEqual([]);
+    const none = { ...allow, id: 12, targetValueIds: [] } as ConstraintRule;
+    expect(findConflicts({ ...c, constraints: [none] })[0]).toMatchObject({ model: "Roller Blackout", when: "Tela = Arena", attribute: "Accionamiento" });
   });
 });

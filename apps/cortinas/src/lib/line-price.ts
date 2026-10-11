@@ -4,7 +4,7 @@
  */
 import { calculatePrice, type PricingRule } from "@portafolio/core/pricing";
 import type { LineConfig, LineOption } from "@portafolio/core/db/project-schema";
-import { evaluate, matchVariant, selectionRefs, selectedValueIds, type RulesCatalog, type Values } from "./rules";
+import { evaluate, matchVariant, ruleSurcharges, selectionRefs, selectedValueIds, type RulesCatalog, type Values } from "./rules";
 
 export interface CatalogData extends RulesCatalog {
   rules: PricingRule[];
@@ -45,6 +45,8 @@ export function priceLine(catalog: CatalogData, input: LineInput): { config: Lin
     .map((id) => catalog.values.find((v) => v.id === id))
     .filter((v) => v && v.surcharge)
     .map((v) => ({ id: -v!.id, name: v!.name, kind: v!.surchargeKind === "por_m2" ? "por_m2" : "fijo", amount: v!.surcharge, drive: null, modelType: null, minArea: null, active: true }));
+  for (const r of ruleSurcharges(catalog, sel))
+    surcharges.push({ id: -100000 - r.id, name: r.name, kind: r.surchargeKind === "por_m2" ? "por_m2" : "fijo", amount: r.surcharge, drive: null, modelType: null, minArea: null, active: true });
   const result = calculatePrice(
     { modelId: model.id, width: input.width, projection: input.height, fabricId: 0, frameColorId: 0, drive: "manual" },
     { model, rules: [...surcharges, ...catalog.rules.map((r) => ({ ...r, drive: null }))], refs },

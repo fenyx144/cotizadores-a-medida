@@ -108,7 +108,6 @@ async function main() {
     .values([
       { name: "Instalación por cortina", kind: "fijo", amount: 25 },
       { name: "Tubo reforzado (paños grandes)", kind: "por_m2", amount: 12, minArea: 6 },
-      { name: "Perfil negro RAL 9005 (lacado especial)", kind: "fijo", amount: 18, optionRef: "v:15" },
     ])
     .returning()) as PricingRule[];
 

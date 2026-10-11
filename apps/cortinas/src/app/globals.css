@@ -3,21 +3,22 @@
 @source "../../../../packages/core/src";
 
 /*
- * Paleta de Cota: gris piedra, arena y un azul tinta como único acento.
- * Los nombres (paper, ink, muted, line, accent, danger...) los usan también
- * los componentes de packages/core; cada app solo cambia los valores.
+ * Paleta de Cota: blanco cálido, tarjetas blancas, líneas finas y un verde
+ * profundo como único acento. Los nombres (paper, ink, muted, line, accent...)
+ * los usan también los componentes de packages/core.
  */
 @theme {
-  --color-paper: #e9e7e2;
-  --color-paper-deep: #dedbd4;
-  --color-white-stone: #f3f2ef;
-  --color-ink: #16191d;
-  --color-muted: #5f646b;
-  --color-line: #c9c6be;
-  --color-sand: #d8cbb3;
-  --color-blue: #1f3a5f;
-  --color-olive: #1f3a5f;
-  --color-accent: #1f3a5f;
+  --color-paper: #f7f6f2;
+  --color-paper-deep: #efede7;
+  --color-white-stone: #ffffff;
+  --color-ink: #1c1f22;
+  --color-muted: #63676c;
+  --color-line: #e6e3dc;
+  --color-sand: #e4dccb;
+  --color-blue: #2f4a3e;
+  --color-olive: #2f4a3e;
+  --color-accent: #2f4a3e;
+  --color-anthracite: #2b2f33;
   --color-danger: #a4472a;
 
   --font-serif: var(--font-instrument-serif), Georgia, serif;
@@ -34,13 +35,16 @@ html {
 body {
   font-family: var(--font-sans);
   font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0.003em;
 }
 
 /* Títulos: serif fina, caja normal */
 h1, h2, h3, .font-serif {
   font-family: var(--font-serif);
   font-weight: 400;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
 }
 
 ::selection {

@@ -36,15 +36,15 @@ export const families = [
   { id: 4, name: "Vertical", minWidth: 60, maxWidth: 500, minHeight: 60, maxHeight: 350,
     attributes: [{ attributeId: TELA, required: true, valueIds: [] }, { attributeId: ACC, required: true, valueIds: [16, 17] }] },
 ] as ProductFamily[];
-const base = { familyId: null, modelId: null, ifOption: null, thenOption: null, minWidth: null, maxWidth: null, minHeight: null, maxHeight: null, active: true };
+const base = { familyId: null, modelId: null, ifOption: null, thenOption: null, minWidth: null, maxWidth: null, minHeight: null, maxHeight: null, active: true, conditions: [], targetAttributeId: null, targetValueIds: [], surcharge: 0, surchargeKind: "fijo", source: "", message: "" };
 export const constraints = [
-  { ...base, id: 1, name: "Arena/negro", kind: "incompatibilidad", ifOption: "v:6", thenOption: "v:15", message: "Tela Arena no disponible con perfil negro RAL 9005." },
-  { ...base, id: 2, name: "Blackout cadena", kind: "dimension", modelId: 2, ifOption: "v:16", maxWidth: 250, message: "Con cadena, hasta 2,50 m." },
-  { ...base, id: 3, name: "Cenefa sin motor", kind: "incompatibilidad", ifOption: "v:23", thenOption: "v:18", message: "La cenefa no admite control centralizado." },
+  { ...base, id: 1, name: "Arena/negro", kind: "bloquear", conditions: [{ attributeId: TELA, valueIds: [6] }], targetAttributeId: PERFIL, targetValueIds: [15], message: "Tela Arena no disponible con perfil negro RAL 9005." },
+  { ...base, id: 2, name: "Blackout cadena", kind: "medidas", modelId: 2, conditions: [{ attributeId: ACC, valueIds: [16] }], maxWidth: 250, message: "Con cadena, hasta 2,50 m." },
+  { ...base, id: 3, name: "Cenefa sin control", kind: "bloquear", conditions: [{ attributeId: CENEFA, valueIds: [23] }], targetAttributeId: ACC, targetValueIds: [18], message: "La cenefa no admite control centralizado." },
+  { ...base, id: 4, name: "Perfil negro", kind: "recargo", conditions: [{ attributeId: PERFIL, valueIds: [15] }], surcharge: 18 },
 ] as ConstraintRule[];
 export const rules: PricingRule[] = [
   { id: 2, name: "Instalación por cortina", kind: "fijo", amount: 25, drive: null, modelType: null, minArea: null, active: true },
-  { id: 9, name: "Perfil negro", kind: "fijo", amount: 18, drive: null, modelType: null, minArea: null, optionRef: "v:15", active: true },
 ];
 export const variants = [
   { id: 1, modelId: 2, code: "RBK-0115", name: "Blanco · negro", valueIds: "5,15", priceAdjustment: 30, active: true, sortOrder: 1, attributes: "", fabricId: null, frameColorId: null },

@@ -96,7 +96,8 @@ export const productFamilies = pgTable("product_families", {
 export const constraintRules = pgTable("constraint_rules", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  kind: text("kind").notNull(), // dimension | incompatibilidad
+  /** Efecto: bloquear | permitir (solo esos valores) | medidas | recargo. */
+  kind: text("kind").notNull(),
   familyId: integer("family_id"),
   modelId: integer("model_id"),
   ifOption: text("if_option"),
@@ -107,7 +108,18 @@ export const constraintRules = pgTable("constraint_rules", {
   maxHeight: integer("max_height"),
   message: text("message").notNull().default(""),
   active: boolean("active").notNull().default(true),
+  /** Condiciones unidas con Y: "[atributo] es uno de [valores]". Vacío = siempre. */
+  conditions: jsonb("conditions").$type<RuleCondition[]>().notNull().default([]),
+  /** Atributo y valores afectados (bloquear / permitir solo). */
+  targetAttributeId: integer("target_attribute_id"),
+  targetValueIds: jsonb("target_value_ids").$type<number[]>().notNull().default([]),
+  surcharge: real("surcharge").notNull().default(0),
+  surchargeKind: text("surcharge_kind").notNull().default("fijo"),
+  /** Origen: "" (manual) o "matriz:<categoría>:<atributo A>:<atributo B>". */
+  source: text("source").notNull().default(""),
 });
+
+export interface RuleCondition { attributeId: number; valueIds: number[] }
 
 export const productModels = pgTable("product_models", {
   id: serial("id").primaryKey(),

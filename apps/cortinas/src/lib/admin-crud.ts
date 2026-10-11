@@ -76,12 +76,17 @@ const resources: Record<string, CrudResource> = {
     table: schema.constraintRules,
     schema: z
       .object({
-        name: z.string().min(2), kind: z.enum(["incompatibilidad", "dimension"]), familyId: z.coerce.number().int().nullable().catch(null), modelId: z.coerce.number().int().nullable().catch(null),
-        ifOption: optionRef.nullable(), thenOption: optionRef.nullable(), minWidth: cmOpt, maxWidth: cmOpt, minHeight: cmOpt, maxHeight: cmOpt,
-        message: z.string().max(200), active: z.boolean(),
+        name: z.string().trim().min(2, "Ponga un nombre a la regla").max(120), kind: z.enum(["bloquear", "permitir", "medidas", "recargo"]),
+        familyId: z.coerce.number().int().nullable().catch(null), modelId: z.coerce.number().int().nullable().catch(null),
+        conditions: z.array(z.object({ attributeId: z.number().int(), valueIds: z.array(z.number().int()).min(1, "Elija al menos un valor") })).max(6).default([]),
+        targetAttributeId: z.number().int().nullable().default(null), targetValueIds: z.array(z.number().int()).default([]),
+        minWidth: cmOpt.default(null), maxWidth: cmOpt.default(null), minHeight: cmOpt.default(null), maxHeight: cmOpt.default(null),
+        surcharge: z.number().min(-5000).max(5000).default(0), surchargeKind: z.enum(["fijo", "por_m2"]).default("fijo"),
+        message: z.string().max(200).default(""), active: z.boolean().default(true), source: z.string().max(60).default(""),
       })
-      .refine((r) => r.kind !== "incompatibilidad" || (r.ifOption && r.thenOption), { message: "Elija la opción A y la opción B", path: ["thenOption"] })
-      .refine((r) => r.kind !== "dimension" || [r.minWidth, r.maxWidth, r.minHeight, r.maxHeight].some((v) => v != null), { message: "Indique al menos un límite", path: ["maxWidth"] }),
+      .refine((r) => !["bloquear", "permitir"].includes(r.kind) || (r.targetAttributeId && (r.kind === "permitir" || r.targetValueIds.length)), { message: "Elija el atributo y los valores", path: ["targetValueIds"] })
+      .refine((r) => r.kind !== "medidas" || [r.minWidth, r.maxWidth, r.minHeight, r.maxHeight].some((v) => v != null), { message: "Indique al menos un límite", path: ["maxWidth"] })
+      .refine((r) => r.kind !== "recargo" || r.surcharge !== 0, { message: "Indique el importe", path: ["surcharge"] }),
   },
   rules: {
     table: schema.priceRules,
