@@ -182,7 +182,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
     const table = text.replace(/\r/g, "").split("\n").map((l) => l.split("\t"));
     const added = tableToRows(table);
     change((rs) => [...rs.filter((r) => r.id || r.width || r.height), ...added]);
-    setImportMsg(`${added.length} filas pegadas desde el portapapeles.`);
+    setImportMsg(`${added.length} filas pegadas.`);
   }
 
   async function onImport(e: React.ChangeEvent<HTMLInputElement>) {
@@ -195,7 +195,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
     if ("error" in r) return setImportMsg(r.error);
     const added = tableToRows(r.table);
     change((rs) => [...rs, ...added]);
-    setImportMsg(`${added.length} filas importadas de ${file.name}. Revise y pulse “Guardar planilla”.`);
+    setImportMsg(`${added.length} filas importadas de ${file.name}. Revise y guarde.`);
   }
 
   async function save() {
@@ -262,8 +262,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
         </div>
       )}
       <p className="mt-3 text-xs text-muted">
-        También puede copiar filas en Excel y pegarlas aquí (Ctrl + V), en el orden de la plantilla: ubicación, producto, ancho, alto, cantidad, tela, color de perfil, accionamiento, nota.
-        Las ubicaciones nuevas se crean al guardar.
+        Puede pegar filas copiadas de Excel (Ctrl + V) con las columnas de la plantilla.
       </p>
       {importMsg && <p className="mt-2 text-sm text-blue" data-testid="grid-message">{importMsg}</p>}
 

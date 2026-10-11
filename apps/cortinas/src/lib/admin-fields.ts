@@ -2,22 +2,25 @@
 import type { CrudField } from "@portafolio/core/ui/CrudManager";
 import { MATERIAL_LABELS, TYPE_LABELS } from "./content";
 
+const UPLOAD = "/api/admin/fotos";
+
 const opts = (o: Record<string, string>) => Object.entries(o).map(([value, label]) => ({ value, label }));
 
 type Opt = { value: string; label: string };
 
 /** Campos de producto; la familia se elige de las familias existentes. */
-export const productFields = (families: Opt[]): CrudField[] => [
+export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_LABELS)): CrudField[] => [
   { name: "name", label: "Nombre", type: "text", column: true },
-  { name: "familyId", label: "Familia / plantilla", type: "select", nullable: true, options: families, column: true, hint: "Define parámetros requeridos, medidas por defecto y opciones permitidas." },
-  { name: "slug", label: "Slug (URL)", type: "text" },
+  { name: "image", label: "Foto principal", type: "image", uploadUrl: UPLOAD, column: true },
+  { name: "familyId", label: "Categoría", type: "select", nullable: true, options: families, column: true },
+  { name: "slug", label: "Dirección web", type: "text" },
   { name: "type", label: "Tipo", type: "select", options: opts(TYPE_LABELS), column: true },
-  { name: "material", label: "Material", type: "select", options: opts(MATERIAL_LABELS), column: true },
-  { name: "uses", label: "Usos", type: "text", hint: "Separados por comas: educacion,oficinas,salud", column: true },
+  { name: "material", label: "Material", type: "select", options: materials, column: true },
+  { name: "uses", label: "Usos", type: "text", hint: "Separados por comas: educacion,oficinas,salud" },
   { name: "tagline", label: "Frase corta", type: "text" },
   { name: "description", label: "Descripción", type: "textarea" },
-  { name: "image", label: "Imagen", type: "text", hint: "Ruta, ej: /img/producto-roller.webp" },
-  { name: "specs", label: "Ficha técnica", type: "specs", hint: "Se muestra como tabla en la página pública del producto." },
+  { name: "gallery", label: "Galería", type: "gallery", uploadUrl: UPLOAD, hint: "Hasta 6 fotos. Use las flechas para ordenarlas." },
+  { name: "specs", label: "Ficha técnica", type: "specs" },
   { name: "minWidth", label: "Ancho mínimo (cm)", type: "number" },
   { name: "maxWidth", label: "Ancho máximo (cm)", type: "number", column: true },
   { name: "minProjection", label: "Alto mínimo (cm)", type: "number" },
@@ -58,7 +61,7 @@ export const RULE_FIELDS: CrudField[] = [
   { name: "drive", label: "Solo con accionamiento", type: "select", nullable: true, options: [{ value: "manual", label: "Cadena" }, { value: "motor", label: "Motor con mando" }, { value: "sensor", label: "Motor + control centralizado" }], column: true },
   { name: "modelType", label: "Solo para tipo", type: "select", nullable: true, options: opts(TYPE_LABELS), column: true },
   { name: "minArea", label: "A partir de (m²)", type: "number", step: 0.1, nullable: true, column: true },
-  { name: "optionRef", label: "Solo si se elige", type: "select", nullable: true, options: [], column: true, hint: "Recargo condicionado a una tela, perfil, material, producto o familia." },
+  { name: "optionRef", label: "Solo si se elige", type: "select", nullable: true, options: [], column: true },
   { name: "active", label: "Activa", type: "boolean", column: true },
 ];
 
@@ -74,9 +77,9 @@ export const familyFields = (frames: Opt[], fabrics: Opt[]): CrudField[] => [
   { name: "maxWidth", label: "Ancho máximo por defecto (cm)", type: "number", column: true },
   { name: "minHeight", label: "Alto mínimo por defecto (cm)", type: "number" },
   { name: "maxHeight", label: "Alto máximo por defecto (cm)", type: "number", column: true },
-  { name: "allowedDrives", label: "Accionamientos permitidos", type: "multiselect", options: DRIVE_OPTS, hint: "Ninguno marcado = todos.", column: true },
-  { name: "allowedFrameIds", label: "Colores de perfil permitidos", type: "multiselect", options: frames, hint: "Ninguno marcado = todos.", column: true },
-  { name: "allowedFabricIds", label: "Telas permitidas", type: "multiselect", options: fabrics, hint: "Ninguna marcada = todas las compatibles con el producto." },
+  { name: "allowedDrives", label: "Accionamientos permitidos", type: "multiselect", options: DRIVE_OPTS, hint: "Sin marcar = todos.", column: true },
+  { name: "allowedFrameIds", label: "Colores de perfil permitidos", type: "multiselect", options: frames, hint: "Sin marcar = todos.", column: true },
+  { name: "allowedFabricIds", label: "Telas permitidas", type: "multiselect", options: fabrics, hint: "Sin marcar = todas." },
   { name: "sortOrder", label: "Orden", type: "number" },
 ];
 
@@ -85,12 +88,20 @@ export const constraintFields = (families: Opt[], models: Opt[], options: Opt[])
   { name: "kind", label: "Tipo", type: "select", options: [{ value: "incompatibilidad", label: "Incompatibilidad (A bloquea B)" }, { value: "dimension", label: "Medidas (mín./máx.)" }], column: true },
   { name: "familyId", label: "Solo familia", type: "select", nullable: true, options: families, column: true },
   { name: "modelId", label: "Solo producto", type: "select", nullable: true, options: models },
-  { name: "ifOption", label: "Si se elige (A)", type: "select", nullable: true, options, column: true, hint: "Incompatibilidad: obligatorio. Medidas: opcional (p. ej. solo con motor)." },
-  { name: "thenOption", label: "Bloquear (B)", type: "select", nullable: true, options, column: true, hint: "Solo para incompatibilidad. Se aplica en ambos sentidos." },
+  { name: "ifOption", label: "Si se elige (A)", type: "select", nullable: true, options, column: true, hint: "En reglas de medidas es opcional (p. ej. solo con motor)." },
+  { name: "thenOption", label: "Bloquear (B)", type: "select", nullable: true, options, column: true, hint: "Funciona en ambos sentidos." },
   { name: "minWidth", label: "Ancho mínimo (cm)", type: "number", nullable: true },
   { name: "maxWidth", label: "Ancho máximo (cm)", type: "number", nullable: true, column: true },
   { name: "minHeight", label: "Alto mínimo (cm)", type: "number", nullable: true },
   { name: "maxHeight", label: "Alto máximo (cm)", type: "number", nullable: true, column: true },
   { name: "message", label: "Mensaje para el cliente", type: "text", hint: "Ej.: Tela Arena no disponible con perfil negro RAL 9005." },
   { name: "active", label: "Activa", type: "boolean", column: true },
+];
+
+export const MATERIAL_FIELDS: CrudField[] = [
+  { name: "name", label: "Nombre", type: "text", column: true },
+  { name: "slug", label: "Código", type: "text", column: true, hint: "Minúsculas, sin espacios. Ej.: blackout" },
+  { name: "description", label: "Descripción", type: "textarea", column: true },
+  { name: "sortOrder", label: "Orden", type: "number" },
+  { name: "active", label: "Visible", type: "boolean", column: true },
 ];

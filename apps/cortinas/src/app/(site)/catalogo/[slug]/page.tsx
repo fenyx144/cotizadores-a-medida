@@ -9,6 +9,7 @@ import { getClientSession } from "@/lib/client-session";
 import { getDb, schema } from "@/lib/db";
 import { CurtainPreview } from "@/components/CurtainPreview";
 import { AddToProject } from "@/components/AddToProject";
+import { evaluate } from "@/lib/rules";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         .orderBy(desc(schema.projects.updatedAt))
     : [];
   const motorRule = catalog.rules.find((r) => r.drive === "motor");
-  const photos = [model.image, ...model.gallery];
+  const photos = [model.image, ...model.gallery].filter(Boolean);
+  // Variantes: telas × colores de perfil × accionamientos permitidos por la categoría.
+  const variants = evaluate(catalog, { modelId: model.id });
+  variants.frames = variants.requires.frame ? variants.frames : [];
+  const frameList = catalog.frames.filter((f) => variants.frames.some((x) => x.value === f.id));
 
   return (
     <div className="mx-auto max-w-[1360px] px-5 pt-8 md:px-10">
@@ -55,7 +60,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
         {/* Ficha */}
         <div className="md:col-span-5">
-          <p className="font-mono text-xs text-muted">{MATERIAL_LABELS[model.material]} · {model.uses.split(",").map((u) => USE_LABELS[u]).join(", ")}</p>
+          <p className="font-mono text-xs text-muted">{catalog.materials.find((x) => x.slug === model.material)?.name ?? MATERIAL_LABELS[model.material]} · {model.uses.split(",").map((u) => USE_LABELS[u]).join(", ")}</p>
           <h1 className="mt-3 text-[2.8rem] leading-[1.02] md:text-[3.4rem]">{model.name}</h1>
           <p className="mt-4 text-lg text-muted">{model.description}</p>
 
@@ -103,6 +108,20 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               ))}
             </ul>
           </div>
+
+          {variants.frames.length > 0 && (
+            <div className="mt-8" data-testid="frame-colors">
+              <p className="font-mono text-xs text-muted">Colores de perfil ({variants.frames.length})</p>
+              <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                {frameList.map((f) => (
+                  <li key={f.id} className="flex items-center gap-3">
+                    <span className="size-8 shrink-0 rounded-full border border-line" style={{ background: f.hex }} />
+                    <span>{f.name}<span className="block font-mono text-[11px] text-muted">{f.ral ? `RAL ${f.ral}` : ""}</span></span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="mt-10 border-t border-ink pt-6">
             <h2 className="text-[1.6rem]">Configurar y cotizar</h2>

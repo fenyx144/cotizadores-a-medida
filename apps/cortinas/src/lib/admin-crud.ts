@@ -18,8 +18,8 @@ const resources: Record<string, CrudResource> = {
     orderBy: schema.productModels.sortOrder,
     schema: z.object({
       name: z.string().min(2), slug: z.string().regex(/^[a-z0-9-]+$/, "Solo minúsculas, números y guiones"),
-      type: z.enum(["enrollable", "dual", "vertical", "veneciana"]), material: z.enum(["screen", "blackout", "mixto", "pvc", "aluminio"]),
-      uses: z.string().regex(/^[a-z,]*$/, "Ej: educacion,oficinas"), tagline: z.string(), description: z.string(), image: z.string(),
+      type: z.enum(["enrollable", "dual", "vertical", "veneciana"]), material: z.string().regex(/^[a-z0-9-]+$/, "Elija un material"),
+      uses: z.string().regex(/^[a-z,]*$/, "Ej: educacion,oficinas"), tagline: z.string(), description: z.string(), image: z.string().min(1, "Suba una foto principal"), gallery: z.array(z.string()).max(6, "Máximo 6 fotos").default([]),
       minWidth: cm, maxWidth: cm, minProjection: cm, maxProjection: cm, basePrice: money, pricePerM2: money, sortOrder: z.number().int(), active: z.boolean(), familyId: z.coerce.number().int().nullable().catch(null),
       specs: z.array(z.object({ label: z.string().min(1).max(60), value: z.string().min(1).max(200) })).max(30).default([]),
     }),
@@ -33,6 +33,11 @@ const resources: Record<string, CrudResource> = {
     table: schema.frameColors,
     orderBy: schema.frameColors.sortOrder,
     schema: z.object({ name: z.string().min(2), ral: z.string(), hex, surcharge: money, sortOrder: z.number().int(), active: z.boolean() }),
+  },
+  materials: {
+    table: schema.materials,
+    orderBy: schema.materials.sortOrder,
+    schema: z.object({ name: z.string().min(2), slug: z.string().regex(/^[a-z0-9-]+$/, "Solo minúsculas, números y guiones"), description: z.string(), sortOrder: z.number().int(), active: z.boolean() }),
   },
   families: {
     table: schema.productFamilies,

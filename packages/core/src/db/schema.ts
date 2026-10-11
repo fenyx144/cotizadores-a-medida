@@ -7,6 +7,16 @@
  */
 import { boolean, date, integer, jsonb, pgTable, real, serial, text, timestamp } from "drizzle-orm/pg-core";
 
+/** Materiales del catálogo (editables). Los productos guardan el slug. */
+export const materials = pgTable("materials", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description").notNull().default(""),
+  sortOrder: integer("sort_order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+});
+
 /** Plantilla / familia de productos: parámetros requeridos, medidas por defecto y opciones permitidas. */
 export const productFamilies = pgTable("product_families", {
   id: serial("id").primaryKey(),
@@ -190,6 +200,7 @@ export interface LeadConfiguration {
 }
 
 export type ProductModel = typeof productModels.$inferSelect;
+export type Material = typeof materials.$inferSelect;
 export type ProductFamily = typeof productFamilies.$inferSelect;
 export type ConstraintRule = typeof constraintRules.$inferSelect;
 export type Fabric = typeof fabrics.$inferSelect;

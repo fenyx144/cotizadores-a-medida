@@ -8,7 +8,7 @@
  * - los errores de la selección actual por campo.
  */
 import type { Drive } from "@portafolio/core/pricing";
-import type { ConstraintRule, Fabric, FrameColor, ProductFamily, ProductModel } from "@portafolio/core/db/schema";
+import type { ConstraintRule, Fabric, FrameColor, Material, ProductFamily, ProductModel } from "@portafolio/core/db/schema";
 
 export const DRIVES: Drive[] = ["manual", "motor", "sensor"];
 export const DRIVE_NAMES: Record<Drive, string> = { manual: "Cadena", motor: "Motor con mando", sensor: "Motor + control centralizado" };
@@ -20,6 +20,7 @@ export interface RulesCatalog {
   frames: FrameColor[];
   families?: ProductFamily[];
   constraints?: ConstraintRule[];
+  materials?: Material[];
 }
 
 export interface Selection {
@@ -60,7 +61,7 @@ export function optionLabel(c: RulesCatalog, ref: string | null | undefined): st
   if (t === "tela") { const f = c.fabrics.find((x) => String(x.id) === v); return f ? `tela ${f.name}${f.code ? ` (${f.code})` : ""}` : ref; }
   if (t === "perfil") { const f = c.frames.find((x) => String(x.id) === v); return f ? `perfil ${f.name}${f.ral ? ` RAL ${f.ral}` : ""}` : ref; }
   if (t === "accionamiento") return DRIVE_NAMES[v as Drive] ?? v;
-  if (t === "material") return `material ${MATERIAL_NAMES[v] ?? v}`;
+  if (t === "material") return `material ${c.materials?.find((x) => x.slug === v)?.name ?? MATERIAL_NAMES[v] ?? v}`;
   if (t === "producto") return c.models.find((x) => String(x.id) === v)?.name ?? ref;
   if (t === "familia") return `familia ${c.families?.find((x) => String(x.id) === v)?.name ?? v}`;
   return ref;
@@ -72,7 +73,7 @@ export function optionChoices(c: RulesCatalog) {
     ...c.fabrics.map((f) => ({ value: `tela:${f.id}`, label: `Tela · ${f.name} (${f.code || f.collection})` })),
     ...c.frames.map((f) => ({ value: `perfil:${f.id}`, label: `Perfil · ${f.name}${f.ral ? ` RAL ${f.ral}` : ""}` })),
     ...DRIVES.map((d) => ({ value: `accionamiento:${d}`, label: `Accionamiento · ${DRIVE_NAMES[d]}` })),
-    ...Object.entries(MATERIAL_NAMES).map(([k, v]) => ({ value: `material:${k}`, label: `Material · ${v}` })),
+    ...(c.materials?.length ? c.materials.map((x) => [x.slug, x.name] as const) : Object.entries(MATERIAL_NAMES)).map(([k, v]) => ({ value: `material:${k}`, label: `Material · ${v}` })),
     ...c.models.map((p) => ({ value: `producto:${p.id}`, label: `Producto · ${p.name}` })),
     ...(c.families ?? []).map((f) => ({ value: `familia:${f.id}`, label: `Familia · ${f.name}` })),
   ];

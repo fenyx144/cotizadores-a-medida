@@ -15,8 +15,8 @@ export default async function Page() {
     fabrics.map((f) => ({ value: String(f.id), label: `${f.name} (${f.code})` })),
   );
   return (
-    <CrudManager resource="families" title="Plantillas / Familias" newLabel="Añadir familia"
-      description="Parámetros requeridos, medidas por defecto y opciones permitidas. Los productos heredan estas reglas y el catálogo se agrupa por familia."
+    <CrudManager resource="families" title="Categorías / Familias" newLabel="Añadir categoría"
+      description="Agrupan el catálogo y definen qué opciones y medidas admite cada producto."
       fields={fields} initialRows={rows} />
   );
 }

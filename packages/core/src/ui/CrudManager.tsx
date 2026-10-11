@@ -7,7 +7,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export type FieldType = "text" | "textarea" | "number" | "color" | "boolean" | "select" | "specs" | "multiselect";
+export type FieldType = "text" | "textarea" | "number" | "color" | "boolean" | "select" | "specs" | "multiselect" | "image" | "gallery";
 
 export interface CrudField {
   name: string;
@@ -18,6 +18,8 @@ export interface CrudField {
   nullable?: boolean;
   step?: number;
   hint?: string;
+  /** Para "image"/"gallery": endpoint que recibe el archivo (POST multipart) y devuelve { url }. */
+  uploadUrl?: string;
   /** Mostrar en la tabla. */
   column?: boolean;
 }
@@ -48,7 +50,7 @@ export function CrudManager({
 
   function emptyRow(): Partial<Row> {
     const r: Record<string, unknown> = {};
-    for (const f of fields) r[f.name] = f.type === "specs" ? [] : f.type === "multiselect" ? "" : f.type === "boolean" ? true : f.type === "number" ? (f.nullable ? null : 0) : f.type === "color" ? "#cccccc" : f.nullable ? null : (f.options?.[0]?.value ?? "");
+    for (const f of fields) r[f.name] = f.type === "specs" || f.type === "gallery" ? [] : f.type === "multiselect" ? "" : f.type === "boolean" ? true : f.type === "number" ? (f.nullable ? null : 0) : f.type === "color" ? "#cccccc" : f.nullable ? null : (f.options?.[0]?.value ?? "");
     return r;
   }
 
@@ -58,6 +60,7 @@ export function CrudManager({
     for (const f of fields) {
       let v = row[f.name];
       if (f.type === "number") v = v === "" || v === null || v === undefined ? (f.nullable ? null : 0) : Number(v);
+      else if (f.type === "gallery") v = Array.isArray(v) ? v : [];
       else if (f.type === "specs") v = ((v as { label: string; value: string }[]) ?? []).map((r) => ({ label: r.label.trim(), value: r.value.trim() })).filter((r) => r.label && r.value);
       else if (f.type !== "boolean" && f.nullable && (v === "" || v === undefined)) v = null;
       out[f.name] = v;
@@ -105,6 +108,8 @@ export function CrudManager({
           <span className="text-muted">{String(value)}</span>
         </span>
       );
+    if (f.type === "image") return value ? <img src={String(value)} alt="" className="h-10 w-14 border border-line object-cover" /> : "—";
+    if (f.type === "gallery") return Array.isArray(value) && value.length ? `${value.length} fotos` : "—";
     if (f.type === "specs") return Array.isArray(value) && value.length ? `${value.length} filas` : "—";
     if (f.type === "multiselect") {
       const v = String(value ?? "").split(",").filter(Boolean);
@@ -162,7 +167,9 @@ export function CrudManager({
             className="space-y-4 self-start border-t border-ink pt-4 lg:sticky lg:top-8"
           >
             <p className="font-serif text-xl">{editing.id ? "Editar" : "Nuevo registro"}</p>
-            {fields.map((f) => f.type === "specs" ? (
+            {fields.map((f) => f.type === "image" || f.type === "gallery" ? (
+              <PhotoField key={f.name} field={f} value={editing[f.name]} error={errors[f.name]} onChange={(v) => setEditing({ ...editing, [f.name]: v })} />
+            ) : f.type === "specs" ? (
               <SpecsEditor key={f.name} label={f.label} hint={f.hint} error={errors[f.name]}
                 rows={(editing[f.name] as SpecRow[] | undefined) ?? []}
                 onChange={(rows) => setEditing({ ...editing, [f.name]: rows })} />
@@ -243,4 +250,59 @@ function SpecsEditor({ label, hint, error, rows, onChange }: { label: string; hi
 /** Envoltorio de campo: <label> normal; <div> para listas de casillas (cada casilla lleva su propio label). */
 function FieldWrap({ multi, children }: { multi: boolean; children: React.ReactNode }) {
   return multi ? <div className="block text-sm">{children}</div> : <label className="block text-sm">{children}</label>;
+}
+
+/** Fotos del producto: subir, ver miniatura, quitar y ordenar (galería). */
+function PhotoField({ field, value, error, onChange }: { field: CrudField; value: unknown; error?: string; onChange: (v: unknown) => void }) {
+  const multi = field.type === "gallery";
+  const list = multi ? ((value as string[] | undefined) ?? []) : value ? [String(value)] : [];
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  async function upload(files: FileList | null) {
+    if (!files?.length || !field.uploadUrl) return;
+    setBusy(true);
+    setMsg(null);
+    const urls: string[] = [];
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith("image/")) { setMsg("Solo imágenes JPG, PNG o WEBP."); continue; }
+      if (file.size > 4 * 1024 * 1024) { setMsg(`“${file.name}” supera 4 MB.`); continue; }
+      const fd = new FormData();
+      fd.set("file", file);
+      const res = await fetch(field.uploadUrl, { method: "POST", body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) urls.push(data.url);
+      else setMsg(data.error ?? "No se pudo subir la foto.");
+    }
+    setBusy(false);
+    if (urls.length) onChange(multi ? [...list, ...urls] : urls[0]);
+  }
+  const move = (i: number, d: number) => {
+    const next = [...list];
+    const [x] = next.splice(i, 1);
+    next.splice(i + d, 0, x);
+    onChange(next);
+  };
+  return (
+    <div className="block text-sm" data-testid={`photo-${field.name}`}>
+      <span className="text-muted">{field.label}</span>
+      <div className="mt-2 flex flex-wrap gap-3">
+        {list.map((src, i) => (
+          <div key={src + i} className="relative">
+            <img src={src} alt="" className="h-20 w-24 border border-line object-cover" />
+            <div className="mt-1 flex justify-between text-xs text-muted">
+              {multi && i > 0 ? <button type="button" onClick={() => move(i, -1)} aria-label="Mover a la izquierda">←</button> : <span />}
+              <button type="button" onClick={() => onChange(multi ? list.filter((_, j) => j !== i) : "")} className="hover:text-danger">Quitar</button>
+              {multi && i < list.length - 1 ? <button type="button" onClick={() => move(i, 1)} aria-label="Mover a la derecha">→</button> : <span />}
+            </div>
+          </div>
+        ))}
+        <label className={`flex h-20 w-24 cursor-pointer items-center justify-center border border-dashed border-line text-center text-xs text-muted hover:border-ink hover:text-ink ${busy ? "opacity-50" : ""}`}>
+          {busy ? "Subiendo…" : multi ? "+ Añadir fotos" : list.length ? "Cambiar foto" : "+ Subir foto"}
+          <input type="file" accept="image/jpeg,image/png,image/webp" multiple={multi} className="sr-only" disabled={busy} onChange={(e) => { upload(e.target.files); e.target.value = ""; }} />
+        </label>
+      </div>
+      {field.hint && <span className="mt-1 block text-xs text-muted">{field.hint}</span>}
+      {(msg || error) && <span className="mt-1 block text-xs text-danger">{msg || error}</span>}
+    </div>
+  );
 }

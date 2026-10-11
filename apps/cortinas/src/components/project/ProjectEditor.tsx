@@ -32,7 +32,7 @@ export function ProjectEditor({ initial, catalog, initialTab }: { initial: Proje
     try {
       r = await p;
     } catch {
-      r = { ok: false, error: "Sin conexión con el servidor." };
+      r = { ok: false, error: "Sin conexión. Inténtelo de nuevo." };
     }
     setBusy(false);
     if (r.ok) {

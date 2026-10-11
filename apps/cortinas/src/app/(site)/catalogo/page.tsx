@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { formatMoney } from "@portafolio/core/pricing";
 import { getCatalog } from "@/lib/catalog";
-import { MATERIAL_LABELS, TYPE_LABELS, USE_LABELS } from "@/lib/content";
+import { TYPE_LABELS, USE_LABELS } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Catálogo — Cota" };
@@ -35,7 +35,8 @@ function FilterGroup({ title, param, options, current, params }: { title: string
 
 export default async function CatalogPage({ searchParams }: { searchParams: Promise<Params> }) {
   const params = await searchParams;
-  const { models, families } = await getCatalog();
+  const { models, families, materials } = await getCatalog();
+  const materialOptions = Object.fromEntries(materials.filter((x) => x.active).map((x) => [x.slug, x.name]));
   const list = models.filter(
     (m) => (!params.tipo || m.type === params.tipo) && (!params.material || m.material === params.material) && (!params.uso || m.uses.split(",").includes(params.uso)),
   );
@@ -49,7 +50,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
       <div className="mt-8 grid gap-10 md:grid-cols-12">
         <aside className="md:col-span-3 lg:col-span-2">
           <FilterGroup title="Tipo" param="tipo" options={TYPE_LABELS} current={params.tipo} params={params} />
-          <FilterGroup title="Material" param="material" options={MATERIAL_LABELS} current={params.material} params={params} />
+          <FilterGroup title="Material" param="material" options={materialOptions} current={params.material} params={params} />
           <FilterGroup title="Uso" param="uso" options={USE_LABELS} current={params.uso} params={params} />
         </aside>
         <div className="md:col-span-9 lg:col-span-10">

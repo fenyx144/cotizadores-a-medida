@@ -1,6 +1,6 @@
 "use client";
 /** Adjuntos del proyecto: fotos o PDF (especificaciones, fichas, fotos de obra). */
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { deleteAttachment, uploadAttachment } from "@/app/actions/project";
 import { btnLine, labelCls, type EditorContext } from "./shared";
 
@@ -10,23 +10,26 @@ export function AttachmentsBlock({ ctx }: { ctx: EditorContext }) {
   const { data, readOnly, busy, act } = ctx;
   const input = useRef<HTMLInputElement>(null);
   const files = data.attachments ?? [];
+  const [problems, setProblems] = useState<string[]>([]);
 
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
     const list = Array.from(e.target.files ?? []);
+    const issues: string[] = [];
     for (const f of list) {
-      if (!["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(f.type)) { alert(`“${f.name}”: solo se aceptan fotos (JPG, PNG, WEBP) o PDF.`); continue; }
-      if (f.size > 4 * 1024 * 1024) { alert(`“${f.name}” pesa ${(f.size / 1024 / 1024).toFixed(1)} MB y el máximo es 4 MB. Comprímalo (por ejemplo, exportando el PDF en calidad web) o envíe solo las páginas necesarias.`); continue; }
+      if (!["image/jpeg", "image/png", "image/webp", "application/pdf"].includes(f.type)) { issues.push(`${f.name}: solo fotos (JPG, PNG, WEBP) o PDF.`); continue; }
+      if (f.size > 4 * 1024 * 1024) { issues.push(`${f.name} pesa ${(f.size / 1024 / 1024).toFixed(1).replace(".", ",")} MB. El máximo es 4 MB; reduzca el archivo o envíe solo las páginas necesarias.`); continue; }
       const fd = new FormData();
       fd.set("file", f);
       await act(uploadAttachment(data.project.id, fd), "Archivo adjuntado.");
     }
+    setProblems(issues);
     e.target.value = "";
   }
 
   return (
     <div data-testid="attachments">
       <h3 className="mt-10 text-[1.5rem]">Archivos adjuntos</h3>
-      <p className="mt-1 text-sm text-muted">Fotos de las ventanas, especificaciones o fichas en PDF. Máx. 4 MB por archivo.</p>
+      <p className="mt-1 text-sm text-muted">Fotos de las ventanas o documentos en PDF, hasta 4 MB cada uno.</p>
       <ul className="mt-3 border-t border-line text-sm">
         {files.map((a) => (
           <li key={a.id} className="flex items-center gap-3 border-b border-line py-2">
@@ -38,6 +41,11 @@ export function AttachmentsBlock({ ctx }: { ctx: EditorContext }) {
         ))}
         {files.length === 0 && <li className="border-b border-line py-2 text-muted">Sin archivos todavía.</li>}
       </ul>
+      {problems.length > 0 && (
+        <div className="mt-3 border-l-2 border-danger pl-3 text-sm text-danger" role="alert" data-testid="attach-error">
+          {problems.map((p) => <p key={p}>{p}</p>)}
+        </div>
+      )}
       {!readOnly && (
         <div className="mt-3">
           <label className={labelCls} htmlFor="attach-input">Adjuntar archivo</label>
