@@ -88,6 +88,8 @@ export const productFamilies = pgTable("product_families", {
   allowedFabricIds: text("allowed_fabric_ids").notNull().default(""),
   /** Atributos que pide la familia, en orden. */
   attributes: jsonb("attributes").$type<FamilyAttribute[]>().notNull().default([]),
+  /** Materiales permitidos en la categoría (slugs separados por comas; vacío = todos). */
+  materials: text("materials").notNull().default(""),
   sortOrder: integer("sort_order").notNull().default(0),
 });
 

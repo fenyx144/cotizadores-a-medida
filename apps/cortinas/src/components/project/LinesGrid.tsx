@@ -249,6 +249,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
             <button type="button" className="text-muted hover:text-danger" onClick={() => { change((rs) => rs.filter((r) => !sel.has(r.key))); setSel(new Set()); }}>Quitar {selected.length}</button>
           )}
           <span className="ml-auto flex flex-wrap items-center gap-3">
+            <a href={`/configurar?proyecto=${data.project.id}`} className={btnLine} data-testid="wizard-link">Agregar con asistente</a>
             <label className={`${btnLine} cursor-pointer`}>
               Importar Excel/CSV
               <input type="file" accept=".csv,.xlsx,.txt" className="sr-only" onChange={onImport} data-testid="grid-import" />

@@ -7,7 +7,7 @@
  */
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { z } from "zod";
-import { nextLabel } from "@portafolio/core/projects";
+import { nextLabel, projectReference } from "@portafolio/core/projects";
 import { readTable } from "@portafolio/core/import";
 import { makeKey, StorageUnavailableError } from "@portafolio/core/storage";
 import { deleteFile, FileTooLargeError, putFile } from "@/lib/files";
@@ -400,16 +400,18 @@ export async function sendProject(projectId: number) {
 /** "Agregar al proyecto" desde la ficha de producto: la agrega a la primera ubicación (o crea "Ubicación 1"). */
 export async function addFromCatalog(
   projectId: number,
-  input: { modelId: number; values: Values; width: number; height: number; quantity: number },
+  input: { modelId: number; values: Values; width: number; height: number; quantity: number; room?: string; note?: string },
 ) {
   return run(projectId, async () => {
     const db = getDb();
-    // Se agrega a la primera ubicación; si no hay ninguna, se crea "Ubicación 1" (el cliente puede renombrarla).
-    let [loc] = await db.select().from(schema.locations).where(eq(schema.locations.projectId, projectId)).orderBy(schema.locations.sortOrder, schema.locations.id).limit(1);
-    if (!loc) [loc] = await db.insert(schema.locations).values({ projectId, building: "", floor: "", room: "Ubicación 1", sortOrder: 0 }).returning();
+    const room = (input.room ?? "").trim().slice(0, 80);
+    // Con nombre de ambiente: se usa (o se crea) esa ubicación; si no, la primera ("Ubicación 1" si no hay ninguna).
+    const locs = await db.select().from(schema.locations).where(eq(schema.locations.projectId, projectId)).orderBy(schema.locations.sortOrder, schema.locations.id);
+    let loc = room ? locs.find((l) => l.room.toLowerCase() === room.toLowerCase()) : locs[0];
+    if (!loc) [loc] = await db.insert(schema.locations).values({ projectId, building: "", floor: "", room: room || "Ubicación 1", sortOrder: locs.length }).returning();
     const all = await db.select({ label: schema.lines.label }).from(schema.lines).where(eq(schema.lines.projectId, projectId));
     const label = nextLabel(all.map((l) => l.label));
-    const cfg = await resolveConfig({ ...input, locationId: loc.id, note: "" }, label);
+    const cfg = await resolveConfig({ ...input, locationId: loc.id, note: (input.note ?? "").slice(0, 300) }, label);
     const [row] = await db
       .insert(schema.lines)
       .values({ projectId, locationId: loc.id, label, width: input.width, height: input.height, quantity: Math.max(1, Math.min(500, input.quantity)), sortOrder: all.length, ...cfg })
@@ -475,4 +477,21 @@ export async function placeLine(projectId: number, lineId: number, planId: numbe
       .set({ planId, shape: a.shape, x: clamp(a.x), y: clamp(a.y), w: a.shape === "rect" ? clamp(a.w ?? 0) : null, h: a.shape === "rect" ? clamp(a.h ?? 0) : null })
       .where(and(eq(schema.lines.id, lineId), eq(schema.lines.projectId, projectId)));
   });
+}
+
+/** Asistente: agrega la configuración a un proyecto en borrador del cliente, o crea uno nuevo. */
+export async function addFromWizard(input: { projectId: number | null; newProjectName?: string; modelId: number; values: Values; width: number; height: number; quantity: number; room?: string; note?: string }): Promise<{ ok: true; projectId: number } | { ok: false; error: string }> {
+  const session = await getClientSession();
+  if (!session) return { ok: false, error: "Ingrese para guardar." };
+  let projectId = input.projectId;
+  if (!projectId) {
+    const db = getDb();
+    const [client] = await db.select({ kind: schema.clients.kind }).from(schema.clients).where(eq(schema.clients.id, session.userId));
+    const name = (input.newProjectName ?? "").trim().slice(0, 80) || "Mi solicitud";
+    const [project] = await db.insert(schema.projects).values({ name, clientId: session.userId, kind: client?.kind === "particular" ? "particular" : "empresa" }).returning();
+    await db.update(schema.projects).set({ reference: projectReference(project.id) }).where(eq(schema.projects.id, project.id));
+    projectId = project.id;
+  }
+  const res = await addFromCatalog(projectId, input);
+  return res.ok ? { ok: true, projectId } : { ok: false, error: res.error };
 }

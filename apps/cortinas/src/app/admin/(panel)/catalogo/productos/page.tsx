@@ -10,6 +10,7 @@ export default async function Page() {
     db.select().from(schema.productFamilies).orderBy(asc(schema.productFamilies.sortOrder)),
     db.select().from(schema.materials).orderBy(asc(schema.materials.sortOrder)),
   ]);
-  const fields = productFields(families.map((f) => ({ value: String(f.id), label: f.name })), materials.map((m) => ({ value: m.slug, label: m.name })));
+  const fields = productFields(families.map((f) => ({ value: String(f.id), label: f.name })), materials.map((m) => ({ value: m.slug, label: m.name })),
+    Object.fromEntries(families.map((f) => [String(f.id), f.materials.split(",").filter(Boolean)])));
   return <CrudManager resource="products" title="4 · Productos" description="Fotos, categoría, medidas, precio y ficha técnica." fields={fields} initialRows={rows} newLabel="Añadir producto" />;
 }

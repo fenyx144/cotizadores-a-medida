@@ -144,7 +144,8 @@
           "valueIds": [],
           "attributeId": 6
         }
-      ]
+      ],
+      "materials": "blackout,screen"
     },
     {
       "id": 2,
@@ -190,7 +191,8 @@
           "valueIds": [],
           "attributeId": 6
         }
-      ]
+      ],
+      "materials": "mixto"
     },
     {
       "id": 3,
@@ -239,7 +241,8 @@
           "valueIds": [],
           "attributeId": 5
         }
-      ]
+      ],
+      "materials": "screen"
     },
     {
       "id": 4,
@@ -275,7 +278,8 @@
           "valueIds": [],
           "attributeId": 4
         }
-      ]
+      ],
+      "materials": "pvc"
     },
     {
       "id": 5,
@@ -310,7 +314,8 @@
           "valueIds": [],
           "attributeId": 4
         }
-      ]
+      ],
+      "materials": "aluminio"
     }
   ],
   "constraints": [

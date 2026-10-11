@@ -9,13 +9,13 @@ const opts = (o: Record<string, string>) => Object.entries(o).map(([value, label
 type Opt = { value: string; label: string };
 
 /** Campos de producto; la familia se elige de las familias existentes. */
-export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_LABELS)): CrudField[] => [
+export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_LABELS), familyMaterials: Record<string, string[]> = {}): CrudField[] => [
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "image", label: "Foto principal", type: "image", uploadUrl: UPLOAD, column: true },
   { name: "familyId", label: "Categoría", type: "select", nullable: true, options: families, column: true },
   { name: "slug", label: "Dirección web", type: "text" },
   { name: "type", label: "Tipo", type: "select", options: opts(TYPE_LABELS), column: true },
-  { name: "material", label: "Material", type: "select", options: materials, column: true },
+  { name: "material", label: "Material", type: "select", options: materials, column: true, filterBy: { field: "familyId", map: familyMaterials }, hint: "Solo los que permite la categoría." },
   { name: "uses", label: "Usos", type: "text", hint: "Separados por comas: educacion,oficinas,salud" },
   { name: "tagline", label: "Frase corta", type: "text" },
   { name: "description", label: "Descripción", type: "textarea" },
@@ -63,8 +63,9 @@ export const RULE_FIELDS: CrudField[] = [
   { name: "active", label: "Activa", type: "boolean", column: true },
 ];
 
-export const familyFields = (attrOptions: AttrOption[]): CrudField[] => [
+export const familyFields = (attrOptions: AttrOption[], materials: Opt[] = []): CrudField[] => [
   { name: "name", label: "Nombre", type: "text", column: true },
+  { name: "materials", label: "Materiales permitidos", type: "multiselect", options: materials, column: true, hint: "Sin marcar = todos." },
   { name: "description", label: "Descripción", type: "textarea" },
   { name: "attributes", label: "Atributos que pide", type: "attrs", attrOptions, column: true, hint: "Valores sin marcar = todos." },
   { name: "minWidth", label: "Ancho mínimo por defecto (cm)", type: "number" },

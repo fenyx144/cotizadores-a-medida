@@ -108,7 +108,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           {extras.length > 0 && <p className="mt-6 text-sm text-muted">También: {extras.map((f) => f.attribute.name.toLowerCase()).join(", ")}.</p>}
 
           <div className="mt-10 border-t border-ink pt-6">
-            <h2 className="text-[1.6rem]">Configurar y cotizar</h2>
+            <div className="flex flex-wrap items-baseline justify-between gap-3"><h2 className="text-[1.6rem]">Configurar y cotizar</h2><Link href={`/configurar?modelo=${model.slug}`} className="text-sm underline underline-offset-4" data-testid="wizard-cta">Paso a paso</Link></div>
             <AddToProject modelId={model.id} slug={model.slug} catalog={catalog} projects={drafts} loggedIn={!!session} particular={me?.kind === "particular"} />
             <p className="mt-4 text-xs text-muted">Precios con IGV.</p>
           </div>

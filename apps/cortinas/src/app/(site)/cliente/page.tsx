@@ -51,7 +51,10 @@ export default async function ClientHome({ searchParams }: { searchParams: Promi
           </ul>
         )}
         <section className="mt-12">
-          <h2 className="mb-6 text-[2rem] leading-tight">{projects.length ? "Nueva solicitud" : "Su solicitud"}</h2>
+          <div className="mb-6 flex flex-wrap items-baseline justify-between gap-3">
+            <h2 className="text-[2rem] leading-tight">{projects.length ? "Nueva solicitud" : "Su solicitud"}</h2>
+            <Link href="/configurar" className="bg-ink px-4 py-2 text-sm text-paper" data-testid="wizard-cta">Configurar paso a paso</Link>
+          </div>
           <QuickQuote catalog={catalog} defaults={{ name: client.name, email: client.email, phone: client.phone }} />
         </section>
       </div>

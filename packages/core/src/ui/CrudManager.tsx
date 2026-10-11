@@ -26,6 +26,8 @@ export interface CrudField {
   uploadUrl?: string;
   /** Para "attrs": atributos que se pueden pedir. */
   attrOptions?: AttrOption[];
+  /** En "select": limita las opciones según el valor de otro campo (map[valor] = opciones permitidas; sin entrada = todas). */
+  filterBy?: { field: string; map: Record<string, string[]> };
   /** En "attrs": ocultar "Obligatorio" (materiales). Los atributos con defaultOn vienen marcados salvo que se desmarquen (valueIds [-1]). */
   noRequired?: boolean;
   /** Mostrar en la tabla. */
@@ -213,7 +215,7 @@ export function CrudManager({
                 ) : f.type === "select" ? (
                   <select value={String(editing[f.name] ?? "")} onChange={(e) => setEditing({ ...editing, [f.name]: e.target.value })} className="mt-1 w-full border-b border-line bg-transparent py-1">
                     {f.nullable && <option value="">— Cualquiera —</option>}
-                    {f.options?.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    {(f.filterBy && f.filterBy.map[String(editing[f.filterBy.field] ?? "")]?.length ? f.options?.filter((o) => f.filterBy!.map[String(editing[f.filterBy!.field] ?? "")].includes(o.value) || o.value === String(editing[f.name] ?? "")) : f.options)?.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                   </select>
                 ) : f.type === "color" ? (
                   <span className="mt-1 flex items-center gap-3">

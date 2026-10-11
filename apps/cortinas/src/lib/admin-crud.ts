@@ -68,7 +68,7 @@ const resources: Record<string, CrudResource> = {
     table: schema.productFamilies,
     orderBy: schema.productFamilies.sortOrder,
     schema: z.object({
-      name: z.string().min(2), description: z.string(),
+      name: z.string().min(2), description: z.string(), materials: z.string().regex(/^[a-z0-9,-]*$/).default(""),
       attributes: z.array(z.object({ attributeId: z.number().int(), required: z.boolean(), valueIds: z.array(z.number().int()) })).default([]),
       minWidth: cm, maxWidth: cm, minHeight: cm, maxHeight: cm, sortOrder: z.number().int(),
     }),

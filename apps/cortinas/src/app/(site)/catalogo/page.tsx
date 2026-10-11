@@ -47,7 +47,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
       <div className="mx-auto max-w-[1360px] px-5 pt-12 md:px-10">
         <div className="grid gap-6 border-b border-line pb-8 md:grid-cols-12 md:items-end">
           <h1 className="text-[3rem] leading-none md:col-span-6 md:text-[4rem]">Catálogo</h1>
-          <div className="md:col-span-5 md:col-start-8"><StepBar current={1} /></div>
+          <div className="flex flex-wrap items-center justify-between gap-4 md:col-span-5 md:col-start-8"><StepBar current={1} /><Link href="/configurar" className="bg-ink px-4 py-2 text-sm text-paper" data-testid="wizard-cta">Configurar paso a paso</Link></div>
         </div>
         <div className="mt-10 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-3" data-testid="category-cards">
           {cards.map(({ f, items }) => (
@@ -70,7 +70,8 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
   // Página de categoría: sus productos con filtro de material.
   if (family) {
     const inFamily = models.filter((m) => m.familyId === family.id);
-    const mats = Object.fromEntries(materials.filter((x) => inFamily.some((m) => m.material === x.slug)).map((x) => [x.slug, x.name]));
+    const allowedMats = family.materials.split(",").filter(Boolean);
+    const mats = Object.fromEntries(materials.filter((x) => x.active && (allowedMats.length ? allowedMats.includes(x.slug) : inFamily.some((m) => m.material === x.slug))).map((x) => [x.slug, x.name]));
     const items = inFamily.filter((m) => !params.material || m.material === params.material);
     return (
       <div className="mx-auto max-w-[1360px] px-5 pt-8 md:px-10">
@@ -80,7 +81,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
             <h1 className="text-[2.8rem] leading-none md:text-[3.6rem]">{family.name}</h1>
             {family.description && <p className="mt-3 text-muted">{family.description}</p>}
           </div>
-          <div className="md:col-span-4 md:col-start-9"><StepBar current={1} /></div>
+          <div className="space-y-3 md:col-span-4 md:col-start-9"><StepBar current={1} /><Link href={`/configurar?categoria=${family.id}`} className="inline-block text-sm underline underline-offset-4">Configurar paso a paso</Link></div>
         </div>
         {Object.keys(mats).length > 1 && (
           <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm" data-testid="material-filter">
