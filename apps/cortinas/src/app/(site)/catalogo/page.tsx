@@ -1,4 +1,3 @@
-import { SHOW_PRICES } from "@/lib/flags";
 import Image from "next/image";
 import Link from "next/link";
 import { formatMoney } from "@portafolio/core/pricing";
@@ -121,7 +120,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
     <div className="mx-auto max-w-[1360px] px-5 pt-12 md:px-10">
       <div className="grid gap-6 border-b border-line pb-8 md:grid-cols-12 md:items-end">
         <h1 className="text-[3rem] leading-none md:col-span-6 md:text-[4rem]">Catálogo</h1>
-        <p className="text-muted md:col-span-5 md:col-start-8">{SHOW_PRICES ? "Precios de referencia por una ventana de 1,50 × 1,50 m, con instalación e IGV. El precio final depende de medidas y cantidad." : "Productos a medida. Configure las opciones y solicite su cotización."}</p>
+        <p className="text-muted md:col-span-5 md:col-start-8">Precios de referencia por una ventana de 1,50 × 1,50 m, con instalación e IGV. El precio final depende de medidas y cantidad.</p>
       </div>
       <div className="mt-8 grid gap-10 md:grid-cols-12">
         <aside className="md:col-span-3 lg:col-span-2">
@@ -153,8 +152,8 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
                 </div>
                 <p className="mt-1 text-muted">{m.tagline}</p>
                 <p className="mt-3 text-sm">
-                  {SHOW_PRICES && <>Desde <span className="font-medium">{formatMoney(m.basePrice + 2.25 * m.pricePerM2 + 25)}</span> · </>}
-                  <span className="text-muted">{m.uses.split(",").map((u) => USE_LABELS[u]).join(", ")}</span>
+                  Desde <span className="font-medium">{formatMoney(m.basePrice + 2.25 * m.pricePerM2 + 25)}</span>
+                  <span className="text-muted"> · {m.uses.split(",").map((u) => USE_LABELS[u]).join(", ")}</span>
                 </p>
               </Link>
                   ))}

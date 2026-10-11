@@ -1,4 +1,3 @@
-import { SHOW_PRICES } from "@/lib/flags";
 import Link from "next/link";
 import { BRAND } from "@/lib/content";
 
@@ -32,7 +31,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="mx-auto flex max-w-[1360px] flex-wrap justify-between gap-2 px-5 pb-8 text-xs text-muted md:px-10">
-        <span>© {new Date().getFullYear()} Cota · Marca ficticia de demostración{SHOW_PRICES ? " · Precios en soles con IGV" : ""}</span>
+        <span>© {new Date().getFullYear()} Cota · Marca ficticia de demostración · Precios en soles con IGV</span>
         <span>Fotos: Unsplash y Pexels (ver CREDITS.md)</span>
       </div>
     </footer>

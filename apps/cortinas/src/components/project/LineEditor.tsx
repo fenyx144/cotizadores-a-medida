@@ -4,7 +4,6 @@
  * Calcula el precio en vivo en el navegador con el mismo motor que el servidor;
  * el servidor lo recalcula al guardar (nunca confiamos en el precio del cliente).
  */
-import { SHOW_PRICES } from "@/lib/flags";
 import { useState } from "react";
 import { formatMoney } from "@portafolio/core/pricing";
 import { configHex } from "@portafolio/core/db/project-schema";
@@ -136,12 +135,12 @@ export function LineEditor({ ctx, lines, isNew, defaultLocationId = null, sugges
         ) : (
           <span />
         )}
-        {SHOW_PRICES && <div className="text-right">
+        <div className="text-right">
           <p className="font-mono text-[11px] text-muted">{bulk ? `Precio por ventana (${first.label})` : `Precio unitario × ${qty}`}</p>
           <p className="font-serif text-[2rem] leading-none" data-testid="line-price">
             {preview ? formatMoney(bulk ? preview.unitPrice : preview.unitPrice * qty) : "—"}
           </p>
-        </div>}
+        </div>
       </div>
 
       {!readOnly && (

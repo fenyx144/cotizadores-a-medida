@@ -1,5 +1,5 @@
 /** Campos de cada recurso del catálogo para el CrudManager (servidor y cliente). */
-import { SHOW_PRICES } from "@/lib/flags";
+import { SHOW_SURCHARGES } from "@/lib/flags";
 import type { AttrOption, CrudField } from "@portafolio/core/ui/CrudManager";
 import { MATERIAL_LABELS, TYPE_LABELS } from "./content";
 
@@ -15,7 +15,7 @@ export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_
   { name: "image", label: "Foto principal", type: "image", uploadUrl: UPLOAD, column: true },
   { name: "familyId", label: "Categoría", type: "select", nullable: true, options: families, column: true },
   { name: "slug", label: "Dirección web", type: "text" },
-  { name: "type", label: "Mecanismo", type: "select", options: opts(TYPE_LABELS), column: true, hint: SHOW_PRICES ? "Define el dibujo de la vista previa y los recargos generales por mecanismo." : "Define el dibujo de la vista previa." },
+  { name: "type", label: "Mecanismo", type: "select", options: opts(TYPE_LABELS), column: true, hint: SHOW_SURCHARGES ? "Define el dibujo de la vista previa y los recargos generales por mecanismo." : "Define el dibujo de la vista previa." },
   { name: "material", label: "Material principal", type: "select", options: materials, column: true, filterBy: { field: "familyId", map: familyMaterials }, hint: "El que se propone por defecto." },
   { name: "materials", label: "Materiales disponibles", type: "multiselect", options: materials, allLabel: "Todos los de la categoría", filterBy: { field: "familyId", map: familyMaterials }, column: true, hint: "Con varios, el cliente elige primero el material." },
   { name: "uses", label: "Usos", type: "text", hint: "Separados por comas: educacion,oficinas,salud" },
@@ -27,8 +27,8 @@ export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_
   { name: "maxWidth", label: "Ancho máximo (cm)", type: "number", column: true },
   { name: "minProjection", label: "Alto mínimo (cm)", type: "number" },
   { name: "maxProjection", label: "Alto máximo (cm)", type: "number", column: true },
-  { hidden: !SHOW_PRICES, name: "basePrice", label: "Precio base (S/)", type: "number", column: true },
-  { hidden: !SHOW_PRICES, name: "pricePerM2", label: "Precio por m² (S/)", type: "number", column: true },
+  { name: "basePrice", label: "Precio base (S/)", type: "number", column: true },
+  { name: "pricePerM2", label: "Precio por m² (S/)", type: "number", column: true },
   { name: "sortOrder", label: "Orden", type: "number" },
   { name: "active", label: "Visible en la web", type: "boolean", column: true },
 ];
@@ -48,8 +48,8 @@ export const valueFields = (attrs: Opt[]): CrudField[] => [
   { name: "code", label: "Código", type: "text", column: true },
   { name: "hex", label: "Muestra de color", type: "color", nullable: true, column: true, hint: "Opcional." },
   { name: "image", label: "Imagen", type: "image", uploadUrl: UPLOAD, column: true, hint: "Miniatura opcional." },
-  { hidden: !SHOW_PRICES, name: "surcharge", label: "Recargo (S/)", type: "number", step: 0.01, column: true },
-  { hidden: !SHOW_PRICES, name: "surchargeKind", label: "Recargo por", type: "select", options: [{ value: "fijo", label: "Unidad" }, { value: "por_m2", label: "m²" }] },
+  { hidden: !SHOW_SURCHARGES, name: "surcharge", label: "Recargo (S/)", type: "number", step: 0.01, column: true },
+  { hidden: !SHOW_SURCHARGES, name: "surchargeKind", label: "Recargo por", type: "select", options: [{ value: "fijo", label: "Unidad" }, { value: "por_m2", label: "m²" }] },
   { name: "sortOrder", label: "Orden", type: "number" },
   { name: "active", label: "Activo", type: "boolean", column: true },
 ];
@@ -98,7 +98,7 @@ export const variantFields = (models: Opt[], values: Opt[], materials: Opt[] = [
   { name: "material", label: "Material", type: "select", nullable: true, options: materials, column: true, hint: "Vacío = cualquiera." },
   { name: "valueIds", label: "Combinación", type: "multiselect", options: values, column: true, hint: "Valores que fija esta variante." },
   { name: "attributes", label: "Otros datos", type: "text", hint: "Ej.: cofre 80 mm" },
-  { hidden: !SHOW_PRICES, name: "priceAdjustment", label: "Ajuste de precio (S/ por unidad)", type: "number", column: true },
+  { name: "priceAdjustment", label: "Ajuste de precio (S/ por unidad)", type: "number", column: true },
   { name: "sortOrder", label: "Orden", type: "number" },
   { name: "active", label: "Activa", type: "boolean", column: true },
 ];

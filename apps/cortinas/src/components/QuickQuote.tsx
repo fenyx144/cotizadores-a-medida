@@ -1,6 +1,5 @@
 "use client";
 /** Cotización rápida para particulares: contacto + ventanas o medición en obra. */
-import { SHOW_PRICES } from "@/lib/flags";
 import { useState } from "react";
 import { formatMoney } from "@portafolio/core/pricing";
 import { TextField } from "@portafolio/core/ui/Field";
@@ -90,9 +89,9 @@ export function QuickQuote({ catalog, defaults }: { catalog: CatalogData; defaul
 
       <aside className="lg:col-span-4 lg:col-start-9">
         <div className="border border-line bg-white-stone p-6 lg:sticky lg:top-24">
-          <p className="font-mono text-xs text-muted">{mode === "medidas" ? (SHOW_PRICES ? "Precio referencial" : "Solicitud de cotización") : "Medición en obra"}</p>
-          <p className="mt-2 font-serif text-[2.6rem] leading-none">{mode === "medidas" ? (SHOW_PRICES ? formatMoney(total) : "A medida") : "Sin costo"}</p>
-          <p className="mt-3 text-sm text-muted">{mode === "medidas" ? (SHOW_PRICES ? "Con instalación e IGV, tela estándar y cadena. Confirmamos al medir." : "Le enviamos la cotización tras revisar sus medidas.") : "Coordinamos la fecha por WhatsApp en un día hábil."}</p>
+          <p className="font-mono text-xs text-muted">{mode === "medidas" ? "Precio referencial" : "Medición en obra"}</p>
+          <p className="mt-2 font-serif text-[2.6rem] leading-none">{mode === "medidas" ? formatMoney(total) : "Sin costo"}</p>
+          <p className="mt-3 text-sm text-muted">{mode === "medidas" ? "Con instalación e IGV, tela estándar y cadena. Confirmamos al medir." : "Coordinamos la fecha por WhatsApp en un día hábil."}</p>
           {state.error && <p className="mt-4 text-sm text-danger">{state.error}</p>}
           <button type="button" disabled={pending} onClick={submit} className="mt-6 w-full bg-blue px-5 py-3 text-white-stone hover:bg-ink disabled:opacity-50">
             {pending ? "Enviando…" : "Enviar solicitud"}

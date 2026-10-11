@@ -3,7 +3,7 @@
  * Reglas del configurador: constructor que se lee como una frase, matriz de compatibilidad,
  * probador y aviso de conflictos. Habla con /api/admin/constraints.
  */
-import { SHOW_PRICES } from "@/lib/flags";
+import { SHOW_SURCHARGES } from "@/lib/flags";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ConstraintRule, RuleCondition } from "@portafolio/core/db/schema";
@@ -102,7 +102,7 @@ export function RulesStudio({ catalog, initialRules }: { catalog: CatalogData; i
         )}
         <div className="mt-4 grid gap-10 lg:grid-cols-[1fr_420px]">
           <ul className="divide-y divide-line border-y border-line">
-            {rules.filter((r) => SHOW_PRICES || r.kind !== "recargo").map((r) => (
+            {rules.filter((r) => SHOW_SURCHARGES || r.kind !== "recargo").map((r) => (
               <li key={r.id} className={`flex flex-wrap items-start gap-3 py-3 ${r.active ? "" : "opacity-50"}`} data-testid="rule-row">
                 <label className="mt-0.5 inline-flex cursor-pointer items-center" title={r.active ? "Activa" : "Desactivada"}>
                   <input type="checkbox" role="switch" className="peer sr-only" checked={r.active} onChange={() => toggle(r)} aria-label={`Activar ${r.name}`} />
@@ -163,7 +163,7 @@ export function RulesStudio({ catalog, initialRules }: { catalog: CatalogData; i
                 <p className="flex flex-wrap items-center gap-2">
                   <span>entonces</span>
                   <select className={sel} value={draft.kind} onChange={(e) => setDraft({ ...draft, kind: e.target.value as RuleEffect })} aria-label="Efecto">
-                    {Object.entries(RULE_EFFECTS).filter(([k]) => SHOW_PRICES || k !== "recargo").map(([k, l]) => <option key={k} value={k}>{l.toLowerCase()}</option>)}
+                    {Object.entries(RULE_EFFECTS).filter(([k]) => SHOW_SURCHARGES || k !== "recargo").map(([k, l]) => <option key={k} value={k}>{l.toLowerCase()}</option>)}
                   </select>
                   {(draft.kind === "bloquear" || draft.kind === "permitir") && (
                     <select className={sel} value={draft.targetAttributeId ?? ""} onChange={(e) => setDraft({ ...draft, targetAttributeId: Number(e.target.value) || null, targetValueIds: [] })} aria-label="Atributo afectado">
@@ -183,7 +183,7 @@ export function RulesStudio({ catalog, initialRules }: { catalog: CatalogData; i
                     ))}
                   </div>
                 )}
-                {SHOW_PRICES && draft.kind === "recargo" && (
+                {SHOW_SURCHARGES && draft.kind === "recargo" && (
                   <p className="flex items-center gap-2">S/ <input className={`${sel} w-20 font-mono`} value={draft.surcharge} onChange={(e) => setDraft({ ...draft, surcharge: e.target.value })} aria-label="Importe" />
                     <select className={sel} value={draft.surchargeKind} onChange={(e) => setDraft({ ...draft, surchargeKind: e.target.value as "fijo" })} aria-label="Recargo por"><option value="fijo">por unidad</option><option value="por_m2">por m²</option></select>
                   </p>

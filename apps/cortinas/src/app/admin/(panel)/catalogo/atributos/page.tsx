@@ -1,4 +1,4 @@
-import { SHOW_PRICES } from "@/lib/flags";
+import { SHOW_SURCHARGES } from "@/lib/flags";
 import Link from "next/link";
 import { CrudManager } from "@portafolio/core/ui/CrudManager";
 import { ATTRIBUTE_FIELDS, valueFields } from "@/lib/admin-fields";
@@ -21,7 +21,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
             {attributes.map((a) => <Link key={a.id} href={`/admin/catalogo/atributos?atributo=${a.id}`} className={tab(a.id === current.id)}>{a.name}</Link>)}
           </nav>
           <CrudManager key={current.id} resource="values" title={`Valores de “${current.name}”`} newLabel="Añadir valor"
-            description={current.kind === "sino" ? (SHOW_PRICES ? "Un solo valor (“Sí”) con su recargo." : "Un solo valor (“Sí”).") : current.kind === "numero" ? "El cliente escribe un número; no lleva valores." : (SHOW_PRICES ? "Cada valor: código, muestra de color o imagen, y recargo." : "Cada valor: código, muestra de color o imagen.")}
+            description={current.kind === "sino" ? (SHOW_SURCHARGES ? "Un solo valor (“Sí”) con su recargo." : "Un solo valor (“Sí”).") : current.kind === "numero" ? "El cliente escribe un número; no lleva valores." : (SHOW_SURCHARGES ? "Cada valor: código, muestra de color o imagen, y recargo." : "Cada valor: código, muestra de color o imagen.")}
             fields={valueFields(attributes.map((a) => ({ value: String(a.id), label: a.name }))).map((f) => (f.name === "attributeId" ? { ...f, options: [{ value: String(current.id), label: current.name }, ...(f.options ?? []).filter((o) => o.value !== String(current.id))] } : f))}
             initialRows={rows} />
         </div>

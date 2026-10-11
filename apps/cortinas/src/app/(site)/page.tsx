@@ -49,7 +49,7 @@ export default function HomePage() {
           {[
             ["01", "Suba el plano", "PDF o imagen. También puede listar ambientes o pedir que midamos en obra."],
             ["02", "Marque y configure", "Cada ventana con su código, producto, tela, medidas y cantidad."],
-            ["03", "Reciba la cotización", "Resumen por ambiente y por producto, en PDF y Excel."],
+            ["03", "Reciba la cotización", "Totales por ambiente y por producto, en PDF y Excel, con IGV."],
           ].map(([n, title, text], i) => (
             <Reveal key={n} delay={i * 90} className={`py-8 md:px-8 ${i ? "border-t border-line md:border-l md:border-t-0" : "md:pl-0"}`}>
               <p className="font-mono text-xs text-muted">{n}</p>

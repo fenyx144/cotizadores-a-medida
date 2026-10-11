@@ -1,6 +1,5 @@
 "use client";
 /** Selector de variante (código de artículo). Elegir una variante fija sus valores de atributo. */
-import { SHOW_PRICES } from "@/lib/flags";
 import type { CatalogData } from "@/lib/line-price";
 import { matchVariant, variantValues, variantsFor, type Values } from "@/lib/rules";
 
@@ -17,7 +16,7 @@ export function VariantPicker({ catalog, modelId, values, disabled, onPick, clas
       <select className={className} disabled={disabled} value={current?.id ?? ""} name="variantId"
         onChange={(e) => { const v = list.find((x) => x.id === Number(e.target.value)); if (v) onPick(variantValues(catalog, v)); }}>
         {!current && <option value="">Sin variante para esta combinación</option>}
-        {list.map((v) => <option key={v.id} value={v.id}>{v.code} · {v.name}{SHOW_PRICES && v.priceAdjustment ? ` (${v.priceAdjustment > 0 ? "+" : "−"}S/ ${Math.abs(v.priceAdjustment)})` : ""}</option>)}
+        {list.map((v) => <option key={v.id} value={v.id}>{v.code} · {v.name}{v.priceAdjustment ? ` (${v.priceAdjustment > 0 ? "+" : "−"}S/ ${Math.abs(v.priceAdjustment)})` : ""}</option>)}
       </select>
     </label>
   );

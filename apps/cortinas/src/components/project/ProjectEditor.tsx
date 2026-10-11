@@ -1,5 +1,4 @@
 "use client";
-import { SHOW_PRICES } from "@/lib/flags";
 import { StatusChip } from "@/components/StatusChip";
 /**
  * Editor "Mi proyecto": cabecera + cuatro pestañas.
@@ -64,7 +63,7 @@ export function ProjectEditor({ initial, catalog, initialTab }: { initial: Proje
         <dl className="flex gap-8 md:col-span-5 md:justify-end">
           <div><dt className="font-mono text-[11px] text-muted">Cortinas</dt><dd className="font-serif text-[1.8rem] leading-none" data-testid="header-windows">{s.windows}</dd></div>
           <div><dt className="font-mono text-[11px] text-muted">Ubicaciones</dt><dd className="font-serif text-[1.8rem] leading-none">{data.locations.length}</dd></div>
-          {SHOW_PRICES && <div><dt className="font-mono text-[11px] text-muted">Total con IGV</dt><dd className="font-serif text-[1.8rem] leading-none">{formatMoney(s.total)}</dd></div>}
+          <div><dt className="font-mono text-[11px] text-muted">Total con IGV</dt><dd className="font-serif text-[1.8rem] leading-none">{formatMoney(s.total)}</dd></div>
         </dl>
       </header>
 
