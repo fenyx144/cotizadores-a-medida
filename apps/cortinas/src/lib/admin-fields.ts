@@ -63,11 +63,11 @@ export const RULE_FIELDS: CrudField[] = [
   { name: "active", label: "Activa", type: "boolean", column: true },
 ];
 
-export const familyFields = (attrOptions: AttrOption[], materials: Opt[] = []): CrudField[] => [
+export const familyFields = (attrOptions: AttrOption[], materials: Opt[] = [], materialLinks?: CrudField["materialLinks"]): CrudField[] => [
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "materials", label: "Materiales permitidos", type: "multiselect", options: materials, column: true, hint: "Sin marcar = todos." },
   { name: "description", label: "Descripción", type: "textarea" },
-  { name: "attributes", label: "Atributos que pide", type: "attrs", attrOptions, column: true, hint: "Valores sin marcar = todos." },
+  { name: "attributes", label: "Atributos resultantes", type: "attrs", attrOptions, materialLinks, column: true, hint: "Genéricos y los que activan los materiales elegidos. Valores sin marcar = todos." },
   { name: "minWidth", label: "Ancho mínimo por defecto (cm)", type: "number" },
   { name: "maxWidth", label: "Ancho máximo por defecto (cm)", type: "number", column: true },
   { name: "minHeight", label: "Alto mínimo por defecto (cm)", type: "number" },
@@ -77,6 +77,7 @@ export const familyFields = (attrOptions: AttrOption[], materials: Opt[] = []): 
 
 
 export const materialFields = (attrOptions: AttrOption[]): CrudField[] => [...MATERIAL_FIELDS,
+  { name: "usedBy", label: "Usado en", type: "text", column: true, readOnly: true },
   { name: "attributes", label: "Atributos de este material", type: "attrs", attrOptions, noRequired: true, hint: "Sin valores marcados se permiten todos." }];
 
 export const MATERIAL_FIELDS: CrudField[] = [

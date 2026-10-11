@@ -26,6 +26,10 @@ export interface CrudField {
   uploadUrl?: string;
   /** Para "attrs": atributos que se pueden pedir. */
   attrOptions?: AttrOption[];
+  /** En "attrs": enlace con un campo de materiales (multiselect). Los atributos "según material" que activan los materiales elegidos se añaden/quitan solos. */
+  materialLinks?: { field: string; scoped: number[]; materials: { slug: string; name: string; attrs: { attributeId: number; valueIds: number[] }[] }[] };
+  /** Solo se muestra en la tabla; no se edita. */
+  readOnly?: boolean;
   /** En "select": limita las opciones según el valor de otro campo (map[valor] = opciones permitidas; sin entrada = todas). */
   filterBy?: { field: string; map: Record<string, string[]> };
   /** En "attrs": ocultar "Obligatorio" (materiales). Los atributos con defaultOn vienen marcados salvo que se desmarquen (valueIds [-1]). */
@@ -68,6 +72,7 @@ export function CrudManager({
   function toPayload(row: Partial<Row>) {
     const out: Record<string, unknown> = {};
     for (const f of fields) {
+      if (f.readOnly) continue;
       let v = row[f.name];
       if (f.type === "number") v = v === "" || v === null || v === undefined ? (f.nullable ? null : 0) : Number(v);
       else if (f.type === "gallery" || f.type === "attrs") v = Array.isArray(v) ? v : [];
@@ -182,10 +187,10 @@ export function CrudManager({
             className="space-y-4 self-start border-t border-ink pt-4 lg:sticky lg:top-8"
           >
             <p className="font-serif text-xl">{editing.id ? "Editar" : "Nuevo registro"}</p>
-            {fields.map((f) => f.type === "image" || f.type === "gallery" ? (
+            {fields.filter((f) => !f.readOnly).map((f) => f.type === "image" || f.type === "gallery" ? (
               <PhotoField key={f.name} field={f} value={editing[f.name]} error={errors[f.name]} onChange={(v) => setEditing({ ...editing, [f.name]: v })} />
             ) : f.type === "attrs" ? (
-              <AttrsEditor key={f.name} field={f} error={errors[f.name]} value={(editing[f.name] as AttrConf[] | undefined) ?? []}
+              <AttrsEditor key={f.name} field={f} error={errors[f.name]} value={(editing[f.name] as AttrConf[] | undefined) ?? []} linked={f.materialLinks ? String(editing[f.materialLinks.field] ?? "") : ""}
                 onChange={(v) => setEditing({ ...editing, [f.name]: v })} />
             ) : f.type === "specs" ? (
               <SpecsEditor key={f.name} label={f.label} hint={f.hint} error={errors[f.name]}
@@ -206,7 +211,12 @@ export function CrudManager({
                       return (
                         <label key={o.value} className="inline-flex items-center gap-1.5">
                           <input type="checkbox" checked={on} className="accent-ink" aria-label={o.label}
-                            onChange={() => setEditing({ ...editing, [f.name]: (on ? cur.filter((x) => x !== o.value) : [...cur, o.value]).join(",") })} />
+                            onChange={() => {
+                              const nextVal = (on ? cur.filter((x) => x !== o.value) : [...cur, o.value]).join(",");
+                              const next: Partial<Row> = { ...editing, [f.name]: nextVal };
+                              for (const af of fields) if (af.materialLinks?.field === f.name) next[af.name] = syncAttrs(af, nextVal, (editing[af.name] as AttrConf[] | undefined) ?? []);
+                              setEditing(next);
+                            }} />
                           <span>{o.label}</span>
                         </label>
                       );
@@ -326,7 +336,20 @@ function PhotoField({ field, value, error, onChange }: { field: CrudField; value
 }
 
 /** Atributos que pide una categoría: marcar, obligatorio y valores permitidos (sin marcar = todos). */
-function AttrsEditor({ field, value, error, onChange }: { field: CrudField; value: AttrConf[]; error?: string; onChange: (v: AttrConf[]) => void }) {
+/** Materiales elegidos que activan un atributo (con sus valores permitidos). */
+function sourcesFor(field: CrudField, linked: string, attributeId: number) {
+  const sel = linked.split(",").filter(Boolean);
+  return (field.materialLinks?.materials ?? []).filter((m) => sel.includes(m.slug)).map((m) => ({ m, e: m.attrs.find((x) => x.attributeId === attributeId) })).filter((x) => x.e && x.e.valueIds[0] !== -1);
+}
+/** Añade los atributos que activan los materiales elegidos y quita los que ya no activa ninguno. */
+function syncAttrs(field: CrudField, linked: string, value: AttrConf[]): AttrConf[] {
+  const scoped = field.materialLinks?.scoped ?? [];
+  let next = value.filter((v) => !scoped.includes(v.attributeId) || sourcesFor(field, linked, v.attributeId).length > 0);
+  for (const id of scoped) if (!next.some((v) => v.attributeId === id) && sourcesFor(field, linked, id).length) next = [...next, { attributeId: id, required: true, valueIds: [] }];
+  return next;
+}
+
+function AttrsEditor({ field, value, error, onChange, linked = "" }: { field: CrudField; value: AttrConf[]; error?: string; onChange: (v: AttrConf[]) => void; linked?: string }) {
   const find = (id: number) => value.find((v) => v.attributeId === id);
   const set = (id: number, patch: Partial<AttrConf> | null) => {
     const cur = find(id);
@@ -337,7 +360,10 @@ function AttrsEditor({ field, value, error, onChange }: { field: CrudField; valu
     <div className="block text-sm" data-testid="attrs-editor">
       <span className="text-muted">{field.label}</span>
       <div className="mt-1 divide-y divide-line border-y border-line">
-        {(field.attrOptions ?? []).map((a) => {
+        {(field.attrOptions ?? []).filter((a) => !field.materialLinks?.scoped.includes(a.id) || sourcesFor(field, linked, a.id).length).map((a) => {
+          const src = field.materialLinks?.scoped.includes(a.id) ? sourcesFor(field, linked, a.id) : [];
+          const srcValues = src.some((x) => !x.e!.valueIds.length) ? [] : [...new Set(src.flatMap((x) => x.e!.valueIds))];
+          a = srcValues.length ? { ...a, values: a.values.filter((v) => srcValues.includes(v.id)) } : a;
           const raw = find(a.id);
           const off = raw?.valueIds[0] === -1;
           const cur = a.defaultOn ? (off ? undefined : raw ?? { attributeId: a.id, required: false, valueIds: [] }) : raw;
@@ -347,7 +373,8 @@ function AttrsEditor({ field, value, error, onChange }: { field: CrudField; valu
                 <label className="inline-flex items-center gap-2">
                   <input type="checkbox" className="accent-ink" checked={!!cur} onChange={(e) => (a.defaultOn ? set(a.id, e.target.checked ? null : { valueIds: [-1] }) : set(a.id, e.target.checked ? {} : null))} aria-label={`Pedir ${a.name}`} />
                   <span className={cur ? "" : "text-muted"}>{a.name}</span>
-                  {a.note && <span className="text-xs text-muted">{a.note}</span>}
+                  {a.note && !field.materialLinks && <span className="text-xs text-muted">{a.note}</span>}
+                  {src.length > 0 && <span className="text-xs text-accent" data-testid="attr-source">desde material {src.map((x) => x.m.name).join(", ")}</span>}
                 </label>
                 {cur && !field.noRequired && (
                   <label className="inline-flex items-center gap-1.5 text-xs text-muted">

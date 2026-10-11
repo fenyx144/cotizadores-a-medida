@@ -5,7 +5,7 @@ import { familyFields } from "@/lib/admin-fields";
 import { attributeData } from "@/lib/admin-catalog";
 
 export default async function Page() {
-  const [rows, { attrOptions }, materials] = await Promise.all([
+  const [rows, { attrOptions, attributes }, materials] = await Promise.all([
     getDb().select().from(schema.productFamilies).orderBy(asc(schema.productFamilies.sortOrder), asc(schema.productFamilies.id)),
     attributeData(),
     getDb().select().from(schema.materials).orderBy(asc(schema.materials.sortOrder)),
@@ -13,6 +13,9 @@ export default async function Page() {
   return (
     <CrudManager resource="families" title="3 · Categorías" newLabel="Añadir categoría"
       description="Qué materiales y atributos admite cada categoría."
-      fields={familyFields(attrOptions.map(({ defaultOn: _d, note: _n, ...a }) => a), materials.map((m) => ({ value: m.slug, label: m.name })))} initialRows={rows} />
+      fields={familyFields(attrOptions.map(({ defaultOn: _d, note: _n, ...a }) => a), materials.map((m) => ({ value: m.slug, label: m.name })), {
+        field: "materials", scoped: attributes.filter((a) => a.scope === "material").map((a) => a.id),
+        materials: materials.map((m) => ({ slug: m.slug, name: m.name, attrs: m.attributes })),
+      })} initialRows={rows} />
   );
 }
