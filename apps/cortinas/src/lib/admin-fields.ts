@@ -14,7 +14,7 @@ export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_
   { name: "image", label: "Foto principal", type: "image", uploadUrl: UPLOAD, column: true },
   { name: "familyId", label: "Categoría", type: "select", nullable: true, options: families, column: true },
   { name: "slug", label: "Dirección web", type: "text" },
-  { name: "type", label: "Tipo", type: "select", options: opts(TYPE_LABELS), column: true },
+  { name: "type", label: "Mecanismo", type: "select", options: opts(TYPE_LABELS), column: true, hint: "Define el dibujo de la vista previa y los recargos generales por mecanismo." },
   { name: "material", label: "Material", type: "select", options: materials, column: true, filterBy: { field: "familyId", map: familyMaterials }, hint: "Solo los que permite la categoría." },
   { name: "uses", label: "Usos", type: "text", hint: "Separados por comas: educacion,oficinas,salud" },
   { name: "tagline", label: "Frase corta", type: "text" },
@@ -58,7 +58,7 @@ export const RULE_FIELDS: CrudField[] = [
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "kind", label: "Tipo de regla", type: "select", options: [{ value: "fijo", label: "Importe fijo (S/)" }, { value: "por_m2", label: "Importe por m² (S/)" }, { value: "porcentaje", label: "Porcentaje (%)" }], column: true },
   { name: "amount", label: "Importe", type: "number", step: 0.01, column: true },
-  { name: "modelType", label: "Solo para tipo", type: "select", nullable: true, options: opts(TYPE_LABELS), column: true },
+  { name: "modelType", label: "Solo para mecanismo", type: "select", nullable: true, options: opts(TYPE_LABELS), column: true },
   { name: "minArea", label: "A partir de (m²)", type: "number", step: 0.1, nullable: true, column: true },
   { name: "optionRef", label: "Solo si se elige", type: "select", nullable: true, options: [], column: true },
   { name: "active", label: "Activa", type: "boolean", column: true },
@@ -66,9 +66,9 @@ export const RULE_FIELDS: CrudField[] = [
 
 export const familyFields = (attrOptions: AttrOption[], materials: Opt[] = [], materialLinks?: CrudField["materialLinks"]): CrudField[] => [
   { name: "name", label: "Nombre", type: "text", column: true },
-  { name: "materials", label: "Materiales permitidos", type: "multiselect", options: materials, column: true, hint: "Sin marcar = todos." },
+  { name: "materials", label: "Materiales permitidos", type: "multiselect", options: materials, allLabel: "Todos", column: true },
   { name: "description", label: "Descripción", type: "textarea" },
-  { name: "attributes", label: "Atributos resultantes", type: "attrs", attrOptions, materialLinks, column: true, hint: "Genéricos y los que activan los materiales elegidos. Valores sin marcar = todos." },
+  { name: "attributes", label: "Atributos resultantes", type: "attrs", attrOptions, materialLinks, column: true, hint: "Genéricos y los que activan los materiales elegidos." },
   { name: "minWidth", label: "Ancho mínimo por defecto (cm)", type: "number" },
   { name: "maxWidth", label: "Ancho máximo por defecto (cm)", type: "number", column: true },
   { name: "minHeight", label: "Alto mínimo por defecto (cm)", type: "number" },
@@ -79,7 +79,7 @@ export const familyFields = (attrOptions: AttrOption[], materials: Opt[] = [], m
 
 export const materialFields = (attrOptions: AttrOption[]): CrudField[] => [...MATERIAL_FIELDS,
   { name: "usedBy", label: "Usado en", type: "text", column: true, readOnly: true },
-  { name: "attributes", label: "Atributos de este material", type: "attrs", attrOptions, noRequired: true, hint: "Sin valores marcados se permiten todos." }];
+  { name: "attributes", label: "Atributos de este material", type: "attrs", attrOptions, noRequired: true, hint: "Marque los que aplican y sus valores." }];
 
 export const MATERIAL_FIELDS: CrudField[] = [
   { name: "name", label: "Nombre", type: "text", column: true },

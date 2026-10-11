@@ -30,6 +30,8 @@ export interface CrudField {
   materialLinks?: { field: string; scoped: number[]; materials: { slug: string; name: string; attrs: { attributeId: number; valueIds: number[] }[] }[] };
   /** Solo se muestra en la tabla; no se edita. */
   readOnly?: boolean;
+  /** En "multiselect": casilla "Todos" (valor vacío = todos, también los futuros). */
+  allLabel?: string;
   /** En "select": limita las opciones según el valor de otro campo (map[valor] = opciones permitidas; sin entrada = todas). */
   filterBy?: { field: string; map: Record<string, string[]> };
   /** En "attrs": ocultar "Obligatorio" (materiales). Los atributos con defaultOn vienen marcados salvo que se desmarquen (valueIds [-1]). */
@@ -205,14 +207,30 @@ export function CrudManager({
                   <input type="checkbox" checked={Boolean(editing[f.name])} onChange={(e) => setEditing({ ...editing, [f.name]: e.target.checked })} className="ml-3 align-middle accent-ink" />
                 ) : f.type === "multiselect" ? (
                   <span className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
-                    {f.options?.map((o) => {
-                      const cur = String(editing[f.name] ?? "").split(",").filter(Boolean);
-                      const on = cur.includes(o.value);
+                    {f.allLabel && (() => {
+                      const all = !String(editing[f.name] ?? "");
+                      const apply = (nextVal: string) => {
+                        const next: Partial<Row> = { ...editing, [f.name]: nextVal };
+                        for (const af of fields) if (af.materialLinks?.field === f.name) next[af.name] = syncAttrs(af, nextVal, (editing[af.name] as AttrConf[] | undefined) ?? []);
+                        setEditing(next);
+                      };
                       return (
-                        <label key={o.value} className="inline-flex items-center gap-1.5">
-                          <input type="checkbox" checked={on} className="accent-ink" aria-label={o.label}
+                        <label className="inline-flex items-center gap-1.5 font-medium">
+                          <input type="checkbox" checked={all} className="accent-ink" aria-label={`${f.label}: ${f.allLabel}`} onChange={(e) => apply(e.target.checked ? "" : (f.options ?? []).map((o) => o.value).join(","))} />
+                          <span>{f.allLabel}</span>
+                        </label>
+                      );
+                    })()}
+                    {f.options?.map((o) => {
+                      const all = !!f.allLabel && !String(editing[f.name] ?? "");
+                      const cur = String(editing[f.name] ?? "").split(",").filter(Boolean);
+                      const on = all || cur.includes(o.value);
+                      return (
+                        <label key={o.value} className={`inline-flex items-center gap-1.5 ${all ? "text-muted" : ""}`}>
+                          <input type="checkbox" checked={on} disabled={all} className="accent-ink" aria-label={o.label}
                             onChange={() => {
                               const nextVal = (on ? cur.filter((x) => x !== o.value) : [...cur, o.value]).join(",");
+                              if (f.allLabel && !nextVal) return;
                               const next: Partial<Row> = { ...editing, [f.name]: nextVal };
                               for (const af of fields) if (af.materialLinks?.field === f.name) next[af.name] = syncAttrs(af, nextVal, (editing[af.name] as AttrConf[] | undefined) ?? []);
                               setEditing(next);
@@ -335,11 +353,11 @@ function PhotoField({ field, value, error, onChange }: { field: CrudField; value
   );
 }
 
-/** Atributos que pide una categoría: marcar, obligatorio y valores permitidos (sin marcar = todos). */
+/** Atributos que pide una categoría: marcar, obligatorio y valores permitidos ("Todos" = lista vacía). */
 /** Materiales elegidos que activan un atributo (con sus valores permitidos). */
 function sourcesFor(field: CrudField, linked: string, attributeId: number) {
   const sel = linked.split(",").filter(Boolean);
-  return (field.materialLinks?.materials ?? []).filter((m) => sel.includes(m.slug)).map((m) => ({ m, e: m.attrs.find((x) => x.attributeId === attributeId) })).filter((x) => x.e && x.e.valueIds[0] !== -1);
+  return (field.materialLinks?.materials ?? []).filter((m) => !sel.length || sel.includes(m.slug)).map((m) => ({ m, e: m.attrs.find((x) => x.attributeId === attributeId) })).filter((x) => x.e && x.e.valueIds[0] !== -1);
 }
 /** Añade los atributos que activan los materiales elegidos y quita los que ya no activa ninguno. */
 function syncAttrs(field: CrudField, linked: string, value: AttrConf[]): AttrConf[] {
@@ -385,11 +403,19 @@ function AttrsEditor({ field, value, error, onChange, linked = "" }: { field: Cr
               </div>
               {cur && a.values.length > 0 && (
                 <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 pl-6 text-xs">
+                  {/* "Todos": lista vacía = todos los valores, también los que se creen después. */}
+                  <label className="inline-flex items-center gap-1 font-medium">
+                    <input type="checkbox" className="accent-ink" checked={!cur.valueIds.length} aria-label={`${a.name}: todos los valores`}
+                      onChange={(e) => set(a.id, { valueIds: e.target.checked ? [] : a.values.map((v) => v.id) })} />
+                    <span>Todos</span>
+                  </label>
                   {a.values.map((v) => {
-                    const on = cur.valueIds.includes(v.id);
+                    const all = !cur.valueIds.length;
+                    const on = all || cur.valueIds.includes(v.id);
                     return (
-                      <label key={v.id} className="inline-flex items-center gap-1">
-                        <input type="checkbox" className="accent-ink" checked={on} onChange={() => set(a.id, { valueIds: on ? cur.valueIds.filter((x) => x !== v.id) : [...cur.valueIds, v.id] })} />
+                      <label key={v.id} className={`inline-flex items-center gap-1 ${all ? "text-muted" : ""}`}>
+                        <input type="checkbox" className="accent-ink" checked={on} disabled={all}
+                          onChange={() => { const next = on ? cur.valueIds.filter((x) => x !== v.id) : [...cur.valueIds, v.id]; if (next.length) set(a.id, { valueIds: next }); }} />
                         <span>{v.name}</span>
                       </label>
                     );
