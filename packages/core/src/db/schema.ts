@@ -29,10 +29,42 @@ export const productVariants = pgTable("product_variants", {
   fabricId: integer("fabric_id"),
   frameColorId: integer("frame_color_id"),
   attributes: text("attributes").notNull().default(""),
+  /** Valores de atributo que fija la variante (ids separados por coma). */
+  valueIds: text("value_ids").notNull().default(""),
   priceAdjustment: integer("price_adjustment").notNull().default(0),
   active: boolean("active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
 });
+
+/**
+ * Atributos genéricos del configurador (Tela, Color del perfil, Accionamiento, Lado del mando…).
+ * kind: lista (opciones) | color (opciones con muestra) | numero | sino.
+ */
+export const attributes = pgTable("attributes", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  kind: text("kind").notNull().default("lista"),
+  unit: text("unit").notNull().default(""),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+/** Valores de un atributo. El recargo es fijo por unidad o por m². */
+export const attributeValues = pgTable("attribute_values", {
+  id: serial("id").primaryKey(),
+  attributeId: integer("attribute_id").notNull(),
+  name: text("name").notNull(),
+  code: text("code").notNull().default(""),
+  hex: text("hex").notNull().default(""),
+  surcharge: real("surcharge").notNull().default(0),
+  surchargeKind: text("surcharge_kind").notNull().default("fijo"), // fijo | por_m2
+  /** Solo para estos materiales o tipos de producto (coma); vacío = todos. */
+  onlyFor: text("only_for").notNull().default(""),
+  active: boolean("active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
+
+/** Atributo que pide una familia: obligatorio o no, y valores permitidos (vacío = todos). */
+export interface FamilyAttribute { attributeId: number; required: boolean; valueIds: number[] }
 
 /** Plantilla / familia de productos: parámetros requeridos, medidas por defecto y opciones permitidas. */
 export const productFamilies = pgTable("product_families", {
@@ -50,6 +82,8 @@ export const productFamilies = pgTable("product_families", {
   allowedDrives: text("allowed_drives").notNull().default(""),
   allowedFrameIds: text("allowed_frame_ids").notNull().default(""),
   allowedFabricIds: text("allowed_fabric_ids").notNull().default(""),
+  /** Atributos que pide la familia, en orden. */
+  attributes: jsonb("attributes").$type<FamilyAttribute[]>().notNull().default([]),
   sortOrder: integer("sort_order").notNull().default(0),
 });
 
@@ -217,6 +251,8 @@ export interface LeadConfiguration {
 }
 
 export type ProductModel = typeof productModels.$inferSelect;
+export type Attribute = typeof attributes.$inferSelect;
+export type AttributeValue = typeof attributeValues.$inferSelect;
 export type ProductVariant = typeof productVariants.$inferSelect;
 export type Material = typeof materials.$inferSelect;
 export type ProductFamily = typeof productFamilies.$inferSelect;

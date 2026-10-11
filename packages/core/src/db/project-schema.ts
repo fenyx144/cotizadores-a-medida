@@ -127,20 +127,37 @@ export interface MeasurementRequest {
 }
 
 /** Configuración de una línea con snapshot de nombres legibles. */
+/** Opción elegida en una línea, ya con nombres (para mostrar y exportar sin el catálogo). */
+export interface LineOption {
+  attributeId: number;
+  attribute: string;
+  value: string;
+  valueId?: number;
+  code?: string;
+  hex?: string;
+}
+
 export interface LineConfig {
   modelId: number;
   modelName: string;
   modelType: string;
-  fabricId: number;
-  fabricName: string;
-  fabricHex: string;
-  frameColorId: number;
-  frameColorName: string;
-  drive: "manual" | "motor" | "sensor";
+  /** Valor por atributo (clave = id del atributo). */
+  values: Record<string, number | boolean | null | undefined>;
+  options: LineOption[];
   /** Variante (código de artículo) que corresponde a la combinación elegida. */
   variantId?: number | null;
   variantCode?: string | null;
   variantName?: string | null;
+}
+
+/** Resumen de opciones de una línea ("Arena · Blanco · Motor con mando"). */
+export function configSummary(c: LineConfig | null | undefined): string {
+  return c?.options?.map((o) => o.value).join(" · ") ?? "";
+}
+
+/** Color de muestra de la línea (el primer valor con color). */
+export function configHex(c: LineConfig | null | undefined): string {
+  return c?.options?.find((o) => o.hex)?.hex ?? "#cccccc";
 }
 
 export type Client = typeof clients.$inferSelect;

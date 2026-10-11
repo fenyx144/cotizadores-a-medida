@@ -3,8 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq } from "drizzle-orm";
 import { formatMeters, formatMoney } from "@portafolio/core/pricing";
-import { fabricsFor, getCatalog } from "@/lib/catalog";
-import { DRIVE_LABELS, MATERIAL_LABELS, TYPE_LABELS, USE_LABELS } from "@/lib/content";
+import { getCatalog } from "@/lib/catalog";
+import { MATERIAL_LABELS, TYPE_LABELS, USE_LABELS } from "@/lib/content";
 import { getClientSession } from "@/lib/client-session";
 import { getDb, schema } from "@/lib/db";
 import { CurtainPreview } from "@/components/CurtainPreview";
@@ -18,7 +18,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const catalog = await getCatalog();
   const model = catalog.models.find((m) => m.slug === slug);
   if (!model) notFound();
-  const fabrics = fabricsFor(catalog, model);
   const session = await getClientSession();
   // Proyectos en borrador del cliente, para "agregar al proyecto".
   const drafts = session
@@ -29,12 +28,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         .orderBy(desc(schema.projects.updatedAt))
     : [];
   const [me] = session ? await getDb().select({ kind: schema.clients.kind }).from(schema.clients).where(eq(schema.clients.id, session.userId)) : [];
-  const motorRule = catalog.rules.find((r) => r.drive === "motor");
+
   const photos = [model.image, ...model.gallery].filter(Boolean);
-  // Variantes: telas × colores de perfil × accionamientos permitidos por la categoría.
-  const variants = evaluate(catalog, { modelId: model.id });
-  variants.frames = variants.requires.frame ? variants.frames : [];
-  const frameList = catalog.frames.filter((f) => variants.frames.some((x) => x.value === f.id));
+  // Opciones: los atributos que pide la categoría, con sus valores permitidos.
+  const options = evaluate(catalog, { modelId: model.id }).fields.filter((f) => f.choices.length && f.kind !== "sino");
+  const extras = evaluate(catalog, { modelId: model.id }).fields.filter((f) => f.kind === "sino" || f.kind === "numero");
+  const firstHex = options.flatMap((f) => f.choices).find((c) => c.hex)?.hex ?? "#ccc";
 
   return (
     <div className="mx-auto max-w-[1360px] px-5 pt-8 md:px-10">
@@ -54,7 +53,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               </div>
             ))}
             <div className="grid-paper flex aspect-[4/3] items-center justify-center border border-line bg-white-stone">
-              <CurtainPreview width={150} height={150} hex={fabrics[0]?.hex ?? "#ccc"} type={model.type} className="h-full w-full p-2" />
+              <CurtainPreview width={150} height={150} hex={firstHex} type={model.type} className="h-full w-full p-2" />
             </div>
           </div>
         </div>
@@ -69,17 +68,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             <div className="flex justify-between py-3"><dt className="text-muted">Ancho</dt><dd className="font-mono text-sm">{formatMeters(model.minWidth)} – {formatMeters(model.maxWidth)}</dd></div>
             <div className="flex justify-between py-3"><dt className="text-muted">Alto</dt><dd className="font-mono text-sm">{formatMeters(model.minProjection)} – {formatMeters(model.maxProjection)}</dd></div>
             <div className="flex justify-between py-3"><dt className="text-muted">Precio base</dt><dd>{formatMoney(model.basePrice)} + {formatMoney(model.pricePerM2)}/m²</dd></div>
-            <div className="py-3">
-              <dt className="text-muted">Accionamiento</dt>
-              <dd className="mt-2 space-y-1">
-                {(["manual", "motor", "sensor"] as const).map((d) => {
-                  const rule = catalog.rules.find((r) => r.drive === d);
-                  return (
-                    <p key={d} className="flex justify-between"><span>{DRIVE_LABELS[d]}</span><span className="text-muted">{rule ? `+ ${formatMoney(rule.amount)}` : "Incluido"}</span></p>
-                  );
-                })}
-              </dd>
-            </div>
           </dl>
 
           {model.specs?.length > 0 && (
@@ -95,39 +83,31 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </section>
           )}
 
-          <div className="mt-8">
-            <p className="font-mono text-xs text-muted">Telas ({fabrics.length})</p>
-            <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-              {fabrics.map((f) => (
-                <li key={f.id} className="flex items-center gap-3">
-                  <span className="size-8 shrink-0 border border-line" style={{ background: f.hex }} />
-                  <span>
-                    {f.name}
-                    <span className="block font-mono text-[11px] text-muted">{f.code}{f.surchargePerM2 ? ` · +${formatMoney(f.surchargePerM2)}/m²` : ""}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {variants.frames.length > 0 && (
-            <div className="mt-8" data-testid="frame-colors">
-              <p className="font-mono text-xs text-muted">Colores de perfil ({variants.frames.length})</p>
+          {options.map((f) => (
+            <div key={f.attribute.id} className="mt-8" data-testid="option-group">
+              <p className="font-mono text-xs text-muted">{f.attribute.name} ({f.choices.length})</p>
               <ul className="mt-3 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                {frameList.map((f) => (
-                  <li key={f.id} className="flex items-center gap-3">
-                    <span className="size-8 shrink-0 rounded-full border border-line" style={{ background: f.hex }} />
-                    <span>{f.name}<span className="block font-mono text-[11px] text-muted">{f.ral ? `RAL ${f.ral}` : ""}</span></span>
-                  </li>
-                ))}
+                {f.choices.map((c) => {
+                  const v = catalog.values.find((x) => x.id === c.value)!;
+                  return (
+                    <li key={c.value} className="flex items-center gap-3">
+                      {c.hex && <span className={`size-8 shrink-0 border border-line ${f.kind === "color" && f.attribute.name.toLowerCase().includes("perfil") ? "rounded-full" : ""}`} style={{ background: c.hex }} />}
+                      <span>
+                        {v.name}
+                        {(v.code || v.surcharge > 0) && <span className="block font-mono text-[11px] text-muted">{v.code}{v.surcharge > 0 ? `${v.code ? " · " : ""}+${formatMoney(v.surcharge)}${v.surchargeKind === "por_m2" ? "/m²" : ""}` : ""}</span>}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
-          )}
+          ))}
+          {extras.length > 0 && <p className="mt-6 text-sm text-muted">También: {extras.map((f) => f.attribute.name.toLowerCase()).join(", ")}.</p>}
 
           <div className="mt-10 border-t border-ink pt-6">
             <h2 className="text-[1.6rem]">Configurar y cotizar</h2>
             <AddToProject modelId={model.id} slug={model.slug} catalog={catalog} projects={drafts} loggedIn={!!session} particular={me?.kind === "particular"} />
-            {motorRule && <p className="mt-4 text-xs text-muted">Motorización desde {formatMoney(motorRule.amount)} por cortina. Precios con IGV.</p>}
+            <p className="mt-4 text-xs text-muted">Precios con IGV.</p>
           </div>
         </div>
       </div>

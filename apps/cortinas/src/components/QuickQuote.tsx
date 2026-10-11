@@ -5,6 +5,7 @@ import { formatMoney } from "@portafolio/core/pricing";
 import { TextField } from "@portafolio/core/ui/Field";
 import { submitQuickQuote } from "@/app/actions/particular";
 import { priceLine, type CatalogData } from "@/lib/line-price";
+import { withDefaults } from "@/lib/rules";
 import { DISTRICTS } from "@/lib/content";
 
 type Row = { room: string; modelId: number; width: string; height: string; quantity: string };
@@ -18,7 +19,7 @@ export function QuickQuote({ catalog, defaults }: { catalog: CatalogData; defaul
   const [pending, setPending] = useState(false);
 
   const total = rows.reduce((s, r) => {
-    const p = priceLine(catalog, { modelId: r.modelId, fabricId: 0, frameColorId: 0, drive: "manual", width: Number(r.width) || 0, height: Number(r.height) || 0 });
+    const p = priceLine(catalog, { modelId: r.modelId, values: withDefaults(catalog, { modelId: r.modelId }), width: Number(r.width) || 0, height: Number(r.height) || 0 });
     return s + (p && Number(r.width) && Number(r.height) ? p.unitPrice * (Number(r.quantity) || 1) : 0);
   }, 0);
   const set = (i: number, patch: Partial<Row>) => setRows(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));

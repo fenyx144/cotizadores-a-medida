@@ -1,53 +1,63 @@
 import { describe, expect, it } from "vitest";
-import type { ConstraintRule, Fabric, FrameColor, ProductFamily, ProductModel } from "@portafolio/core/db/schema";
-import type { PricingRule } from "@portafolio/core/pricing";
-import { evaluate } from "./rules";
+import { cleanValues, evaluate, matchVariant, parseAttributeCell, withDefaults } from "./rules";
 import { priceLine } from "./line-price";
+import { ACC, CENEFA, LADO, PERFIL, TELA, attributes, catalog as c } from "./test-catalog";
 
-const models = [
-  { id: 2, slug: "roller-blackout", name: "Roller Blackout", type: "enrollable", material: "blackout", familyId: 1, minWidth: 40, maxWidth: 300, minProjection: 40, maxProjection: 320, basePrice: 60, pricePerM2: 90 },
-  { id: 4, slug: "vertical", name: "Vertical", type: "vertical", material: "pvc", familyId: 4, minWidth: 60, maxWidth: 500, minProjection: 60, maxProjection: 350, basePrice: 60, pricePerM2: 70 },
-] as ProductModel[];
-const fabrics = [
-  { id: 5, name: "Blanco", code: "BK-01", collection: "Blackout", types: "blackout", hex: "#eee", surchargePerM2: 0 },
-  { id: 6, name: "Arena", code: "BK-03", collection: "Blackout", types: "blackout", hex: "#dcb", surchargePerM2: 0 },
-  { id: 8, name: "Perla", code: "VP-01", collection: "PVC", types: "pvc", hex: "#fff", surchargePerM2: 0 },
-] as Fabric[];
-const frames = [{ id: 1, name: "Blanco", ral: "9016", surcharge: 0 }, { id: 3, name: "Negro mate", ral: "9005", surcharge: 0 }] as FrameColor[];
-const families = [
-  { id: 1, name: "Enrollable estándar", requiresFabric: true, requiresFrame: true, requiresDrive: true, minWidth: 40, maxWidth: 300, minHeight: 40, maxHeight: 320, allowedDrives: "", allowedFrameIds: "", allowedFabricIds: "" },
-  { id: 4, name: "Vertical", requiresFabric: true, requiresFrame: false, requiresDrive: true, minWidth: 60, maxWidth: 500, minHeight: 60, maxHeight: 350, allowedDrives: "manual,motor", allowedFrameIds: "", allowedFabricIds: "" },
-] as ProductFamily[];
-const base = { familyId: null, modelId: null, ifOption: null, thenOption: null, minWidth: null, maxWidth: null, minHeight: null, maxHeight: null, active: true };
-const constraints = [
-  { ...base, id: 1, name: "Arena/negro", kind: "incompatibilidad", ifOption: "tela:6", thenOption: "perfil:3", message: "Tela Arena no disponible con perfil negro RAL 9005." },
-  { ...base, id: 2, name: "Blackout cadena", kind: "dimension", modelId: 2, ifOption: "accionamiento:manual", maxWidth: 250, message: "Con cadena, hasta 2,50 m." },
-] as ConstraintRule[];
-const rules: PricingRule[] = [{ id: 9, name: "Perfil negro", kind: "fijo", amount: 18, drive: null, modelType: null, minArea: null, optionRef: "perfil:3", active: true }];
-const c = { models, fabrics, frames, families, constraints, rules };
+const f = (ev: ReturnType<typeof evaluate>, id: number) => ev.fields.find((x) => x.attribute.id === id);
 
-describe("motor de reglas", () => {
-  it("bloquea el perfil negro con tela Arena (y Arena con perfil negro), con motivo", () => {
-    const a = evaluate(c, { modelId: 2, fabricId: 6, frameColorId: 1, drive: "manual" });
-    expect(a.frames.find((f) => f.value === 3)?.disabled).toMatch(/Arena/);
-    const b = evaluate(c, { modelId: 2, fabricId: 5, frameColorId: 3, drive: "manual" });
-    expect(b.fabrics.find((f) => f.value === 6)?.disabled).toMatch(/RAL 9005/);
-    expect(evaluate(c, { modelId: 2, fabricId: 6, frameColorId: 3, drive: "manual" }).errors.frame).toMatch(/Arena/);
+describe("motor de reglas (atributos genéricos)", () => {
+  it("muestra los atributos de la categoría, en orden, con valores filtrados por material", () => {
+    const ev = evaluate(c, { modelId: 2 });
+    expect(ev.fields.map((x) => x.attribute.name)).toEqual(["Tela", "Color del perfil", "Accionamiento", "Lado del mando", "Cenefa decorativa"]);
+    expect(f(ev, TELA)!.choices.map((x) => x.label)).toEqual(["Blanco (BK-01)", "Arena (BK-03)"]);
+    expect(f(ev, LADO)!.required).toBe(false);
   });
-  it("aplica límites de medidas condicionados por opción", () => {
-    expect(evaluate(c, { modelId: 2, fabricId: 5, frameColorId: 1, drive: "manual", width: 280, height: 150 }).errors.width).toMatch(/2,50 m/);
-    expect(evaluate(c, { modelId: 2, fabricId: 5, frameColorId: 1, drive: "motor", width: 280, height: 150 }).errors.width).toBeUndefined();
+  it("incompatibilidad A↔B entre valores cualesquiera, con motivo", () => {
+    const a = evaluate(c, { modelId: 2, values: { [TELA]: 6, [PERFIL]: 13, [ACC]: 16 } });
+    expect(f(a, PERFIL)!.choices.find((x) => x.value === 15)?.disabled).toMatch(/Arena/);
+    const b = evaluate(c, { modelId: 2, values: { [TELA]: 5, [PERFIL]: 15, [ACC]: 16 } });
+    expect(f(b, TELA)!.choices.find((x) => x.value === 6)?.disabled).toMatch(/RAL 9005/);
+    expect(evaluate(c, { modelId: 2, values: { [TELA]: 6, [PERFIL]: 15, [ACC]: 16 } }).errors[`a${PERFIL}`]).toMatch(/Arena/);
+    // sí/no también participa en reglas
+    expect(f(evaluate(c, { modelId: 2, values: { [CENEFA]: true } }), ACC)!.choices.find((x) => x.value === 18)?.disabled).toMatch(/cenefa/);
   });
-  it("familia: opciones permitidas y parámetros no requeridos", () => {
-    const v = evaluate(c, { modelId: 4, fabricId: 8, drive: "sensor", width: 200, height: 200 });
-    expect(v.requires.frame).toBe(false);
-    expect(v.drives.map((d) => d.value)).toEqual(["manual", "motor"]);
-    expect(v.errors.drive).toBeTruthy();
-    expect(v.errors.frame).toBeUndefined();
+  it("límites de medidas condicionados a un valor", () => {
+    expect(evaluate(c, { modelId: 2, values: { [TELA]: 5, [PERFIL]: 13, [ACC]: 16 }, width: 280, height: 150 }).errors.width).toMatch(/2,50 m/);
+    expect(evaluate(c, { modelId: 2, values: { [TELA]: 5, [PERFIL]: 13, [ACC]: 17 }, width: 280, height: 150 }).errors.width).toBeUndefined();
   });
-  it("recargo condicionado a una opción", () => {
-    const blanco = priceLine(c, { modelId: 2, fabricId: 5, frameColorId: 1, drive: "manual", width: 200, height: 200 })!;
-    const negro = priceLine(c, { modelId: 2, fabricId: 5, frameColorId: 3, drive: "manual", width: 200, height: 200 })!;
-    expect(negro.unitPrice - blanco.unitPrice).toBeGreaterThanOrEqual(10);
+  it("categoría sin perfil y con valores permitidos", () => {
+    const v = evaluate(c, { modelId: 4, values: { [TELA]: 8, [ACC]: 18 }, width: 200, height: 200 });
+    expect(f(v, PERFIL)).toBeUndefined();
+    expect(f(v, ACC)!.choices.map((x) => x.value)).toEqual([16, 17]);
+    expect(v.errors[`a${ACC}`]).toBeTruthy();
+    expect(evaluate(c, { modelId: 4, values: { [TELA]: 8 } }).errors[`a${ACC}`]).toMatch(/Elija/);
+  });
+  it("completa valores por defecto y descarta atributos ajenos", () => {
+    const v = withDefaults(c, { modelId: 4, values: { [PERFIL]: 13 } });
+    expect(v).toEqual({ [TELA]: 8, [ACC]: 16 });
+    expect(cleanValues(c, 4, { [PERFIL]: 13, [TELA]: 8 })).toEqual({ [TELA]: 8 });
+  });
+  it("recargos por valor (fijo y por m²) y reglas de precio por valor", () => {
+    const sel = (extra: object) => ({ modelId: 2, values: { [TELA]: 5, [PERFIL]: 13, [ACC]: 16, ...extra }, width: 200, height: 200 });
+    const baseP = priceLine(c, sel({}))!.unitPrice;
+    expect(priceLine(c, sel({ [ACC]: 17 }))!.unitPrice - baseP).toBe(380);
+    expect(priceLine(c, sel({ [CENEFA]: true }))!.unitPrice - baseP).toBeGreaterThanOrEqual(40);
+    expect(priceLine(c, sel({ [TELA]: 6 }))!.unitPrice - baseP).toBeGreaterThanOrEqual(20); // 6 × 4 m²
+    expect(priceLine(c, sel({ [PERFIL]: 15 }))!.unitPrice - baseP).toBeGreaterThanOrEqual(10);
+  });
+  it("variante: la más específica y su ajuste de precio", () => {
+    expect(matchVariant(c, { modelId: 2, values: { [TELA]: 5, [PERFIL]: 15 } })?.code).toBe("RBK-0115");
+    expect(matchVariant(c, { modelId: 2, values: { [TELA]: 5, [PERFIL]: 13 } })?.code).toBe("RBK-01");
+    const r = priceLine(c, { modelId: 2, values: { [TELA]: 5, [PERFIL]: 15, [ACC]: 16 }, width: 200, height: 200 })!;
+    expect(r.config.variantCode).toBe("RBK-0115");
+    expect(r.config.options.map((o) => o.value)).toEqual(["Blanco", "Negro mate", "Cadena"]);
+  });
+  it("interpreta celdas pegadas de Excel", () => {
+    const [tela, perfil, acc, , cenefa] = attributes;
+    expect(parseAttributeCell(c, tela, "bk-03", c.models[1])).toBe(6);
+    expect(parseAttributeCell(c, perfil, "9005")).toBe(15);
+    expect(parseAttributeCell(c, acc, "Motor")).toBe(17);
+    expect(parseAttributeCell(c, cenefa, "sí")).toBe(true);
+    expect(parseAttributeCell(c, tela, "Terciopelo", c.models[1])).toBeUndefined();
   });
 });

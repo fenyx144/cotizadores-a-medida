@@ -4,6 +4,7 @@
  * sincronizada y comentarios por anotación (pueden marcarla como observada).
  */
 import dynamic from "next/dynamic";
+import { configSummary } from "@portafolio/core/db/project-schema";
 import { useMemo, useState } from "react";
 import { formatMoney } from "@portafolio/core/pricing";
 import { LINE_STATUS_COLORS, LINE_STATUS_LABELS, LINE_STATUSES, type LineStatus } from "@portafolio/core/projects";
@@ -80,7 +81,7 @@ export function AdminPlanView({ plans, lines: initialLines, comments: initialCom
               <dl className="mt-3 divide-y divide-line border-y border-line text-sm">
                 <div className="flex justify-between py-1.5"><dt className="text-muted">Ubicación</dt><dd>{current.locationId ? locById.get(current.locationId)?.room : "—"}</dd></div>
                 <div className="flex justify-between py-1.5"><dt className="text-muted">Producto</dt><dd>{current.config?.modelName ?? "Sin configurar"}</dd></div>
-                <div className="flex justify-between py-1.5"><dt className="text-muted">Tela</dt><dd>{current.config?.fabricName ?? "—"}</dd></div>
+                <div className="flex justify-between py-1.5"><dt className="text-muted">Opciones</dt><dd className="text-right">{configSummary(current.config) || "—"}</dd></div>
                 <div className="flex justify-between py-1.5"><dt className="text-muted">Medidas</dt><dd className="font-mono text-xs">{current.width ?? "—"} × {current.height ?? "—"} cm</dd></div>
                 <div className="flex justify-between py-1.5"><dt className="text-muted">Cantidad · precio</dt><dd>{current.quantity} · {current.config && current.unitPrice ? formatMoney(current.unitPrice * current.quantity) : "—"}</dd></div>
                 {current.note && <div className="py-1.5"><dt className="text-muted">Nota del cliente</dt><dd>{current.note}</dd></div>}

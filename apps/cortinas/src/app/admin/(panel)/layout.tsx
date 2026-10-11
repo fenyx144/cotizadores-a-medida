@@ -7,13 +7,13 @@ export const metadata = { title: "Panel — Cota" };
 
 const NAV = [
   { href: "/admin", label: "Proyectos", group: "Ventas" },
-  { href: "/admin/catalogo/familias", label: "Categorías / Familias", group: "Catálogo" },
-  { href: "/admin/catalogo/productos", label: "Productos", group: "Catálogo" },
-  { href: "/admin/catalogo/variantes", label: "Variantes", group: "Catálogo" },
+  { href: "/admin/guia", label: "Guía", group: "Catálogo" },
+  { href: "/admin/catalogo/atributos", label: "1 Atributos", group: "Catálogo" },
+  { href: "/admin/catalogo/familias", label: "2 Categorías", group: "Catálogo" },
+  { href: "/admin/catalogo/productos", label: "3 Productos", group: "Catálogo" },
+  { href: "/admin/catalogo/variantes", label: "4 Variantes", group: "Catálogo" },
+  { href: "/admin/catalogo/reglas", label: "5 Reglas", group: "Catálogo" },
   { href: "/admin/catalogo/materiales", label: "Materiales", group: "Catálogo" },
-  { href: "/admin/catalogo/telas", label: "Telas", group: "Catálogo" },
-  { href: "/admin/catalogo/perfiles", label: "Perfiles", group: "Catálogo" },
-  { href: "/admin/catalogo/reglas", label: "Reglas", group: "Catálogo" },
 ];
 
 export default async function PanelLayout({ children }: { children: React.ReactNode }) {

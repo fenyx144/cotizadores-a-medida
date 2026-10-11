@@ -8,7 +8,8 @@ import { buildXlsx } from "@portafolio/core/xlsx";
 import { formatMeters, formatMoney } from "@portafolio/core/pricing";
 import { LINE_STATUS_COLORS, LINE_STATUS_LABELS, PROJECT_STATUS_LABELS, type LineStatus, type ProjectStatus } from "@portafolio/core/projects";
 import { getFile } from "./files";
-import { BRAND, DRIVE_LABELS } from "./content";
+import { BRAND } from "./content";
+import { configSummary } from "@portafolio/core/db/project-schema";
 import { locationName, projectSummary, type ProjectData } from "./project";
 
 function rowsFor(data: ProjectData) {
@@ -18,8 +19,8 @@ function rowsFor(data: ProjectData) {
     return {
       line: l,
       location: loc ? locationName(loc) : "Sin ubicación",
-      product: l.config ? [l.config.variantCode, l.config.modelName, l.config.fabricName, l.config.frameColorName].filter(Boolean).join(" · ") : "Sin configurar",
-      drive: l.config ? DRIVE_LABELS[l.config.drive] : "",
+      product: l.config ? [l.config.variantCode, l.config.modelName].filter(Boolean).join(" · ") : "Sin configurar",
+      drive: configSummary(l.config),
       size: l.width && l.height ? `${formatMeters(l.width)} x ${formatMeters(l.height)}` : "-",
       total: l.config && l.unitPrice ? l.unitPrice * l.quantity : null,
     };
@@ -80,7 +81,7 @@ export async function projectPdf(data: ProjectData, origin: string): Promise<Uin
           { label: "P. unit.", width: 38, align: "right" },
           { label: "Total", width: 39, align: "right" },
         ],
-        rows: rows.map((r) => [r.line.label, r.location, r.product, r.size, String(r.line.quantity), r.line.unitPrice && r.line.config ? String(r.line.unitPrice) : "-", r.total ? String(r.total) : "-"]),
+        rows: rows.map((r) => [r.line.label, r.location, [r.product, r.drive].filter(Boolean).join(" · "), r.size, String(r.line.quantity), r.line.unitPrice && r.line.config ? String(r.line.unitPrice) : "-", r.total ? String(r.total) : "-"]),
         totals: [
           ["Subtotal", formatMoney(s.subtotal)],
           ...(s.discountPercent ? ([[`Descuento por volumen (${s.discountPercent}%)`, `- ${formatMoney(s.discount)}`]] as [string, string][]) : []),
@@ -105,7 +106,7 @@ export async function projectXlsx(data: ProjectData): Promise<Uint8Array> {
           { header: "Código", key: "code", width: 8 },
           { header: "Ubicación", key: "location", width: 36 },
           { header: "Producto", key: "product", width: 32 },
-          { header: "Accionamiento", key: "drive", width: 22 },
+          { header: "Opciones", key: "drive", width: 48 },
           { header: "Ancho (cm)", key: "width", width: 11 },
           { header: "Alto (cm)", key: "height", width: 11 },
           { header: "Cantidad", key: "qty", width: 10 },

@@ -13,7 +13,8 @@ import { hashPassword } from "@portafolio/core/auth";
 import { getStorage } from "@portafolio/core/storage";
 import { projectReference, type ProjectStatus } from "@portafolio/core/projects";
 import type { PricingRule, Drive } from "@portafolio/core/pricing";
-import { priceLine, fabricsFor, type CatalogData } from "../src/lib/line-price";
+import { priceLine, type CatalogData } from "../src/lib/line-price";
+import { cleanValues, valuesFor, withDefaults } from "../src/lib/rules";
 // Catálogo editable (materiales, categorías, reglas, fichas técnicas y variantes), exportado de la demo.
 import seedCatalog from "./seed-catalog.json" with { type: "json" };
 
@@ -22,7 +23,7 @@ const db = getDb();
 async function main() {
   console.log("Limpiando tablas…");
   await db.execute(
-    sql`TRUNCATE line_comments, project_notes, project_attachments, lines, plans, locations, projects, clients, price_rules, frame_colors, fabrics, product_models, materials, product_families, constraint_rules, product_variants, admin_users RESTART IDENTITY CASCADE`,
+    sql`TRUNCATE attributes, attribute_values, line_comments, project_notes, project_attachments, lines, plans, locations, projects, clients, price_rules, frame_colors, fabrics, product_models, materials, product_families, constraint_rules, product_variants, admin_users RESTART IDENTITY CASCADE`,
   );
 
   // --- Catálogo -----------------------------------------------------------
@@ -105,11 +106,9 @@ async function main() {
   const rules = (await db
     .insert(schema.priceRules)
     .values([
-      { name: "Motor con mando", kind: "fijo", amount: 380, drive: "motor" },
-      { name: "Motor + control centralizado", kind: "fijo", amount: 520, drive: "sensor" },
       { name: "Instalación por cortina", kind: "fijo", amount: 25 },
       { name: "Tubo reforzado (paños grandes)", kind: "por_m2", amount: 12, minArea: 6 },
-      { name: "Perfil negro RAL 9005 (lacado especial)", kind: "fijo", amount: 18, optionRef: "perfil:3" },
+      { name: "Perfil negro RAL 9005 (lacado especial)", kind: "fijo", amount: 18, optionRef: "v:15" },
     ])
     .returning()) as PricingRule[];
 
@@ -120,22 +119,28 @@ async function main() {
   const families = await db.insert(schema.productFamilies).values(seedCatalog.families.map(camel) as never).returning();
   const constraints = await db.insert(schema.constraintRules).values(seedCatalog.constraints.map(camel) as never).returning();
   const variants = await db.insert(schema.productVariants).values(seedCatalog.variants.map(camel) as never).returning();
-  for (const t of ["materials", "product_families", "constraint_rules", "product_variants"])
+  // Atributos (Tela, Color del perfil, Accionamiento, Lado del mando, Caída, Cenefa) y sus valores.
+  const attributes = await db.insert(schema.attributes).values(seedCatalog.attributes.map(camel) as never).returning();
+  const values = await db.insert(schema.attributeValues).values(seedCatalog.values.map(camel) as never).returning();
+  for (const t of ["materials", "product_families", "constraint_rules", "product_variants", "attributes", "attribute_values"])
     await db.execute(sql.raw(`SELECT setval(pg_get_serial_sequence('${t}', 'id'), (SELECT coalesce(max(id), 1) FROM ${t}))`));
   for (const m of seedCatalog.models) {
     const [row] = await db.update(schema.productModels).set({ familyId: m.family_id, material: m.material, specs: m.specs as never }).where(sql`slug = ${m.slug}`).returning();
     Object.assign(models.find((x) => x.slug === m.slug)!, row);
   }
 
-  const catalog: CatalogData = { models, fabrics, frames, rules, families, constraints, variants };
+  const catalog: CatalogData = { models, attributes, values, rules, families, constraints, variants };
+  void fabrics; void frames; // tablas antiguas (compartidas con toldos); cortinas usa atributos
   void materials;
   const bySlug = (slug: string) => models.find((m) => m.slug === slug)!;
 
   /** Línea configurada: calcula precio y snapshot de nombres. */
   function configured(slug: string, width: number, height: number, opts: { fabric?: string; frame?: number; drive?: Drive } = {}) {
     const model = bySlug(slug);
-    const fabric = fabricsFor(catalog, model).find((f) => !opts.fabric || f.name === opts.fabric)!;
-    const priced = priceLine(catalog, { modelId: model.id, fabricId: fabric.id, frameColorId: frames[opts.frame ?? 0].id, drive: opts.drive ?? "manual", width, height })!;
+    const fabric = valuesFor(catalog, 1, model).find((v) => !opts.fabric || v.name === opts.fabric);
+    const drive = values.find((v) => v.attributeId === 3 && v.code === (opts.drive ?? "manual"));
+    const picked = { 1: fabric?.id, 2: 13 + (opts.frame ?? 0), 3: drive?.id };
+    const priced = priceLine(catalog, { modelId: model.id, values: withDefaults(catalog, { modelId: model.id, values: cleanValues(catalog, model.id, picked) }), width, height })!;
     return { width, height, config: priced.config, unitPrice: priced.unitPrice, status: "configurada" as const };
   }
 

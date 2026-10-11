@@ -6,13 +6,14 @@
  * y el servidor vuelve a validar al guardar.
  */
 import { useEffect, useMemo, useState } from "react";
-import { formatMoney, type Drive } from "@portafolio/core/pricing";
+import { formatMoney } from "@portafolio/core/pricing";
 import { readSheetFile, saveGrid, type GridCellErrors, type GridRowInput } from "@/app/actions/project";
 import { priceLine } from "@/lib/line-price";
-import { evaluate, fabricsByType, firstEnabled, matchVariant, type Choice } from "@/lib/rules";
+import { evaluate, gridAttributes, matchVariant, parseAttributeCell, withDefaults, type Choice, type Values } from "@/lib/rules";
 import { btnLine, btnPrimary, labelCls, locName, type EditorContext } from "./shared";
 
-type Col = "location" | "model" | "width" | "height" | "quantity" | "fabric" | "frame" | "drive" | "note";
+/** Columnas fijas; las de atributos son "a<id>". */
+type Col = string;
 interface Row {
   key: string;
   id?: number;
@@ -21,37 +22,21 @@ interface Row {
   width: string;
   height: string;
   quantity: string;
-  fabricId: number | null;
-  frameColorId: number | null;
-  drive: Drive | null;
+  values: Values;
   note: string;
-  unmatched?: Partial<Record<Col, string>>;
+  unmatched?: Record<string, string | undefined>;
 }
 
-const COLS: { key: Col; label: string; w: string }[] = [
-  { key: "location", label: "Ubicación", w: "min-w-[150px]" },
-  { key: "model", label: "Producto", w: "min-w-[170px]" },
-  { key: "width", label: "Ancho cm", w: "w-[76px]" },
-  { key: "height", label: "Alto cm", w: "w-[76px]" },
-  { key: "quantity", label: "Cant.", w: "w-[56px]" },
-  { key: "fabric", label: "Tela", w: "min-w-[150px]" },
-  { key: "frame", label: "Color perfil", w: "min-w-[150px]" },
-  { key: "drive", label: "Accionamiento", w: "min-w-[150px]" },
-  { key: "note", label: "Nota", w: "min-w-[140px]" },
-];
-/** Orden de columnas para pegar sin encabezados (igual que la plantilla). */
-const ORDER: Col[] = ["location", "model", "width", "height", "quantity", "fabric", "frame", "drive", "note"];
-const ALIASES: Record<Col, string[]> = {
+const BASE_ALIASES: Record<string, string[]> = {
   location: ["ubicacion", "ambiente", "aula", "oficina", "espacio", "local"],
   model: ["producto", "modelo", "tipo"],
   width: ["ancho_cm", "ancho", "ancho (cm)"],
-  height: ["alto_cm", "alto", "alto (cm)", "caida"],
+  height: ["alto_cm", "alto", "alto (cm)"],
   quantity: ["cantidad", "cant", "unidades", "uds"],
-  fabric: ["tela", "tejido", "color_tela"],
-  frame: ["color_perfil", "perfil", "color perfil", "ral"],
-  drive: ["accionamiento", "mando", "motor"],
   note: ["nota", "observacion", "comentario"],
 };
+/** Encabezados antiguos de la plantilla, por nombre de atributo. */
+const LEGACY: Record<string, string[]> = { tela: ["tejido", "color_tela"], "color del perfil": ["color_perfil", "perfil", "color perfil", "ral"], accionamiento: ["mando", "motor"], caida: [] };
 
 const norm = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
 let seq = 0;
@@ -68,12 +53,22 @@ function toCm(v: string): string {
 export function LinesGrid({ ctx }: { ctx: EditorContext }) {
   const { data, catalog, readOnly } = ctx;
   const locById = useMemo(() => new Map(data.locations.map((l) => [l.id, l])), [data.locations]);
+  const attrs = useMemo(() => gridAttributes(catalog), [catalog]);
+  const COLS = useMemo(() => [
+    { key: "location", label: "Ubicación", w: "min-w-[150px]" },
+    { key: "model", label: "Producto", w: "min-w-[170px]" },
+    { key: "width", label: "Ancho cm", w: "w-[76px]" },
+    { key: "height", label: "Alto cm", w: "w-[76px]" },
+    { key: "quantity", label: "Cant.", w: "w-[56px]" },
+    ...attrs.map((a) => ({ key: `a${a.id}`, label: a.name, w: a.kind === "sino" ? "w-[70px]" : a.kind === "numero" ? "w-[80px]" : "min-w-[140px]" })),
+    { key: "note", label: "Nota", w: "min-w-[140px]" },
+  ], [attrs]);
 
   const fromData = () =>
     data.lines.map<Row>((l) => ({
       key: `l${l.id}`, id: l.id, location: locName(l.locationId ? locById.get(l.locationId) : null) || "",
       modelId: l.config?.modelId ?? null, width: l.width ? String(l.width) : "", height: l.height ? String(l.height) : "", quantity: String(l.quantity),
-      fabricId: l.config?.fabricId || null, frameColorId: l.config?.frameColorId || null, drive: (l.config?.drive as Drive) ?? null, note: l.note,
+      values: l.config?.values ?? {}, note: l.note,
     }));
   const [rows, setRows] = useState<Row[]>(fromData);
   const [dirty, setDirty] = useState(false);
@@ -85,26 +80,20 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
   useEffect(() => { if (!dirty) setRows(fromData()); }, [data.lines]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const evals = rows.map((r) =>
-    r.modelId ? evaluate(catalog, { modelId: r.modelId, fabricId: r.fabricId, frameColorId: r.frameColorId, drive: r.drive, width: Number(r.width) || null, height: Number(r.height) || null }) : null,
+    r.modelId ? evaluate(catalog, { modelId: r.modelId, values: r.values, width: Number(r.width) || null, height: Number(r.height) || null }) : null,
   );
-  const errorsOf = (i: number): Partial<Record<Col, string>> => {
+  const errorsOf = (i: number): Record<Col, string> => {
     const r = rows[i], ev = evals[i];
-    const e: Partial<Record<Col, string>> = {};
-    for (const [k, v] of Object.entries(r.unmatched ?? {})) if (v) e[k as Col] = `No reconocido: “${v}”.`;
+    const e: Record<Col, string> = {};
+    for (const [k, v] of Object.entries(r.unmatched ?? {})) if (v) e[k] = `No reconocido: “${v}”.`;
     if (!r.location.trim()) e.location = "Indique la ubicación.";
     if (!Number(r.width)) e.width ??= "Indique el ancho.";
     if (!Number(r.height)) e.height ??= "Indique el alto.";
     const q = Number(r.quantity);
     if (!(q >= 1 && q <= 500)) e.quantity = "Cantidad entre 1 y 500.";
-    if (ev) {
-      if (ev.errors.width) e.width ??= ev.errors.width;
-      if (ev.errors.height) e.height ??= ev.errors.height;
-      if (ev.errors.fabric) e.fabric ??= ev.errors.fabric;
-      if (ev.errors.frame) e.frame ??= ev.errors.frame;
-      if (ev.errors.drive) e.drive ??= ev.errors.drive;
-    }
+    if (ev) for (const [k, v] of Object.entries(ev.errors)) if (v) e[k] ??= v;
     const s = serverErr[i];
-    if (s) for (const [k, v] of Object.entries(s)) if (v) e[(k === "model" ? "model" : k) as Col] ??= v;
+    if (s) for (const [k, v] of Object.entries(s)) if (v) e[k] ??= v;
     return e;
   };
   const allErrors = rows.map((_, i) => errorsOf(i));
@@ -113,22 +102,18 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
   const price = (i: number) => {
     const r = rows[i];
     if (!r.modelId || Object.keys(allErrors[i]).length) return null;
-    const p = priceLine(catalog, { modelId: r.modelId, fabricId: r.fabricId ?? 0, frameColorId: r.frameColorId ?? 0, drive: r.drive ?? "manual", width: Number(r.width), height: Number(r.height) });
+    const p = priceLine(catalog, { modelId: r.modelId, values: r.values, width: Number(r.width), height: Number(r.height) });
     return p ? p.unitPrice * Number(r.quantity) : null;
   };
   const total = rows.reduce((s, _, i) => s + (price(i) ?? 0), 0);
   const windows = rows.reduce((s, r) => s + (Number(r.quantity) || 0), 0);
 
-  /** Aplica un cambio y completa opciones por defecto (primera habilitada) si faltan o ya no aplican. */
+  /** Completa valores por defecto (primero disponible) si faltan o ya no aplican; respeta lo no reconocido. */
   function normalizeRow(r: Row): Row {
     if (!r.modelId) return r;
-    const ev = evaluate(catalog, { modelId: r.modelId, fabricId: r.fabricId, frameColorId: r.frameColorId, drive: r.drive });
-    const next = { ...r };
-    if (ev.requires.fabric && !ev.fabrics.some((f) => f.value === r.fabricId) && !r.unmatched?.fabric) next.fabricId = firstEnabled(ev.fabrics) ?? null;
-    if (!ev.requires.frame) next.frameColorId = null;
-    else if (!ev.frames.some((f) => f.value === r.frameColorId) && !r.unmatched?.frame) next.frameColorId = firstEnabled(ev.frames) ?? null;
-    if (!ev.drives.some((d) => d.value === r.drive) && !r.unmatched?.drive) next.drive = firstEnabled(ev.drives) ?? null;
-    return next;
+    const values = withDefaults(catalog, { modelId: r.modelId, values: r.values });
+    for (const k of Object.keys(r.unmatched ?? {})) if (k.startsWith("a") && r.unmatched![k]) values[k.slice(1)] = null;
+    return { ...r, values };
   }
   const update = (i: number, patch: Partial<Row>, col?: Col) => {
     setRows((rs) => rs.map((r, j) => (j === i ? normalizeRow({ ...r, ...patch, unmatched: col ? { ...r.unmatched, [col]: undefined } : r.unmatched }) : r)));
@@ -137,7 +122,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
   };
   const blank = (): Row => {
     const last = rows[rows.length - 1];
-    return normalizeRow({ key: newKey(), location: last?.location || `Ubicación ${data.locations.length + 1}`, modelId: last?.modelId ?? catalog.models[0]?.id ?? null, width: "", height: "", quantity: "1", fabricId: last?.fabricId ?? null, frameColorId: last?.frameColorId ?? null, drive: last?.drive ?? "manual", note: "" });
+    return normalizeRow({ key: newKey(), location: last?.location || `Ubicación ${data.locations.length + 1}`, modelId: last?.modelId ?? catalog.models[0]?.id ?? null, width: "", height: "", quantity: "1", values: { ...(last?.values ?? {}) }, note: "" });
   };
   const change = (fn: (rs: Row[]) => Row[]) => { setRows(fn); setServerErr({}); setDirty(true); };
 
@@ -145,31 +130,31 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
   function tableToRows(table: string[][]): Row[] {
     const t = table.filter((r) => r.some((c) => c.trim()));
     if (!t.length) return [];
+    const aliases: Record<Col, string[]> = { ...BASE_ALIASES };
+    for (const a of attrs) aliases[`a${a.id}`] = [norm(a.name), norm(a.name).replace(/ /g, "_"), ...(LEGACY[norm(a.name)] ?? [])];
+    const order: Col[] = ["location", "model", "width", "height", "quantity", ...attrs.map((a) => `a${a.id}`), "note"];
     const head = t[0].map(norm);
-    const hasHeader = head.some((h) => Object.values(ALIASES).some((a) => a.includes(h)));
-    const idx: Partial<Record<Col, number>> = {};
-    if (hasHeader) (Object.keys(ALIASES) as Col[]).forEach((c) => { const k = head.findIndex((h) => ALIASES[c].includes(h)); if (k >= 0) idx[c] = k; });
-    else ORDER.forEach((c, k) => (idx[c] = k));
+    const hasHeader = head.some((h) => Object.values(aliases).some((a) => a.includes(h)));
+    const idx: Record<Col, number> = {};
+    if (hasHeader) Object.keys(aliases).forEach((c) => { const k = head.findIndex((h) => aliases[c].includes(h)); if (k >= 0) idx[c] = k; });
+    else order.forEach((c, k) => (idx[c] = k));
     return (hasHeader ? t.slice(1) : t).map((cells) => {
-      const get = (c: Col) => (idx[c] != null ? (cells[idx[c]!] ?? "").trim() : "");
+      const get = (c: Col) => (idx[c] != null ? (cells[idx[c]] ?? "").trim() : "");
       const unmatched: Row["unmatched"] = {};
       const pName = get("model");
       const model = pName ? catalog.models.find((m) => norm(m.name) === norm(pName) || m.slug === norm(pName) || norm(m.name).startsWith(norm(pName))) : catalog.models[0];
       if (pName && !model) unmatched.model = pName;
-      const fName = get("fabric");
-      const fabric = fName && model ? fabricsByType(catalog.fabrics, model).find((f) => norm(f.name) === norm(fName) || norm(f.code) === norm(fName) || norm(`${f.collection} · ${f.name}`) === norm(fName)) : undefined;
-      if (fName && !fabric) unmatched.fabric = fName;
-      const pf = get("frame");
-      const ral = pf.replace(/\D/g, "");
-      const frame = pf ? catalog.frames.find((f) => norm(f.name) === norm(pf) || (ral.length === 4 && f.ral === ral) || norm(pf).includes(norm(f.name))) : undefined;
-      if (pf && !frame) unmatched.frame = pf;
-      const d = norm(get("drive"));
-      const drive: Drive | null = !d ? null : /sensor|centraliz|domot/.test(d) ? "sensor" : /motor/.test(d) ? "motor" : /cadena|manual/.test(d) ? "manual" : null;
-      if (d && !drive) unmatched.drive = get("drive");
+      const values: Values = {};
+      for (const a of attrs) {
+        const txt = get(`a${a.id}`);
+        if (!txt) continue;
+        const v = parseAttributeCell(catalog, a, txt, model);
+        if (v === undefined) unmatched[`a${a.id}`] = txt;
+        else values[a.id] = v;
+      }
       return normalizeRow({
         key: newKey(), location: get("location") || "Ubicación 1", modelId: model?.id ?? null, width: toCm(get("width")), height: toCm(get("height")),
-        quantity: String(Math.max(1, Math.round(Number(get("quantity").replace(",", ".")) || 1))), fabricId: fabric?.id ?? null, frameColorId: frame?.id ?? null,
-        drive, note: get("note"), unmatched,
+        quantity: String(Math.max(1, Math.round(Number(get("quantity").replace(",", ".")) || 1))), values, note: get("note"), unmatched,
       });
     });
   }
@@ -201,7 +186,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
   async function save() {
     const payload: GridRowInput[] = rows.map((r) => ({
       id: r.id ?? null, location: r.location, modelId: r.modelId, width: Number(r.width) || null, height: Number(r.height) || null,
-      quantity: Number(r.quantity) || 0, fabricId: r.fabricId, frameColorId: r.frameColorId, drive: r.drive, note: r.note,
+      quantity: Number(r.quantity) || 0, values: r.values, note: r.note,
     }));
     const res = await saveGrid(data.project.id, payload);
     if (!res.ok && "cells" in res) {
@@ -230,13 +215,24 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
     });
   };
 
-  const select = <T extends string | number>(i: number, col: Col, value: T | null, choices: Choice<T>[], onPick: (v: T) => void, placeholder: string) => (
+  const select = (i: number, col: Col, value: number | null, choices: Choice<number>[], onPick: (v: number | null) => void, placeholder: string, allowEmpty = false) => (
     <select className={cell} value={value ?? ""} disabled={readOnly} aria-label={`${COLS.find((c) => c.key === col)!.label} fila ${i + 1}`}
-      onChange={(e) => onPick((typeof choices[0]?.value === "number" ? Number(e.target.value) : e.target.value) as T)}>
-      {value == null && <option value="">{placeholder}</option>}
+      onChange={(e) => onPick(Number(e.target.value) || null)}>
+      {(value == null || allowEmpty) && <option value="">{placeholder}</option>}
       {choices.map((c) => <option key={String(c.value)} value={c.value} disabled={!!c.disabled}>{c.label}{c.disabled ? ` — ${c.disabled}` : ""}</option>)}
     </select>
   );
+
+  /** Celda de un atributo: según la categoría del producto de la fila (— si no lo pide). */
+  const attrCell = (i: number, r: Row, attrId: number) => {
+    const f = evals[i]?.fields.find((x) => x.attribute.id === attrId);
+    if (!f) return <span className="block px-1.5 py-1 text-muted">—</span>;
+    const v = r.values[attrId];
+    const set = (nv: number | boolean | null) => update(i, { values: { ...r.values, [attrId]: nv } }, `a${attrId}`);
+    if (f.kind === "sino") return <input type="checkbox" className="m-2 accent-[#1f3a5f]" checked={v === true} disabled={readOnly} onChange={(e) => set(e.target.checked)} aria-label={`${f.attribute.name} fila ${i + 1}`} />;
+    if (f.kind === "numero") return <input className={`${cell} font-mono`} inputMode="decimal" value={typeof v === "number" ? v : ""} disabled={readOnly} onChange={(e) => set(e.target.value === "" ? null : Number(e.target.value.replace(",", ".")) || 0)} aria-label={`${f.attribute.name} fila ${i + 1}`} />;
+    return select(i, `a${attrId}`, typeof v === "number" ? v : null, f.choices, set, r.unmatched?.[`a${attrId}`] ?? (f.required ? `${f.attribute.name}…` : "—"), !f.required);
+  };
 
   return (
     <div onPaste={onPaste} data-testid="lines-grid">
@@ -294,14 +290,12 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
                   {td("location", <input className={cell} value={r.location} disabled={readOnly} list="grid-locations" onChange={(e) => update(i, { location: e.target.value }, "location")} aria-label={`Ubicación fila ${i + 1}`} />)}
                   {td("model", <>
                     {select(i, "model", r.modelId, catalog.models.map((m) => ({ value: m.id, label: m.name })), (v) => update(i, { modelId: v }, "model"), r.unmatched?.model ?? "Sin configurar")}
-                    {r.modelId && (() => { const v = matchVariant(catalog, { modelId: r.modelId!, fabricId: r.fabricId, frameColorId: r.frameColorId }); return v ? <span className="block px-1.5 pb-1 font-mono text-[11px] text-muted" data-testid="row-variant">{v.code}</span> : null; })()}
+                    {r.modelId && (() => { const v = matchVariant(catalog, { modelId: r.modelId!, values: r.values }); return v ? <span className="block px-1.5 pb-1 font-mono text-[11px] text-muted" data-testid="row-variant">{v.code}</span> : null; })()}
                   </>)}
                   {td("width", <input className={`${cell} font-mono`} inputMode="numeric" value={r.width} disabled={readOnly} onChange={(e) => update(i, { width: e.target.value.replace(/\D/g, "") })} aria-label={`Ancho fila ${i + 1}`} placeholder={ev ? `${ev.limits.minWidth}–${ev.limits.maxWidth}` : ""} />)}
                   {td("height", <input className={`${cell} font-mono`} inputMode="numeric" value={r.height} disabled={readOnly} onChange={(e) => update(i, { height: e.target.value.replace(/\D/g, "") })} aria-label={`Alto fila ${i + 1}`} placeholder={ev ? `${ev.limits.minHeight}–${ev.limits.maxHeight}` : ""} />)}
                   {td("quantity", <input className={`${cell} font-mono`} inputMode="numeric" value={r.quantity} disabled={readOnly} onChange={(e) => update(i, { quantity: e.target.value.replace(/\D/g, "") })} aria-label={`Cantidad fila ${i + 1}`} />)}
-                  {td("fabric", ev && !ev.requires.fabric ? <span className="block px-1.5 py-1 text-muted">—</span> : select(i, "fabric", r.fabricId, ev?.fabrics ?? [], (v) => update(i, { fabricId: v }, "fabric"), r.unmatched?.fabric ?? "Tela…"))}
-                  {td("frame", ev && !ev.requires.frame ? <span className="block px-1.5 py-1 text-muted">No aplica</span> : select(i, "frame", r.frameColorId, ev?.frames ?? [], (v) => update(i, { frameColorId: v }, "frame"), r.unmatched?.frame ?? "Perfil…"))}
-                  {td("drive", select(i, "drive", r.drive, ev?.drives ?? [], (v) => update(i, { drive: v as Drive }, "drive"), r.unmatched?.drive ?? "Accionamiento…"))}
+                  {attrs.map((a) => td(`a${a.id}`, attrCell(i, r, a.id)))}
                   {td("note", <input className={cell} value={r.note} disabled={readOnly} onChange={(e) => update(i, { note: e.target.value })} aria-label={`Nota fila ${i + 1}`} />)}
                   <td className="py-1 pt-2 pr-1 text-right align-top">
                     {p != null ? formatMoney(p) : "—"}
@@ -315,7 +309,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
                 </tr>
               );
             })}
-            {rows.length === 0 && <tr><td colSpan={12} className="py-6 text-muted">Sin líneas. Agregue una fila, pegue desde Excel o importe la plantilla.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={COLS.length + 3} className="py-6 text-muted">Sin líneas. Agregue una fila, pegue desde Excel o importe la plantilla.</td></tr>}
           </tbody>
         </table>
         <datalist id="grid-locations">{data.locations.map((l) => <option key={l.id} value={locName(l)} />)}</datalist>

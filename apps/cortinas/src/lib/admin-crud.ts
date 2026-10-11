@@ -8,7 +8,8 @@ import { getSession } from "./session";
 const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Color en formato #RRGGBB");
 const cm = z.number().int().min(10, "Mínimo 10 cm").max(2000);
 const money = z.number().min(0, "No puede ser negativo");
-const optionRef = z.string().regex(/^(tela|perfil|accionamiento|material|producto|familia):[\w-]+$/, "Opción no válida");
+const optionRef = z.string().regex(/^(v|material|producto|familia):[\w-]+$/, "Opción no válida");
+const hexOpt = z.string().regex(/^(#[0-9a-fA-F]{6})?$/, "Color en formato #RRGGBB");
 const idList = z.string().regex(/^[\w,]*$/);
 const cmOpt = z.number().int().min(10).max(2000).nullable();
 
@@ -34,12 +35,26 @@ const resources: Record<string, CrudResource> = {
     orderBy: schema.frameColors.sortOrder,
     schema: z.object({ name: z.string().min(2), ral: z.string(), hex, surcharge: money, sortOrder: z.number().int(), active: z.boolean() }),
   },
+  attributes: {
+    table: schema.attributes,
+    orderBy: schema.attributes.sortOrder,
+    schema: z.object({ name: z.string().trim().min(2, "Indique el nombre").max(60), kind: z.enum(["lista", "color", "numero", "sino"]), unit: z.string().max(10).default(""), sortOrder: z.number().int() }),
+  },
+  values: {
+    table: schema.attributeValues,
+    orderBy: schema.attributeValues.sortOrder,
+    schema: z.object({
+      attributeId: z.coerce.number().int().min(1, "Elija el atributo"), name: z.string().trim().min(1, "Indique el nombre").max(80), code: z.string().max(40).default(""),
+      hex: hexOpt.default(""), surcharge: z.number().min(-5000).max(5000), surchargeKind: z.enum(["fijo", "por_m2"]), onlyFor: z.string().regex(/^[a-z0-9,-]*$/, "Ej.: screen,mixto").default(""),
+      active: z.boolean(), sortOrder: z.number().int(),
+    }),
+  },
   variants: {
     table: schema.productVariants,
     orderBy: schema.productVariants.sortOrder,
     schema: z.object({
       modelId: z.coerce.number().int().min(1, "Elija un producto"), code: z.string().trim().min(2, "Indique el código").max(40), name: z.string().trim().min(2).max(80),
-      fabricId: z.coerce.number().int().nullable().catch(null), frameColorId: z.coerce.number().int().nullable().catch(null),
+      valueIds: idList.default(""),
       attributes: z.string().max(200), priceAdjustment: z.number().int().min(-5000).max(5000), sortOrder: z.number().int(), active: z.boolean(),
     }),
   },
@@ -52,8 +67,9 @@ const resources: Record<string, CrudResource> = {
     table: schema.productFamilies,
     orderBy: schema.productFamilies.sortOrder,
     schema: z.object({
-      name: z.string().min(2), description: z.string(), requiresFabric: z.boolean(), requiresFrame: z.boolean(), requiresDrive: z.boolean(),
-      minWidth: cm, maxWidth: cm, minHeight: cm, maxHeight: cm, allowedDrives: idList, allowedFrameIds: idList, allowedFabricIds: idList, sortOrder: z.number().int(),
+      name: z.string().min(2), description: z.string(),
+      attributes: z.array(z.object({ attributeId: z.number().int(), required: z.boolean(), valueIds: z.array(z.number().int()) })).default([]),
+      minWidth: cm, maxWidth: cm, minHeight: cm, maxHeight: cm, sortOrder: z.number().int(),
     }),
   },
   constraints: {
@@ -71,7 +87,7 @@ const resources: Record<string, CrudResource> = {
     table: schema.priceRules,
     schema: z.object({
       name: z.string().min(2), kind: z.enum(["fijo", "por_m2", "porcentaje"]), amount: z.number(),
-      drive: z.enum(["manual", "motor", "sensor"]).nullable(), modelType: z.string().nullable(), minArea: z.number().min(0).nullable(), active: z.boolean(),
+      modelType: z.string().nullable(), minArea: z.number().min(0).nullable(), active: z.boolean(),
       optionRef: optionRef.nullable().default(null),
     }),
   },

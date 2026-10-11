@@ -1,59 +1,55 @@
 /**
- * Precio de una línea del proyecto (puro: sin base de datos).
- * Lo usan las acciones del servidor y también el seed.
+ * Precio de una línea: producto + recargos de los valores elegidos + reglas de precio
+ * + ajuste de la variante. Devuelve también la config guardada (con nombres) para la línea.
  */
-import { calculatePrice, type Drive, type PricingRule } from "@portafolio/core/pricing";
-import type { LineConfig } from "@portafolio/core/db/project-schema";
-import type { ConstraintRule, Fabric, FrameColor, ProductFamily, ProductModel, ProductVariant } from "@portafolio/core/db/schema";
-import { matchVariant, selectionRefs } from "./rules";
+import { calculatePrice, type PricingRule } from "@portafolio/core/pricing";
+import type { LineConfig, LineOption } from "@portafolio/core/db/project-schema";
+import { evaluate, matchVariant, selectionRefs, selectedValueIds, type RulesCatalog, type Values } from "./rules";
 
-export interface CatalogData {
-  models: ProductModel[];
-  fabrics: Fabric[];
-  frames: FrameColor[];
+export interface CatalogData extends RulesCatalog {
   rules: PricingRule[];
-  families?: ProductFamily[];
-  constraints?: ConstraintRule[];
-  variants?: ProductVariant[];
-}
-
-/**
- * Telas compatibles con un producto. El campo `types` de la tela lista tipos
- * o materiales ("screen,mixto"); vacío = sirve para todos.
- */
-export function fabricsFor(catalog: Pick<CatalogData, "fabrics">, model: { type: string; material: string }) {
-  return catalog.fabrics.filter((f) => {
-    if (!f.types) return true;
-    const list = f.types.split(",");
-    return list.includes(model.type) || list.includes(model.material);
-  });
 }
 
 export interface LineInput {
   modelId: number;
-  fabricId: number;
-  frameColorId: number;
-  drive: Drive;
+  values: Values;
   width: number;
   height: number;
 }
 
+/** Opciones elegidas como texto, en el orden de la familia. */
+export function lineOptions(catalog: RulesCatalog, sel: { modelId: number; values: Values }): LineOption[] {
+  const out: LineOption[] = [];
+  for (const f of evaluate(catalog, { modelId: sel.modelId, values: sel.values }).fields) {
+    const raw = sel.values[f.attribute.id];
+    if (raw == null || raw === false) continue;
+    if (f.kind === "numero") { out.push({ attributeId: f.attribute.id, attribute: f.attribute.name, value: `${raw}${f.attribute.unit ? ` ${f.attribute.unit}` : ""}` }); continue; }
+    const v = f.kind === "sino" ? catalog.values.find((x) => x.attributeId === f.attribute.id && x.active) : catalog.values.find((x) => x.id === raw);
+    if (!v) continue;
+    out.push({ attributeId: f.attribute.id, attribute: f.attribute.name, valueId: v.id, value: f.kind === "sino" ? f.attribute.name : v.name, code: v.code || undefined, hex: v.hex || undefined });
+  }
+  return out;
+}
+
 /**
- * Convierte una elección (ids) en la config guardada (con nombres) y su
- * precio unitario. Devuelve null si el producto no existe.
+ * Convierte una elección en la config guardada y su precio unitario.
+ * Devuelve null si el producto no existe.
  */
 export function priceLine(catalog: CatalogData, input: LineInput): { config: LineConfig; unitPrice: number } | null {
   const model = catalog.models.find((m) => m.id === input.modelId);
   if (!model) return null;
-  const fabric = fabricsFor(catalog, model).find((f) => f.id === input.fabricId) ?? fabricsFor(catalog, model)[0];
-  const family = model.familyId ? catalog.families?.find((f) => f.id === model.familyId) : undefined;
-  const frame = family && !family.requiresFrame ? undefined : (catalog.frames.find((f) => f.id === input.frameColorId) ?? catalog.frames[0]);
-  const refs = selectionRefs(catalog, { modelId: model.id, fabricId: fabric?.id, frameColorId: frame?.id, drive: input.drive });
+  const sel = { modelId: model.id, values: input.values };
+  const refs = selectionRefs(catalog, sel);
+  // Recargos de los valores elegidos, como reglas de precio (fijo o por m²).
+  const surcharges: PricingRule[] = selectedValueIds(catalog, sel)
+    .map((id) => catalog.values.find((v) => v.id === id))
+    .filter((v) => v && v.surcharge)
+    .map((v) => ({ id: -v!.id, name: v!.name, kind: v!.surchargeKind === "por_m2" ? "por_m2" : "fijo", amount: v!.surcharge, drive: null, modelType: null, minArea: null, active: true }));
   const result = calculatePrice(
-    { modelId: model.id, width: input.width, projection: input.height, fabricId: fabric?.id ?? 0, frameColorId: frame?.id ?? 0, drive: input.drive },
-    { model, fabric, frameColor: frame, rules: catalog.rules, refs },
+    { modelId: model.id, width: input.width, projection: input.height, fabricId: 0, frameColorId: 0, drive: "manual" },
+    { model, rules: [...surcharges, ...catalog.rules.map((r) => ({ ...r, drive: null }))], refs },
   );
-  const variant = matchVariant(catalog, { modelId: model.id, fabricId: fabric?.id, frameColorId: frame?.id });
+  const variant = matchVariant(catalog, sel);
   // El ajuste de la variante se suma al precio unitario (redondeado a la decena, como el resto).
   const unitPrice = variant?.priceAdjustment ? Math.round((result.total + variant.priceAdjustment) / 10) * 10 : result.total;
   return {
@@ -61,12 +57,8 @@ export function priceLine(catalog: CatalogData, input: LineInput): { config: Lin
       modelId: model.id,
       modelName: model.name,
       modelType: model.type,
-      fabricId: fabric?.id ?? 0,
-      fabricName: fabric?.name ?? "",
-      fabricHex: fabric?.hex ?? "#cccccc",
-      frameColorId: frame?.id ?? 0,
-      frameColorName: frame?.name ?? "",
-      drive: input.drive,
+      values: input.values,
+      options: lineOptions(catalog, sel),
       variantId: variant?.id ?? null,
       variantCode: variant?.code ?? null,
       variantName: variant?.name ?? null,

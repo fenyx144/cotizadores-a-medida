@@ -11,5 +11,5 @@ export default async function Page() {
     db.select().from(schema.materials).orderBy(asc(schema.materials.sortOrder)),
   ]);
   const fields = productFields(families.map((f) => ({ value: String(f.id), label: f.name })), materials.map((m) => ({ value: m.slug, label: m.name })));
-  return <CrudManager resource="products" title="Productos" description="Fotos, categoría, material, medidas y ficha técnica." fields={fields} initialRows={rows} newLabel="Añadir producto" />;
+  return <CrudManager resource="products" title="3 · Productos" description="Fotos, categoría, medidas, precio y ficha técnica." fields={fields} initialRows={rows} newLabel="Añadir producto" />;
 }

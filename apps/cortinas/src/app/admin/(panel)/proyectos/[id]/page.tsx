@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { formatMeters, formatMoney } from "@portafolio/core/pricing";
 import { LINE_STATUS_COLORS, LINE_STATUS_LABELS, PROJECT_STATUSES, PROJECT_STATUS_LABELS, type LineStatus } from "@portafolio/core/projects";
 import { loadProject, locationName, projectSummary } from "@/lib/project";
-import { DRIVE_LABELS } from "@/lib/content";
+import { configSummary } from "@portafolio/core/db/project-schema";
 import { addProjectNote, updateProjectStatus } from "@/app/admin/actions";
 import { AttachmentGallery } from "@/components/admin/AttachmentGallery";
 import { AdminPlanView } from "@/components/admin/AdminPlanView";
@@ -97,7 +97,7 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
         <table className="w-full min-w-[720px] text-left text-sm">
           <thead className="font-mono text-[11px] text-muted">
             <tr className="border-b border-line">
-              <th className="py-2 font-normal">Cód.</th><th className="py-2 font-normal">Ubicación</th><th className="py-2 font-normal">Código</th><th className="py-2 font-normal">Producto</th><th className="py-2 font-normal">Accionamiento</th>
+              <th className="py-2 font-normal">Cód.</th><th className="py-2 font-normal">Ubicación</th><th className="py-2 font-normal">Código</th><th className="py-2 font-normal">Producto</th><th className="py-2 font-normal">Opciones</th>
               <th className="py-2 font-normal">Medidas</th><th className="py-2 text-right font-normal">Cant.</th><th className="py-2 text-right font-normal">Total</th><th className="py-2 pl-4 font-normal">Estado</th>
             </tr>
           </thead>
@@ -107,8 +107,8 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
                 <td className="py-2 font-mono text-xs">{l.label}</td>
                 <td className="py-2">{l.locationId && locs.get(l.locationId) ? locationName(locs.get(l.locationId)!) : "—"}</td>
                 <td className="py-2 font-mono text-xs" data-testid="line-variant">{l.config?.variantCode ?? "—"}</td>
-                <td className="py-2">{l.config ? [l.config.modelName, l.config.fabricName, l.config.frameColorName].filter(Boolean).join(" · ") : "—"}</td>
-                <td className="py-2 text-muted">{l.config ? DRIVE_LABELS[l.config.drive] : ""}</td>
+                <td className="py-2">{l.config?.modelName ?? "—"}</td>
+                <td className="py-2 text-muted">{configSummary(l.config)}</td>
                 <td className="py-2 font-mono text-xs">{l.width && l.height ? `${formatMeters(l.width)} × ${formatMeters(l.height)}` : "—"}</td>
                 <td className="py-2 text-right font-mono text-xs">{l.quantity}</td>
                 <td className="py-2 text-right">{l.config && l.unitPrice ? formatMoney(l.unitPrice * l.quantity) : "—"}</td>

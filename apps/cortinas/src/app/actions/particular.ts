@@ -12,6 +12,7 @@ import { projectReference } from "@portafolio/core/projects";
 import { sendEmail } from "@portafolio/core/email";
 import { getDb, schema } from "@/lib/db";
 import { getCatalog, priceLine } from "@/lib/catalog";
+import { withDefaults } from "@/lib/rules";
 import { getClientSession } from "@/lib/client-session";
 
 const schemaIn = z.object({
@@ -70,7 +71,7 @@ export async function submitQuickQuote(input: QuickInput): Promise<{ error?: str
   if (d.mode === "medidas") {
     for (const [i, r] of d.rows.entries()) {
       const [loc] = await db.insert(schema.locations).values({ projectId: project.id, building: "", floor: "", room: r.room, sortOrder: i }).returning();
-      const priced = priceLine(catalog, { modelId: r.modelId, fabricId: 0, frameColorId: 0, drive: "manual", width: r.width, height: r.height })!;
+      const priced = priceLine(catalog, { modelId: r.modelId, values: withDefaults(catalog, { modelId: r.modelId }), width: r.width, height: r.height })!;
       await db.insert(schema.lines).values({ projectId: project.id, locationId: loc.id, label: `V${i + 1}`, width: r.width, height: r.height, quantity: r.quantity, sortOrder: i, status: "configurada", ...priced });
     }
   }

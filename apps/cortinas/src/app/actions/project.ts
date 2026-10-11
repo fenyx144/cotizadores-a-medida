@@ -16,7 +16,7 @@ import { getDb, schema } from "@/lib/db";
 import { getClientSession } from "@/lib/client-session";
 import { getCatalog, priceLine } from "@/lib/catalog";
 import { loadProject, type ProjectData } from "@/lib/project";
-import { evaluate } from "@/lib/rules";
+import { cleanValues, evaluate, type Values } from "@/lib/rules";
 
 export type ActionResult = { ok: true; data: ProjectData; createdId?: number } | { ok: false; error: string };
 
@@ -117,9 +117,7 @@ const lineSchema = z.object({
   quantity: z.number().int().min(1, "Cantidad mínima 1").max(500),
   note: z.string().max(400).default(""),
   modelId: z.number().int().nullable(),
-  fabricId: z.number().int().nullable(),
-  frameColorId: z.number().int().nullable(),
-  drive: z.enum(["manual", "motor", "sensor"]).default("manual"),
+  values: z.record(z.string(), z.union([z.number(), z.boolean(), z.null()]).optional()).default({}),
 });
 export type LineFormInput = z.input<typeof lineSchema>;
 
@@ -130,10 +128,11 @@ async function resolveConfig(input: z.infer<typeof lineSchema>, label: string) {
   const model = catalog.models.find((m) => m.id === input.modelId);
   if (!model) throw new ActionError("Producto no disponible.");
   if (!input.width || !input.height) throw new ActionError(`${label}: indique ancho y alto.`);
-  const ev = evaluate(catalog, { modelId: model.id, fabricId: input.fabricId, frameColorId: input.frameColorId, drive: input.drive, width: input.width, height: input.height });
+  const values = cleanValues(catalog, model.id, input.values);
+  const ev = evaluate(catalog, { modelId: model.id, values, width: input.width, height: input.height });
   const firstError = Object.values(ev.errors)[0];
   if (firstError) throw new ActionError(`${label}: ${firstError}`);
-  const priced = priceLine(catalog, { modelId: model.id, fabricId: input.fabricId ?? 0, frameColorId: input.frameColorId ?? 0, drive: input.drive, width: input.width, height: input.height })!;
+  const priced = priceLine(catalog, { modelId: model.id, values, width: input.width, height: input.height })!;
   return { ...priced, status: "configurada" as const };
 }
 
@@ -172,7 +171,7 @@ export async function deleteLines(projectId: number, ids: number[]) {
 export async function applyConfig(
   projectId: number,
   ids: number[],
-  input: { modelId: number; fabricId: number; frameColorId: number; drive: "manual" | "motor" | "sensor"; width?: number | null; height?: number | null; locationId?: number | null },
+  input: { modelId: number; values: Values; width?: number | null; height?: number | null; locationId?: number | null },
 ) {
   return run(projectId, async () => {
     const db = getDb();
@@ -182,7 +181,7 @@ export async function applyConfig(
       const values = {
         id: line.id, locationId: input.locationId !== undefined ? input.locationId : line.locationId,
         width: input.width || line.width, height: input.height || line.height, quantity: line.quantity, note: line.note,
-        modelId: input.modelId, fabricId: input.fabricId, frameColorId: input.frameColorId, drive: input.drive,
+        modelId: input.modelId, values: input.values,
       };
       try {
         const cfg = await resolveConfig(values, line.label);
@@ -288,9 +287,7 @@ export interface GridRowInput {
   width: number | null;
   height: number | null;
   quantity: number;
-  fabricId: number | null;
-  frameColorId: number | null;
-  drive: "manual" | "motor" | "sensor" | null;
+  values: Values;
   note: string;
 }
 export type GridCellErrors = Record<number, Partial<Record<string, string>>>;
@@ -312,7 +309,7 @@ export async function saveGrid(projectId: number, rows: GridRowInput[]): Promise
     if (!r.width) e.width = "Indique el ancho.";
     if (!r.height) e.height = "Indique el alto.";
     if (r.modelId) {
-      const ev = evaluate(catalog, { modelId: r.modelId, fabricId: r.fabricId, frameColorId: r.frameColorId, drive: r.drive, width: r.width, height: r.height });
+      const ev = evaluate(catalog, { modelId: r.modelId, values: cleanValues(catalog, r.modelId, r.values), width: r.width, height: r.height });
       Object.assign(e, ev.errors, e.width || e.height ? { width: e.width ?? ev.errors.width, height: e.height ?? ev.errors.height } : {});
     }
     for (const k of Object.keys(e)) if (!e[k]) delete e[k];
@@ -337,7 +334,7 @@ export async function saveGrid(projectId: number, rows: GridRowInput[]): Promise
         locations.push(loc);
       }
       // Sin producto: la línea queda "sin configurar" (solo medidas), igual que en el editor.
-      const priced = r.modelId ? priceLine(catalog, { modelId: r.modelId, fabricId: r.fabricId ?? 0, frameColorId: r.frameColorId ?? 0, drive: r.drive ?? "manual", width: r.width!, height: r.height! }) : null;
+      const priced = r.modelId ? priceLine(catalog, { modelId: r.modelId, values: cleanValues(catalog, r.modelId, r.values), width: r.width!, height: r.height! }) : null;
       const cfg = priced ? { ...priced, status: "configurada" as const } : { config: null, unitPrice: null, status: "sin_configurar" as const };
       const values = { locationId: loc.id, width: r.width, height: r.height, quantity: r.quantity, note: r.note.slice(0, 400), ...cfg, sortOrder: i };
       const current = r.id ? existing.find((l) => l.id === r.id) : undefined;
@@ -386,7 +383,7 @@ export async function sendProject(projectId: number) {
     const catalog = await getCatalog();
     for (const l of data.lines) {
       if (!l.config) continue;
-      const ev = evaluate(catalog, { modelId: l.config.modelId, fabricId: l.config.fabricId, frameColorId: l.config.frameColorId || null, drive: l.config.drive, width: l.width, height: l.height });
+      const ev = evaluate(catalog, { modelId: l.config.modelId, values: cleanValues(catalog, l.config.modelId, l.config.values), width: l.width, height: l.height });
       const err = Object.values(ev.errors)[0];
       if (err) throw new ActionError(`${l.label}: ${err} Corríjala antes de enviar.`);
     }
@@ -403,7 +400,7 @@ export async function sendProject(projectId: number) {
 /** "Agregar al proyecto" desde la ficha de producto: la agrega a la primera ubicación (o crea "Ubicación 1"). */
 export async function addFromCatalog(
   projectId: number,
-  input: { modelId: number; fabricId: number; frameColorId?: number | null; drive: "manual" | "motor" | "sensor"; width: number; height: number; quantity: number },
+  input: { modelId: number; values: Values; width: number; height: number; quantity: number },
 ) {
   return run(projectId, async () => {
     const db = getDb();
@@ -412,7 +409,7 @@ export async function addFromCatalog(
     if (!loc) [loc] = await db.insert(schema.locations).values({ projectId, building: "", floor: "", room: "Ubicación 1", sortOrder: 0 }).returning();
     const all = await db.select({ label: schema.lines.label }).from(schema.lines).where(eq(schema.lines.projectId, projectId));
     const label = nextLabel(all.map((l) => l.label));
-    const cfg = await resolveConfig({ ...input, locationId: loc.id, note: "", frameColorId: input.frameColorId ?? null }, label);
+    const cfg = await resolveConfig({ ...input, locationId: loc.id, note: "" }, label);
     const [row] = await db
       .insert(schema.lines)
       .values({ projectId, locationId: loc.id, label, width: input.width, height: input.height, quantity: Math.max(1, Math.min(500, input.quantity)), sortOrder: all.length, ...cfg })

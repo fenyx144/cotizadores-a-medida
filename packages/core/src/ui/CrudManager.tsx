@@ -7,7 +7,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export type FieldType = "text" | "textarea" | "number" | "color" | "boolean" | "select" | "specs" | "multiselect" | "image" | "gallery";
+export type FieldType = "text" | "textarea" | "number" | "color" | "boolean" | "select" | "specs" | "multiselect" | "image" | "gallery" | "attrs";
+
+/** Para "attrs": atributos disponibles con sus valores. */
+export interface AttrOption { id: number; name: string; values: { id: number; name: string }[] }
+type AttrConf = { attributeId: number; required: boolean; valueIds: number[] };
 
 export interface CrudField {
   name: string;
@@ -20,6 +24,8 @@ export interface CrudField {
   hint?: string;
   /** Para "image"/"gallery": endpoint que recibe el archivo (POST multipart) y devuelve { url }. */
   uploadUrl?: string;
+  /** Para "attrs": atributos que se pueden pedir. */
+  attrOptions?: AttrOption[];
   /** Mostrar en la tabla. */
   column?: boolean;
 }
@@ -50,7 +56,7 @@ export function CrudManager({
 
   function emptyRow(): Partial<Row> {
     const r: Record<string, unknown> = {};
-    for (const f of fields) r[f.name] = f.type === "specs" || f.type === "gallery" ? [] : f.type === "multiselect" ? "" : f.type === "boolean" ? true : f.type === "number" ? (f.nullable ? null : 0) : f.type === "color" ? "#cccccc" : f.nullable ? null : (f.options?.[0]?.value ?? "");
+    for (const f of fields) r[f.name] = f.type === "specs" || f.type === "gallery" || f.type === "attrs" ? [] : f.type === "multiselect" ? "" : f.type === "boolean" ? true : f.type === "number" ? (f.nullable ? null : 0) : f.type === "color" ? "#cccccc" : f.nullable ? null : (f.options?.[0]?.value ?? "");
     return r;
   }
 
@@ -60,7 +66,7 @@ export function CrudManager({
     for (const f of fields) {
       let v = row[f.name];
       if (f.type === "number") v = v === "" || v === null || v === undefined ? (f.nullable ? null : 0) : Number(v);
-      else if (f.type === "gallery") v = Array.isArray(v) ? v : [];
+      else if (f.type === "gallery" || f.type === "attrs") v = Array.isArray(v) ? v : [];
       else if (f.type === "specs") v = ((v as { label: string; value: string }[]) ?? []).map((r) => ({ label: r.label.trim(), value: r.value.trim() })).filter((r) => r.label && r.value);
       else if (f.type !== "boolean" && f.nullable && (v === "" || v === undefined)) v = null;
       out[f.name] = v;
@@ -110,6 +116,10 @@ export function CrudManager({
       );
     if (f.type === "image") return value ? <img src={String(value)} alt="" className="h-10 w-14 border border-line object-cover" /> : "—";
     if (f.type === "gallery") return Array.isArray(value) && value.length ? `${value.length} fotos` : "—";
+    if (f.type === "attrs") {
+      const list = (value as AttrConf[] | undefined) ?? [];
+      return list.length ? list.map((a) => `${f.attrOptions?.find((o) => o.id === a.attributeId)?.name ?? a.attributeId}${a.required ? "" : " (opc.)"}`).join(", ") : "—";
+    }
     if (f.type === "specs") return Array.isArray(value) && value.length ? `${value.length} filas` : "—";
     if (f.type === "multiselect") {
       const v = String(value ?? "").split(",").filter(Boolean);
@@ -169,6 +179,9 @@ export function CrudManager({
             <p className="font-serif text-xl">{editing.id ? "Editar" : "Nuevo registro"}</p>
             {fields.map((f) => f.type === "image" || f.type === "gallery" ? (
               <PhotoField key={f.name} field={f} value={editing[f.name]} error={errors[f.name]} onChange={(v) => setEditing({ ...editing, [f.name]: v })} />
+            ) : f.type === "attrs" ? (
+              <AttrsEditor key={f.name} field={f} error={errors[f.name]} value={(editing[f.name] as AttrConf[] | undefined) ?? []}
+                onChange={(v) => setEditing({ ...editing, [f.name]: v })} />
             ) : f.type === "specs" ? (
               <SpecsEditor key={f.name} label={f.label} hint={f.hint} error={errors[f.name]}
                 rows={(editing[f.name] as SpecRow[] | undefined) ?? []}
@@ -303,6 +316,57 @@ function PhotoField({ field, value, error, onChange }: { field: CrudField; value
       </div>
       {field.hint && <span className="mt-1 block text-xs text-muted">{field.hint}</span>}
       {(msg || error) && <span className="mt-1 block text-xs text-danger">{msg || error}</span>}
+    </div>
+  );
+}
+
+/** Atributos que pide una categoría: marcar, obligatorio y valores permitidos (sin marcar = todos). */
+function AttrsEditor({ field, value, error, onChange }: { field: CrudField; value: AttrConf[]; error?: string; onChange: (v: AttrConf[]) => void }) {
+  const find = (id: number) => value.find((v) => v.attributeId === id);
+  const set = (id: number, patch: Partial<AttrConf> | null) => {
+    const cur = find(id);
+    if (patch === null) return onChange(value.filter((v) => v.attributeId !== id));
+    onChange(cur ? value.map((v) => (v.attributeId === id ? { ...v, ...patch } : v)) : [...value, { attributeId: id, required: true, valueIds: [], ...patch }]);
+  };
+  return (
+    <div className="block text-sm" data-testid="attrs-editor">
+      <span className="text-muted">{field.label}</span>
+      <div className="mt-1 divide-y divide-line border-y border-line">
+        {(field.attrOptions ?? []).map((a) => {
+          const cur = find(a.id);
+          return (
+            <div key={a.id} className="py-2">
+              <div className="flex items-center justify-between gap-3">
+                <label className="inline-flex items-center gap-2">
+                  <input type="checkbox" className="accent-ink" checked={!!cur} onChange={(e) => set(a.id, e.target.checked ? {} : null)} aria-label={`Pedir ${a.name}`} />
+                  <span className={cur ? "" : "text-muted"}>{a.name}</span>
+                </label>
+                {cur && (
+                  <label className="inline-flex items-center gap-1.5 text-xs text-muted">
+                    <input type="checkbox" className="accent-ink" checked={cur.required} onChange={(e) => set(a.id, { required: e.target.checked })} aria-label={`${a.name} obligatorio`} />
+                    Obligatorio
+                  </label>
+                )}
+              </div>
+              {cur && a.values.length > 0 && (
+                <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 pl-6 text-xs">
+                  {a.values.map((v) => {
+                    const on = cur.valueIds.includes(v.id);
+                    return (
+                      <label key={v.id} className="inline-flex items-center gap-1">
+                        <input type="checkbox" className="accent-ink" checked={on} onChange={() => set(a.id, { valueIds: on ? cur.valueIds.filter((x) => x !== v.id) : [...cur.valueIds, v.id] })} />
+                        <span>{v.name}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {field.hint && <span className="mt-1 block text-xs text-muted">{field.hint}</span>}
+      {error && <span className="mt-1 block text-xs text-danger">{error}</span>}
     </div>
   );
 }
