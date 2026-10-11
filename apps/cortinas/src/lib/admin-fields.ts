@@ -35,6 +35,7 @@ export const PRODUCT_FIELDS = productFields([]);
 export const ATTRIBUTE_FIELDS: CrudField[] = [
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "kind", label: "Tipo", type: "select", options: [{ value: "lista", label: "Lista de opciones" }, { value: "color", label: "Color (con muestra)" }, { value: "numero", label: "Número" }, { value: "sino", label: "Sí / no" }], column: true },
+  { name: "scope", label: "Aplica a", type: "select", options: [{ value: "generico", label: "Genérico (todos los materiales)" }, { value: "material", label: "Según material" }], column: true, hint: "Según material: solo donde el material lo activa." },
   { name: "unit", label: "Unidad", type: "text", hint: "Solo para números. Ej.: cm" },
   { name: "sortOrder", label: "Orden en el configurador", type: "number", column: true },
 ];
@@ -46,7 +47,6 @@ export const valueFields = (attrs: Opt[]): CrudField[] => [
   { name: "hex", label: "Muestra de color", type: "color", nullable: true, column: true, hint: "Solo en atributos de color." },
   { name: "surcharge", label: "Recargo (S/)", type: "number", step: 0.01, column: true },
   { name: "surchargeKind", label: "Recargo por", type: "select", options: [{ value: "fijo", label: "Unidad" }, { value: "por_m2", label: "m²" }] },
-  { name: "onlyFor", label: "Solo para", type: "text", hint: "Materiales o tipos, separados por comas. Vacío = todos." },
   { name: "sortOrder", label: "Orden", type: "number" },
   { name: "active", label: "Activo", type: "boolean", column: true },
 ];
@@ -74,6 +74,9 @@ export const familyFields = (attrOptions: AttrOption[]): CrudField[] => [
   { name: "sortOrder", label: "Orden", type: "number" },
 ];
 
+
+export const materialFields = (attrOptions: AttrOption[]): CrudField[] => [...MATERIAL_FIELDS,
+  { name: "attributes", label: "Atributos de este material", type: "attrs", attrOptions, noRequired: true, hint: "Sin valores marcados se permiten todos." }];
 
 export const MATERIAL_FIELDS: CrudField[] = [
   { name: "name", label: "Nombre", type: "text", column: true },

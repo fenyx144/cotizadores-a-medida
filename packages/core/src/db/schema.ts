@@ -15,6 +15,8 @@ export const materials = pgTable("materials", {
   description: text("description").notNull().default(""),
   sortOrder: integer("sort_order").notNull().default(0),
   active: boolean("active").notNull().default(true),
+  /** Atributos que aplican a este material y sus valores permitidos (vacío = todos). Lista vacía = todos los atributos. */
+  attributes: jsonb("attributes").$type<FamilyAttribute[]>().notNull().default([]),
 });
 
 /**
@@ -44,6 +46,8 @@ export const attributes = pgTable("attributes", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   kind: text("kind").notNull().default("lista"),
+  /** generico: vale para todos los materiales · material: solo donde el material lo activa. */
+  scope: text("scope").notNull().default("generico"),
   unit: text("unit").notNull().default(""),
   sortOrder: integer("sort_order").notNull().default(0),
 });

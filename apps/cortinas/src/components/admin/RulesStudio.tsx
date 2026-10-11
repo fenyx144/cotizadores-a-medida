@@ -86,7 +86,7 @@ export function RulesStudio({ catalog, initialRules }: { catalog: CatalogData; i
       <section data-testid="rules-list">
         <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
           <div>
-            <h1 className="font-serif text-3xl">5 · Reglas</h1>
+            <h1 className="font-serif text-3xl">6 · Reglas</h1>
             <p className="mt-1 text-sm text-muted">Cada regla se lee como una frase: dónde, si se cumple, qué pasa.</p>
           </div>
           <button onClick={() => { setError(null); setDraft(toDraft()); }} className="bg-ink px-4 py-2 text-sm text-paper hover:bg-ink/85">Añadir regla</button>

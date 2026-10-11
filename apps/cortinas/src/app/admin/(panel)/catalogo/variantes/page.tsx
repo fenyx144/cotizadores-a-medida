@@ -23,7 +23,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
           <Link key={m.id} href={`/admin/catalogo/variantes?producto=${m.id}`} className={modelId === m.id ? "text-ink underline decoration-accent underline-offset-4" : "text-muted hover:text-ink"}>{m.name}</Link>
         ))}
       </nav>
-      <CrudManager key={modelId ?? 0} resource="variants" title="4 · Variantes" newLabel="Añadir variante"
+      <CrudManager key={modelId ?? 0} resource="variants" title="5 · Variantes" newLabel="Añadir variante"
         description="Código propio (SKU) para una combinación de valores."
         fields={fields} initialRows={rows} />
     </div>

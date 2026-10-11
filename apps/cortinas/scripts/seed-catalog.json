@@ -6,7 +6,19 @@
       "name": "Screen",
       "description": "Tejido técnico que filtra el sol y mantiene la vista al exterior.",
       "sort_order": 1,
-      "active": true
+      "active": true,
+      "attributes": [
+        {
+          "required": false,
+          "valueIds": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "attributeId": 1
+        }
+      ]
     },
     {
       "id": 2,
@@ -14,7 +26,18 @@
       "name": "Blackout",
       "description": "Oscurecimiento total.",
       "sort_order": 2,
-      "active": true
+      "active": true,
+      "attributes": [
+        {
+          "required": false,
+          "valueIds": [
+            5,
+            6,
+            7
+          ],
+          "attributeId": 1
+        }
+      ]
     },
     {
       "id": 3,
@@ -22,7 +45,19 @@
       "name": "Mixto (día/noche)",
       "description": "Franjas opacas y traslúcidas.",
       "sort_order": 3,
-      "active": true
+      "active": true,
+      "attributes": [
+        {
+          "required": false,
+          "valueIds": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "attributeId": 1
+        }
+      ]
     },
     {
       "id": 4,
@@ -30,7 +65,17 @@
       "name": "PVC",
       "description": "Lamas rígidas y lavables.",
       "sort_order": 4,
-      "active": true
+      "active": true,
+      "attributes": [
+        {
+          "required": false,
+          "valueIds": [
+            8,
+            9
+          ],
+          "attributeId": 1
+        }
+      ]
     },
     {
       "id": 5,
@@ -38,7 +83,18 @@
       "name": "Aluminio",
       "description": "Lamas metálicas lacadas.",
       "sort_order": 5,
-      "active": true
+      "active": true,
+      "attributes": [
+        {
+          "required": false,
+          "valueIds": [
+            10,
+            11,
+            12
+          ],
+          "attributeId": 1
+        }
+      ]
     }
   ],
   "families": [
@@ -514,42 +570,48 @@
       "name": "Tela",
       "kind": "color",
       "unit": "",
-      "sort_order": 1
+      "sort_order": 1,
+      "scope": "material"
     },
     {
       "id": 2,
       "name": "Color del perfil",
       "kind": "color",
       "unit": "",
-      "sort_order": 2
+      "sort_order": 2,
+      "scope": "generico"
     },
     {
       "id": 3,
       "name": "Accionamiento",
       "kind": "lista",
       "unit": "",
-      "sort_order": 3
+      "sort_order": 3,
+      "scope": "generico"
     },
     {
       "id": 4,
       "name": "Lado del mando",
       "kind": "lista",
       "unit": "",
-      "sort_order": 4
+      "sort_order": 4,
+      "scope": "generico"
     },
     {
       "id": 5,
       "name": "Caída",
       "kind": "lista",
       "unit": "",
-      "sort_order": 5
+      "sort_order": 5,
+      "scope": "generico"
     },
     {
       "id": 6,
       "name": "Cenefa decorativa",
       "kind": "sino",
       "unit": "",
-      "sort_order": 6
+      "sort_order": 6,
+      "scope": "generico"
     }
   ],
   "values": [
@@ -561,7 +623,7 @@
       "hex": "#d9d8d3",
       "surcharge": 0,
       "surcharge_kind": "por_m2",
-      "only_for": "screen,mixto",
+      "only_for": "",
       "active": true,
       "sort_order": 1
     },
@@ -573,7 +635,7 @@
       "hex": "#a9a9a4",
       "surcharge": 0,
       "surcharge_kind": "por_m2",
-      "only_for": "screen,mixto",
+      "only_for": "",
       "active": true,
       "sort_order": 2
     },
@@ -585,7 +647,7 @@
       "hex": "#cbbfa8",
       "surcharge": 0,
       "surcharge_kind": "por_m2",
-      "only_for": "screen,mixto",
+      "only_for": "",
       "active": true,
       "sort_order": 3
     },
@@ -597,7 +659,7 @@
       "hex": "#45484c",
       "surcharge": 8,
       "surcharge_kind": "por_m2",
-      "only_for": "screen,mixto",
+      "only_for": "",
       "active": true,
       "sort_order": 4
     },
@@ -609,7 +671,7 @@
       "hex": "#eeeeea",
       "surcharge": 0,
       "surcharge_kind": "por_m2",
-      "only_for": "blackout",
+      "only_for": "",
       "active": true,
       "sort_order": 5
     },
@@ -621,7 +683,7 @@
       "hex": "#cdbb9c",
       "surcharge": 6,
       "surcharge_kind": "por_m2",
-      "only_for": "blackout",
+      "only_for": "",
       "active": true,
       "sort_order": 6
     },
@@ -633,7 +695,7 @@
       "hex": "#8c8a85",
       "surcharge": 6,
       "surcharge_kind": "por_m2",
-      "only_for": "blackout",
+      "only_for": "",
       "active": true,
       "sort_order": 7
     },
@@ -645,7 +707,7 @@
       "hex": "#e4e1da",
       "surcharge": 0,
       "surcharge_kind": "por_m2",
-      "only_for": "pvc",
+      "only_for": "",
       "active": true,
       "sort_order": 8
     },
@@ -657,7 +719,7 @@
       "hex": "#b9b8b3",
       "surcharge": 0,
       "surcharge_kind": "por_m2",
-      "only_for": "pvc",
+      "only_for": "",
       "active": true,
       "sort_order": 9
     },
@@ -669,7 +731,7 @@
       "hex": "#c0c2c4",
       "surcharge": 0,
       "surcharge_kind": "por_m2",
-      "only_for": "aluminio",
+      "only_for": "",
       "active": true,
       "sort_order": 10
     },
@@ -681,7 +743,7 @@
       "hex": "#f2f2f0",
       "surcharge": 0,
       "surcharge_kind": "por_m2",
-      "only_for": "aluminio",
+      "only_for": "",
       "active": true,
       "sort_order": 11
     },
@@ -693,7 +755,7 @@
       "hex": "#3d4044",
       "surcharge": 10,
       "surcharge_kind": "por_m2",
-      "only_for": "aluminio",
+      "only_for": "",
       "active": true,
       "sort_order": 12
     },

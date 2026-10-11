@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 export type FieldType = "text" | "textarea" | "number" | "color" | "boolean" | "select" | "specs" | "multiselect" | "image" | "gallery" | "attrs";
 
 /** Para "attrs": atributos disponibles con sus valores. */
-export interface AttrOption { id: number; name: string; values: { id: number; name: string }[] }
+export interface AttrOption { id: number; name: string; values: { id: number; name: string }[]; defaultOn?: boolean; note?: string }
 type AttrConf = { attributeId: number; required: boolean; valueIds: number[] };
 
 export interface CrudField {
@@ -26,6 +26,8 @@ export interface CrudField {
   uploadUrl?: string;
   /** Para "attrs": atributos que se pueden pedir. */
   attrOptions?: AttrOption[];
+  /** En "attrs": ocultar "Obligatorio" (materiales). Los atributos con defaultOn vienen marcados salvo que se desmarquen (valueIds [-1]). */
+  noRequired?: boolean;
   /** Mostrar en la tabla. */
   column?: boolean;
 }
@@ -334,15 +336,18 @@ function AttrsEditor({ field, value, error, onChange }: { field: CrudField; valu
       <span className="text-muted">{field.label}</span>
       <div className="mt-1 divide-y divide-line border-y border-line">
         {(field.attrOptions ?? []).map((a) => {
-          const cur = find(a.id);
+          const raw = find(a.id);
+          const off = raw?.valueIds[0] === -1;
+          const cur = a.defaultOn ? (off ? undefined : raw ?? { attributeId: a.id, required: false, valueIds: [] }) : raw;
           return (
             <div key={a.id} className="py-2">
               <div className="flex items-center justify-between gap-3">
                 <label className="inline-flex items-center gap-2">
-                  <input type="checkbox" className="accent-ink" checked={!!cur} onChange={(e) => set(a.id, e.target.checked ? {} : null)} aria-label={`Pedir ${a.name}`} />
+                  <input type="checkbox" className="accent-ink" checked={!!cur} onChange={(e) => (a.defaultOn ? set(a.id, e.target.checked ? null : { valueIds: [-1] }) : set(a.id, e.target.checked ? {} : null))} aria-label={`Pedir ${a.name}`} />
                   <span className={cur ? "" : "text-muted"}>{a.name}</span>
+                  {a.note && <span className="text-xs text-muted">{a.note}</span>}
                 </label>
-                {cur && (
+                {cur && !field.noRequired && (
                   <label className="inline-flex items-center gap-1.5 text-xs text-muted">
                     <input type="checkbox" className="accent-ink" checked={cur.required} onChange={(e) => set(a.id, { required: e.target.checked })} aria-label={`${a.name} obligatorio`} />
                     Obligatorio

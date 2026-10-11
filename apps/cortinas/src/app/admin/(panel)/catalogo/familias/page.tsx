@@ -10,8 +10,8 @@ export default async function Page() {
     attributeData(),
   ]);
   return (
-    <CrudManager resource="families" title="2 · Categorías" newLabel="Añadir categoría"
+    <CrudManager resource="families" title="3 · Categorías" newLabel="Añadir categoría"
       description="Qué atributos pide cada categoría; sus productos los heredan."
-      fields={familyFields(attrOptions)} initialRows={rows} />
+      fields={familyFields(attrOptions.map(({ defaultOn: _d, note: _n, ...a }) => a))} initialRows={rows} />
   );
 }

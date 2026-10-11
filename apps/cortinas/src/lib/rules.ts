@@ -65,15 +65,29 @@ export function familyAttributes(c: RulesCatalog, model: ProductModel): (FamilyA
   const conf: FamilyAttribute[] = family?.attributes?.length ? family.attributes : c.attributes.map((a) => ({ attributeId: a.id, required: false, valueIds: [] }));
   return conf
     .map((fa) => ({ ...fa, attribute: c.attributes.find((a) => a.id === fa.attributeId)! }))
-    .filter((x) => x.attribute)
+    .filter((x) => x.attribute && materialAllows(c, model, x.attributeId))
     .sort((a, b) => byOrder(a.attribute, b.attribute));
 }
+
+/**
+ * Atributo en el material del producto. Genérico: aplica salvo que el material lo desactive (valueIds [-1]).
+ * Según material: solo si el material lo activa. undefined = sin restricción.
+ */
+export function materialAttribute(c: RulesCatalog, model: ProductModel, attributeId: number) {
+  const mat = c.materials?.find((m) => m.slug === model.material);
+  if (!mat) return undefined;
+  const entry = (mat.attributes ?? []).find((a) => a.attributeId === attributeId);
+  const generic = (c.attributes.find((a) => a.id === attributeId)?.scope ?? "generico") !== "material";
+  return entry ?? (generic ? undefined : { attributeId, required: false, valueIds: [-1] });
+}
+/** ¿El material del producto admite el atributo? */
+export const materialAllows = (c: RulesCatalog, model: ProductModel, attributeId: number) => materialAttribute(c, model, attributeId)?.valueIds[0] !== -1;
 
 /** Valores activos de un atributo que sirven para el producto y la familia. */
 export function valuesFor(c: RulesCatalog, attributeId: number, model?: ProductModel, allowed: number[] = []) {
   return c.values
     .filter((v) => v.active && v.attributeId === attributeId)
-    .filter((v) => !model || !v.onlyFor || list(v.onlyFor).includes(model.type) || list(v.onlyFor).includes(model.material))
+    .filter((v) => { const m = model && materialAttribute(c, model, attributeId); return !m || !m.valueIds.length || m.valueIds.includes(v.id); })
     .filter((v) => !allowed.length || allowed.includes(v.id))
     .sort(byOrder);
 }

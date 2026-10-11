@@ -38,7 +38,7 @@ const resources: Record<string, CrudResource> = {
   attributes: {
     table: schema.attributes,
     orderBy: schema.attributes.sortOrder,
-    schema: z.object({ name: z.string().trim().min(2, "Indique el nombre").max(60), kind: z.enum(["lista", "color", "numero", "sino"]), unit: z.string().max(10).default(""), sortOrder: z.number().int() }),
+    schema: z.object({ name: z.string().trim().min(2, "Indique el nombre").max(60), kind: z.enum(["lista", "color", "numero", "sino"]), scope: z.enum(["generico", "material"]).default("generico"), unit: z.string().max(10).default(""), sortOrder: z.number().int() }),
   },
   values: {
     table: schema.attributeValues,
@@ -61,7 +61,8 @@ const resources: Record<string, CrudResource> = {
   materials: {
     table: schema.materials,
     orderBy: schema.materials.sortOrder,
-    schema: z.object({ name: z.string().min(2), slug: z.string().regex(/^[a-z0-9-]+$/, "Solo minúsculas, números y guiones"), description: z.string(), sortOrder: z.number().int(), active: z.boolean() }),
+    schema: z.object({ name: z.string().min(2), slug: z.string().regex(/^[a-z0-9-]+$/, "Solo minúsculas, números y guiones"), description: z.string(), sortOrder: z.number().int(), active: z.boolean(),
+      attributes: z.array(z.object({ attributeId: z.number().int(), required: z.boolean(), valueIds: z.array(z.number().int()) })).default([]) }),
   },
   families: {
     table: schema.productFamilies,

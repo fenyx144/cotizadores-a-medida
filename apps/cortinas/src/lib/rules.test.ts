@@ -78,4 +78,15 @@ describe("motor de reglas (atributos genéricos)", () => {
     const none = { ...allow, id: 12, targetValueIds: [] } as ConstraintRule;
     expect(findConflicts({ ...c, constraints: [none] })[0]).toMatchObject({ model: "Roller Blackout", when: "Tela = Arena", attribute: "Accionamiento" });
   });
+
+  it("material ∩ categoría: atributos y valores", () => {
+    const bambu = { id: 9, slug: "bambu", name: "Bambú", description: "", sortOrder: 9, active: true, attributes: [{ attributeId: TELA, required: false, valueIds: [6] }, { attributeId: PERFIL, required: false, valueIds: [-1] }, { attributeId: ACC, required: false, valueIds: [-1] }, { attributeId: CENEFA, required: false, valueIds: [-1] }] };
+    const cc = { ...c, materials: [...c.materials!, bambu], models: [...c.models, { ...c.models[1], id: 9, material: "bambu" }] };
+    const ev = evaluate(cc, { modelId: 9, values: {} });
+    expect(ev.fields.map((x) => x.attribute.name)).toEqual(["Tela", "Lado del mando"]);
+    expect(f(ev, TELA)!.choices.map((x) => x.value)).toEqual([6]);
+    // Material sin la tela activada: el atributo "según material" no aparece.
+    const sin = { ...cc, materials: cc.materials.map((m) => (m.slug === "bambu" ? { ...m, attributes: [] } : m)) };
+    expect(evaluate(sin, { modelId: 9, values: {} }).fields.some((x) => x.attribute.id === TELA)).toBe(false);
+  });
 });
