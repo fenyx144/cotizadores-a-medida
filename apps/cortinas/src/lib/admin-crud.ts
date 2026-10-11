@@ -79,7 +79,10 @@ const resources: Record<string, CrudResource> = {
       .object({
         name: z.string().trim().min(2, "Ponga un nombre a la regla").max(120), kind: z.enum(["bloquear", "permitir", "medidas", "recargo"]),
         familyId: z.coerce.number().int().nullable().catch(null), modelId: z.coerce.number().int().nullable().catch(null),
-        conditions: z.array(z.object({ attributeId: z.number().int(), valueIds: z.array(z.number().int()).min(1, "Elija al menos un valor") })).max(6).default([]),
+        conditions: z.array(z.object({
+          kind: z.enum(["atributo", "material", "ancho", "alto"]).default("atributo"), attributeId: z.number().int().default(0), valueIds: z.array(z.number().int()).default([]),
+          materials: z.array(z.string()).optional(), op: z.enum(["gt", "lt"]).optional(), value: z.number().int().min(1).max(2000).optional(),
+        }).refine((k) => (k.kind === "atributo" ? k.attributeId > 0 && k.valueIds.length > 0 : k.kind === "material" ? !!k.materials?.length : k.value != null && !!k.op), { message: "Complete cada condición" })).max(6).default([]),
         targetAttributeId: z.number().int().nullable().default(null), targetValueIds: z.array(z.number().int()).default([]),
         minWidth: cmOpt.default(null), maxWidth: cmOpt.default(null), minHeight: cmOpt.default(null), maxHeight: cmOpt.default(null),
         surcharge: z.number().min(-5000).max(5000).default(0), surchargeKind: z.enum(["fijo", "por_m2"]).default("fijo"),

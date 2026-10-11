@@ -30,7 +30,7 @@ function toDraft(r?: ConstraintRule): Draft {
 function toPayload(d: Draft) {
   return {
     name: d.name, kind: d.kind, familyId: d.scope === "familia" ? d.familyId : null, modelId: d.scope === "producto" ? d.modelId : null,
-    conditions: d.conditions.filter((k) => k.attributeId && k.valueIds.length), targetAttributeId: ["bloquear", "permitir"].includes(d.kind) ? d.targetAttributeId : null,
+    conditions: d.conditions.filter((k) => (k.kind ?? "atributo") === "atributo" ? k.attributeId && k.valueIds.length : k.kind === "material" ? k.materials?.length : k.value), targetAttributeId: ["bloquear", "permitir"].includes(d.kind) ? d.targetAttributeId : null,
     targetValueIds: ["bloquear", "permitir"].includes(d.kind) ? d.targetValueIds : [],
     minWidth: d.kind === "medidas" ? num(d.minWidth) : null, maxWidth: d.kind === "medidas" ? num(d.maxWidth) : null,
     minHeight: d.kind === "medidas" ? num(d.minHeight) : null, maxHeight: d.kind === "medidas" ? num(d.maxHeight) : null,
@@ -134,14 +134,24 @@ export function RulesStudio({ catalog, initialRules }: { catalog: CatalogData; i
                 <div key={i} className="space-y-1.5" data-testid="rule-condition">
                   <p className="flex flex-wrap items-center gap-2">
                     <span>{i ? "y" : "si"}</span>
-                    <select className={sel} value={k.attributeId || ""} onChange={(e) => setCond(i, { attributeId: Number(e.target.value), valueIds: [] })} aria-label={`Atributo condición ${i + 1}`}>
-                      <option value="">Atributo…</option>{attrs.filter((a) => a.kind !== "numero").map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                    <select className={sel} value={k.kind && k.kind !== "atributo" ? k.kind : k.attributeId || ""} aria-label={`Atributo condición ${i + 1}`}
+                      onChange={(e) => { const v = e.target.value; setCond(i, ["material", "ancho", "alto"].includes(v) ? { kind: v as "material", attributeId: 0, valueIds: [], materials: [], op: "gt", value: undefined } : { kind: "atributo", attributeId: Number(v), valueIds: [] }); }}>
+                      <option value="">Atributo…</option>
+                      <option value="material">Material</option><option value="ancho">Ancho</option><option value="alto">Alto</option>
+                      {attrs.filter((a) => a.kind !== "numero").map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
                     </select>
-                    <span>{k.valueIds.length > 1 ? "es uno de" : "es"}</span>
+                    {k.kind === "ancho" || k.kind === "alto" ? (
+                      <>
+                        <select className={sel} value={k.op ?? "gt"} onChange={(e) => setCond(i, { op: e.target.value as "gt" })} aria-label={`Comparación condición ${i + 1}`}><option value="gt">mayor que</option><option value="lt">menor que</option></select>
+                        <input className={`${sel} w-16 font-mono`} inputMode="numeric" value={k.value ?? ""} onChange={(e) => setCond(i, { value: Number(e.target.value.replace(/\D/g, "")) || undefined })} aria-label={`Valor condición ${i + 1}`} /> cm
+                      </>
+                    ) : <span>{(k.kind === "material" ? k.materials?.length ?? 0 : k.valueIds.length) > 1 ? "es uno de" : "es"}</span>}
                     <button type="button" className="ml-auto text-xs text-muted hover:text-danger" onClick={() => setDraft({ ...draft, conditions: draft.conditions.filter((_, j) => j !== i) })}>Quitar</button>
                   </p>
                   <div className="flex flex-wrap gap-1.5">
-                    {vals(k.attributeId).map((v) => <button type="button" key={v.id} className={chip(k.valueIds.includes(v.id))} onClick={() => setCond(i, { valueIds: toggleIn(k.valueIds, v.id) })}>{v.name}</button>)}
+                    {k.kind === "material"
+                      ? (catalog.materials ?? []).map((m) => { const on = (k.materials ?? []).includes(m.slug); return <button type="button" key={m.slug} className={chip(on)} onClick={() => setCond(i, { materials: on ? k.materials!.filter((x) => x !== m.slug) : [...(k.materials ?? []), m.slug] })}>{m.name}</button>; })
+                      : vals(k.attributeId).map((v) => <button type="button" key={v.id} className={chip(k.valueIds.includes(v.id))} onClick={() => setCond(i, { valueIds: toggleIn(k.valueIds, v.id) })}>{v.name}</button>)}
                   </div>
                 </div>
               ))}
@@ -298,8 +308,9 @@ function Matrix({ catalog, rules, onSaved }: { catalog: CatalogData; rules: Cons
 function Tester({ catalog }: { catalog: CatalogData }) {
   const [modelId, setModelId] = useState(catalog.models[0]?.id ?? 0);
   const [values, setValues] = useState<Values>({});
+  const [dims, setDims] = useState({ width: "", height: "" });
   const model = catalog.models.find((m) => m.id === modelId);
-  const ev = evaluate(catalog, { modelId, values });
+  const ev = evaluate(catalog, { modelId, values, width: Number(dims.width) || null, height: Number(dims.height) || null });
   const fas = model ? familyAttributes(catalog, model) : [];
   return (
     <section data-testid="rule-tester">
@@ -312,6 +323,13 @@ function Tester({ catalog }: { catalog: CatalogData }) {
               {catalog.models.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
             </select>
           </label>
+          <div className="grid grid-cols-2 gap-3">
+            {(["width", "height"] as const).map((k) => (
+              <label key={k}><span className="block text-xs text-muted">{k === "width" ? "Ancho (cm)" : "Alto (cm)"}</span>
+                <input className={`${sel} w-full font-mono`} inputMode="numeric" value={dims[k]} onChange={(e) => setDims({ ...dims, [k]: e.target.value.replace(/\D/g, "") })} aria-label={k === "width" ? "Probar ancho" : "Probar alto"} />
+              </label>
+            ))}
+          </div>
           {fas.filter((f) => f.attribute.kind !== "numero").map((f) => (
             <label key={f.attributeId} className="block"><span className="block text-xs text-muted">{f.attribute.name}</span>
               {f.attribute.kind === "sino" ? (

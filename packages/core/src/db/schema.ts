@@ -123,7 +123,8 @@ export const constraintRules = pgTable("constraint_rules", {
   source: text("source").notNull().default(""),
 });
 
-export interface RuleCondition { attributeId: number; valueIds: number[] }
+/** Condición: atributo es uno de valores · material es uno de · ancho/alto mayor o menor que (cm). */
+export interface RuleCondition { kind?: "atributo" | "material" | "ancho" | "alto"; attributeId: number; valueIds: number[]; materials?: string[]; op?: "gt" | "lt"; value?: number }
 
 export const productModels = pgTable("product_models", {
   id: serial("id").primaryKey(),

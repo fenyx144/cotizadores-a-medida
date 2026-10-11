@@ -89,4 +89,16 @@ describe("motor de reglas (atributos genéricos)", () => {
     const sin = { ...cc, materials: cc.materials.map((m) => (m.slug === "bambu" ? { ...m, attributes: [] } : m)) };
     expect(evaluate(sin, { modelId: 9, values: {} }).fields.some((x) => x.attribute.id === TELA)).toBe(false);
   });
+
+  it("condiciones de material y de ancho/alto", () => {
+    const r = { ...constraints[0], id: 13, name: "Aluminio ancho", conditions: [{ kind: "material", attributeId: 0, valueIds: [], materials: ["blackout"] }, { kind: "ancho", attributeId: 0, valueIds: [], op: "gt", value: 200 }], targetAttributeId: ACC, targetValueIds: [16], message: "" } as ConstraintRule;
+    const cc = { ...c, constraints: [r] };
+    const cadena = (modelId: number, width: number) => f(evaluate(cc, { modelId, values: {}, width }), ACC)!.choices.find((x) => x.value === 16)?.disabled;
+    expect(cadena(2, 250)).toBe("No disponible si Material es blackout y Ancho mayor que 200 cm.");
+    expect(cadena(2, 150)).toBeUndefined();
+    expect(cadena(1, 250)).toBeUndefined();
+    const lt = { ...r, conditions: [{ kind: "alto", attributeId: 0, valueIds: [], op: "lt", value: 100 }] } as ConstraintRule;
+    expect(f(evaluate({ ...c, constraints: [lt] }, { modelId: 1, values: {}, height: 80 }), ACC)!.choices.find((x) => x.value === 16)?.disabled).toBeTruthy();
+    expect(ruleSentence(cc, r)).toBe("En todos los productos, si Material es blackout y Ancho mayor que 200 cm: bloquear Accionamiento Cadena.");
+  });
 });

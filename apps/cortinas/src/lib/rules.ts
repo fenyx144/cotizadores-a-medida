@@ -169,16 +169,35 @@ export function ruleInScope(r: ConstraintRule, model: ProductModel) {
 }
 
 /** ¿Se cumplen todas las condiciones (Y)? Cada una: el valor elegido del atributo es uno de los indicados. */
-export const conditionsMet = (conds: RuleCondition[] | null | undefined, chosen: Map<number, number>) =>
-  (conds ?? []).every((k) => { const v = chosen.get(k.attributeId); return v != null && k.valueIds.includes(v); });
+export interface RuleContext { model: ProductModel; width?: number | null; height?: number | null }
+const condKind = (k: RuleCondition) => k.kind ?? "atributo";
+
+/** ¿Se cumplen todas las condiciones (Y)? */
+export const conditionsMet = (conds: RuleCondition[] | null | undefined, chosen: Map<number, number>, ctx?: RuleContext) =>
+  (conds ?? []).every((k) => {
+    const kind = condKind(k);
+    if (kind === "material") return !!ctx && (k.materials ?? []).includes(ctx.model.material);
+    if (kind === "ancho" || kind === "alto") {
+      const v = kind === "ancho" ? ctx?.width : ctx?.height;
+      if (v == null || k.value == null) return false;
+      return k.op === "lt" ? v < k.value : v > k.value;
+    }
+    const v = chosen.get(k.attributeId); return v != null && k.valueIds.includes(v);
+  });
 
 const valueNames = (c: RulesCatalog, ids: number[]) => ids.map((id) => c.values.find((v) => v.id === id)?.name ?? `#${id}`);
 const orList = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(", ")} o ${xs[xs.length - 1]}` : xs[0] ?? "");
 const attrName = (c: RulesCatalog, id: number | null | undefined) => c.attributes.find((a) => a.id === id)?.name ?? "";
+const materialName = (c: RulesCatalog, slug: string) => c.materials?.find((m) => m.slug === slug)?.name ?? MATERIAL_NAMES[slug] ?? slug;
 
-/** Condiciones como texto: "Tela es Arena y Accionamiento es uno de Cadena o Motor". */
+/** Condiciones como texto: "Material es Aluminio y Ancho mayor que 200 cm". */
 export function conditionsText(c: RulesCatalog, conds: RuleCondition[] | null | undefined) {
-  return (conds ?? []).map((k) => `${attrName(c, k.attributeId)} ${k.valueIds.length > 1 ? "es uno de" : "es"} ${orList(valueNames(c, k.valueIds))}`).join(" y ");
+  return (conds ?? []).map((k) => {
+    const kind = condKind(k);
+    if (kind === "material") return `Material ${(k.materials ?? []).length > 1 ? "es uno de" : "es"} ${orList((k.materials ?? []).map((m) => materialName(c, m)))}`;
+    if (kind === "ancho" || kind === "alto") return `${kind === "ancho" ? "Ancho" : "Alto"} ${k.op === "lt" ? "menor que" : "mayor que"} ${k.value ?? "?"} cm`;
+    return `${attrName(c, k.attributeId)} ${k.valueIds.length > 1 ? "es uno de" : "es"} ${orList(valueNames(c, k.valueIds))}`;
+  }).join(" y ");
 }
 
 /** La regla como frase, para el panel. */
@@ -199,15 +218,16 @@ export function ruleSentence(c: RulesCatalog, r: ConstraintRule): string {
 /** Motivo (y regla) por el que el valor queda bloqueado dada la selección, o undefined. */
 export function blockReason(c: RulesCatalog, model: ProductModel, attributeId: number, valueId: number, sel: Selection): { message: string; rule: string } | undefined {
   const others = chosenByAttr(c, sel, attributeId);
+  const ctx = { model, width: sel.width, height: sel.height };
   for (const r of c.constraints ?? []) {
     if (!ruleInScope(r, model)) continue;
     const targets = r.targetValueIds ?? [];
     const cond = conditionsText(c, r.conditions);
     let hit = false;
-    if (r.kind === "bloquear" && r.targetAttributeId === attributeId && targets.includes(valueId) && conditionsMet(r.conditions, others)) hit = true;
-    else if (r.kind === "permitir" && r.targetAttributeId === attributeId && !targets.includes(valueId) && conditionsMet(r.conditions, others)) hit = true;
+    if (r.kind === "bloquear" && r.targetAttributeId === attributeId && targets.includes(valueId) && conditionsMet(r.conditions, others, ctx)) hit = true;
+    else if (r.kind === "permitir" && r.targetAttributeId === attributeId && !targets.includes(valueId) && conditionsMet(r.conditions, others, ctx)) hit = true;
     // Simetría en bloqueos de una condición: si ya se eligió el valor bloqueado, se bloquea el que lo causa.
-    else if (r.kind === "bloquear" && r.conditions?.length === 1 && r.conditions[0].attributeId === attributeId && r.conditions[0].valueIds.includes(valueId)) {
+    else if (r.kind === "bloquear" && r.conditions?.length === 1 && condKind(r.conditions[0]) === "atributo" && r.conditions[0].attributeId === attributeId && r.conditions[0].valueIds.includes(valueId)) {
       const t = r.targetAttributeId != null ? others.get(r.targetAttributeId) : undefined;
       if (t != null && targets.includes(t)) hit = true;
     }
@@ -221,7 +241,7 @@ export function ruleSurcharges(c: RulesCatalog, sel: Selection) {
   const model = c.models.find((x) => x.id === sel.modelId);
   if (!model) return [];
   const chosen = chosenByAttr(c, sel);
-  return (c.constraints ?? []).filter((r) => r.kind === "recargo" && r.surcharge && ruleInScope(r, model) && conditionsMet(r.conditions, chosen));
+  return (c.constraints ?? []).filter((r) => r.kind === "recargo" && r.surcharge && ruleInScope(r, model) && conditionsMet(r.conditions, chosen, { model, width: sel.width, height: sel.height }));
 }
 
 export function evaluate(c: RulesCatalog, sel: Selection): Evaluation {
@@ -249,7 +269,7 @@ export function evaluate(c: RulesCatalog, sel: Selection): Evaluation {
   if (family) { tighten("minWidth", family.minWidth); tighten("maxWidth", family.maxWidth); tighten("minHeight", family.minHeight); tighten("maxHeight", family.maxHeight); }
   const chosen = chosenByAttr(c, sel);
   for (const r of c.constraints ?? []) {
-    if (r.kind !== "medidas" || !ruleInScope(r, model) || !conditionsMet(r.conditions, chosen)) continue;
+    if (r.kind !== "medidas" || !ruleInScope(r, model) || !conditionsMet(r.conditions, chosen, { model, width: sel.width, height: sel.height })) continue;
     const msg = r.message || r.name;
     tighten("minWidth", r.minWidth, msg); tighten("maxWidth", r.maxWidth, msg); tighten("minHeight", r.minHeight, msg); tighten("maxHeight", r.maxHeight, msg);
   }
@@ -381,7 +401,7 @@ export function findConflicts(c: RulesCatalog): Conflict[] {
     for (const fa of fas) for (const v of valuesFor(c, fa.attributeId, model, fa.valueIds)) cases.push({ [fa.attributeId]: fa.attribute.kind === "sino" ? true : v.id });
     for (const r of c.constraints ?? []) {
       if (!ruleInScope(r, model) || (r.conditions?.length ?? 0) < 2) continue;
-      cases.push(Object.fromEntries(r.conditions.map((k) => [k.attributeId, k.valueIds[0]])));
+      cases.push(Object.fromEntries(r.conditions.filter((k) => condKind(k) === "atributo").map((k) => [k.attributeId, k.valueIds[0]])));
     }
     for (const vals of cases) {
       const ev = evaluate(c, { modelId: model.id, values: vals });
