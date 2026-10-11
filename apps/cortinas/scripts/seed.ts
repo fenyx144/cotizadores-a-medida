@@ -138,7 +138,7 @@ async function main() {
   function configured(slug: string, width: number, height: number, opts: { fabric?: string; frame?: number; drive?: Drive } = {}) {
     const model = bySlug(slug);
     const fabric = valuesFor(catalog, 1, model).find((v) => !opts.fabric || v.name === opts.fabric);
-    const drive = values.find((v) => v.attributeId === 3 && v.code === (opts.drive ?? "manual"));
+    const drive = values.find((v) => v.id === { manual: 16, motor: 17, sensor: 18 }[opts.drive ?? "manual"]);
     const picked = { 1: fabric?.id, 2: 13 + (opts.frame ?? 0), 3: drive?.id };
     const priced = priceLine(catalog, { modelId: model.id, values: withDefaults(catalog, { modelId: model.id, values: cleanValues(catalog, model.id, picked) }), width, height })!;
     return { width, height, config: priced.config, unitPrice: priced.unitPrice, status: "configurada" as const };

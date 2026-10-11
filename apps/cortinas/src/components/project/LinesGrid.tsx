@@ -111,7 +111,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
   /** Completa valores por defecto (primero disponible) si faltan o ya no aplican; respeta lo no reconocido. */
   function normalizeRow(r: Row): Row {
     if (!r.modelId) return r;
-    const values = withDefaults(catalog, { modelId: r.modelId, values: r.values });
+    const values = withDefaults(catalog, { modelId: r.modelId, values: r.values }, true);
     for (const k of Object.keys(r.unmatched ?? {})) if (k.startsWith("a") && r.unmatched![k]) values[k.slice(1)] = null;
     return { ...r, values };
   }

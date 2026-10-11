@@ -208,8 +208,9 @@ export function firstEnabled<T>(choices: Choice<T>[]): T | undefined {
 /**
  * Completa la selección: en listas y colores, si falta el valor o ya no aplica, toma el primero
  * disponible (recalculando, porque elegir uno puede bloquear otro). Quita atributos que la familia no pide.
+ * Con keepBlocked se conservan los valores bloqueados por una regla (la tabla los marca en rojo).
  */
-export function withDefaults(c: RulesCatalog, sel: Selection): Values {
+export function withDefaults(c: RulesCatalog, sel: Selection, keepBlocked = false): Values {
   const model = c.models.find((x) => x.id === sel.modelId);
   if (!model) return {};
   const fas = familyAttributes(c, model);
@@ -221,7 +222,7 @@ export function withDefaults(c: RulesCatalog, sel: Selection): Values {
     if (kind === "numero") continue;
     const field = evaluate(c, { ...sel, values: out }).fields.find((f) => f.attribute.id === fa.attributeId)!;
     const cur = out[fa.attributeId];
-    const ok = field.choices.find((x) => x.value === cur && !x.disabled);
+    const ok = field.choices.find((x) => x.value === cur && (keepBlocked || !x.disabled));
     if (!ok && (fa.required || cur != null)) out[fa.attributeId] = firstEnabled(field.choices) ?? null;
     else if (!ok && cur == null) out[fa.attributeId] = firstEnabled(field.choices) ?? null;
   }

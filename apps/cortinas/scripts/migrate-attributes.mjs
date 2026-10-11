@@ -20,7 +20,7 @@ for (const f of fabrics) V.push([f.id, 1, f.name, f.code, f.hex, f.surcharge_per
 const FR = (id) => 12 + id; // perfiles: 13..15
 for (const f of frames) V.push([FR(f.id), 2, f.name, f.ral ? `RAL ${f.ral}` : "", f.hex, f.surcharge, "fijo", "", f.active, f.sort_order]);
 const DR = { manual: 16, motor: 17, sensor: 18 };
-V.push([16, 3, "Cadena", "manual", "", 0, "fijo", "", true, 1], [17, 3, "Motor con mando", "motor", "", 380, "fijo", "", true, 2], [18, 3, "Motor + control centralizado", "sensor", "", 520, "fijo", "", true, 3]);
+V.push([16, 3, "Cadena", "", "", 0, "fijo", "", true, 1], [17, 3, "Motor con mando", "", "", 380, "fijo", "", true, 2], [18, 3, "Motor + control centralizado", "", "", 520, "fijo", "", true, 3]);
 V.push([19, 4, "Izquierda", "IZQ", "", 0, "fijo", "", true, 1], [20, 4, "Derecha", "DER", "", 0, "fijo", "", true, 2]);
 V.push([21, 5, "Normal", "", "", 0, "fijo", "", true, 1], [22, 5, "Invertida", "", "", 0, "fijo", "", true, 2]);
 V.push([23, 6, "Sí", "", "", 45, "fijo", "", true, 1]);
