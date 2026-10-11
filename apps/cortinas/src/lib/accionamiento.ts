@@ -56,6 +56,7 @@ export function ensureCombinedDemo() {
       await tx.execute(sql`select pg_advisory_xact_lock(771123)`);
       const [again] = await tx.select().from(schema.materials).where(sql`${schema.materials.slug} = 'tubo-aluminio'`);
       if (again) return;
+      await tx.execute(sql`select setval(pg_get_serial_sequence('materials', 'id'), (select coalesce(max(id), 1) from materials))`);
       const [perfil] = await tx.select().from(schema.attributes).where(sql`${schema.attributes.name} = 'Color del perfil'`);
       await tx.insert(schema.materials).values({ slug: "tubo-aluminio", name: "Tubo de aluminio", description: "Tubo y perfiles de aluminio lacado.", sortOrder: 9,
         attributes: perfil ? [{ attributeId: perfil.id, required: false, valueIds: [] }] : [] });
