@@ -98,7 +98,7 @@ export function CrudManager({
 
   function emptyRow(): Partial<Row> {
     const r: Record<string, unknown> = {};
-    for (const f of fields) r[f.name] = f.type === "specs" || f.type === "gallery" || f.type === "attrs" || f.type === "values" ? [] : f.type === "multiselect" || f.type === "combo" ? "" : f.type === "boolean" ? true : f.type === "number" ? (f.nullable ? null : 0) : f.type === "color" ? (f.nullable ? "" : "#cccccc") : f.nullable ? null : (f.options?.[0]?.value ?? "");
+    for (const f of fields) r[f.name] = f.type === "specs" ? [{ label: "", value: "" }] : f.type === "gallery" || f.type === "attrs" || f.type === "values" ? [] : f.type === "multiselect" || f.type === "combo" ? "" : f.type === "boolean" ? true : f.type === "number" ? (f.nullable ? null : 0) : f.type === "color" ? (f.nullable ? "" : "#cccccc") : f.nullable ? null : (f.options?.[0]?.value ?? "");
     return r;
   }
 
@@ -236,7 +236,7 @@ export function CrudManager({
         {editing && (
           <form
             onSubmit={(e) => { e.preventDefault(); save(); }}
-            className="space-y-4 self-start border-t border-ink pt-4 lg:sticky lg:top-8"
+            className="space-y-4 self-start border-t border-ink pt-4 lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto lg:pr-2"
           >
             <p className="font-serif text-xl">{editing.id ? "Editar" : "Nuevo registro"}</p>
             {fields.filter((f) => !f.readOnly && !f.hidden).map((f) => f.type === "image" || f.type === "gallery" ? (
@@ -332,7 +332,7 @@ function SpecsEditor({ label, hint, error, rows, onChange }: { label: string; hi
   return (
     <div className="block text-sm" data-testid="specs-editor">
       <span className="text-muted">{label}</span>
-      <div className="mt-1 divide-y divide-line border-y border-line">
+      <div className="mt-1 divide-y divide-line border-y border-line" data-testid="specs-rows">
         {rows.map((r, i) => (
           <div key={i} className="flex items-center gap-2 py-1">
             <input aria-label="Característica" placeholder="Característica" value={r.label} onChange={(e) => set(i, "label", e.target.value)} className="w-2/5 bg-transparent py-1 text-muted outline-none" />
