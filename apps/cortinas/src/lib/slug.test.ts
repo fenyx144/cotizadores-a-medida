@@ -85,3 +85,12 @@ describe("asistente del cliente sin textos internos", () => {
     }
   });
 });
+
+describe("asistente: fila nueva en la tabla", () => {
+  it("siguiente Ubicación N sin reutilizar las existentes", async () => {
+    const { nextLocationName } = await import("./location-name");
+    expect(nextLocationName(["Ubicación 1"])).toBe("Ubicación 2");
+    expect(nextLocationName(["Ubicación 1", "Aula 101", "Ubicación 5"])).toBe("Ubicación 6");
+    expect(nextLocationName([])).toBe("Ubicación 1");
+  });
+});

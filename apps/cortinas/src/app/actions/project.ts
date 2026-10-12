@@ -15,6 +15,7 @@ import { sendEmail } from "@portafolio/core/email";
 import { getDb, schema } from "@/lib/db";
 import { getClientSession } from "@/lib/client-session";
 import { getCatalog, priceLine } from "@/lib/catalog";
+import { nextLocationName } from "@/lib/location-name";
 import { loadProject, type ProjectData } from "@/lib/project";
 import { cleanValues, evaluate, type Values } from "@/lib/rules";
 
@@ -401,10 +402,20 @@ export async function sendProject(projectId: number) {
 export async function addFromCatalog(
   projectId: number,
   input: { modelId: number; values: Values; width: number; height: number; quantity: number; room?: string; note?: string },
+  /** Asistente: siempre una fila nueva; no toca la fila por defecto ni las existentes. */
+  newRow = false,
 ) {
   return run(projectId, async () => {
     const db = getDb();
-    const room = (input.room ?? "").trim().slice(0, 80);
+    let room = (input.room ?? "").trim().slice(0, 80);
+    if (newRow) {
+      let locs0 = await db.select().from(schema.locations).where(eq(schema.locations.projectId, projectId)).orderBy(schema.locations.sortOrder, schema.locations.id);
+      if (!locs0.length) locs0 = await db.insert(schema.locations).values({ projectId, building: "", floor: "", room: "Ubicación 1", sortOrder: 0 }).returning();
+      const existing = await db.select({ id: schema.lines.id }).from(schema.lines).where(eq(schema.lines.projectId, projectId));
+      // Proyecto sin filas guardadas: la fila por defecto de la tabla queda como fila propia (vacía).
+      if (!existing.length) await db.insert(schema.lines).values({ projectId, locationId: locs0[0].id, label: "V1", quantity: 1, sortOrder: 0 });
+      if (!room) room = nextLocationName(locs0.map((l) => l.room));
+    }
     // Con nombre de ambiente: se usa (o se crea) esa ubicación; si no, la primera ("Ubicación 1" si no hay ninguna).
     const locs = await db.select().from(schema.locations).where(eq(schema.locations.projectId, projectId)).orderBy(schema.locations.sortOrder, schema.locations.id);
     let loc = room ? locs.find((l) => l.room.toLowerCase() === room.toLowerCase()) : locs[0];
@@ -492,7 +503,7 @@ export async function addFromWizard(input: { projectId: number | null; newProjec
     await db.update(schema.projects).set({ reference: projectReference(project.id) }).where(eq(schema.projects.id, project.id));
     projectId = project.id;
   }
-  const res = await addFromCatalog(projectId, input);
+  const res = await addFromCatalog(projectId, input, true);
   return res.ok ? { ok: true, projectId } : { ok: false, error: res.error };
 }
 
