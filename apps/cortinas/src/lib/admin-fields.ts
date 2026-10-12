@@ -14,7 +14,7 @@ export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "image", label: "Foto principal", type: "image", uploadUrl: UPLOAD, column: true },
   { name: "familyId", label: "Categoría", type: "select", nullable: true, options: families, column: true },
-  { name: "slug", label: "Dirección web", type: "text" },
+  { name: "slug", label: "Dirección web", type: "text", hidden: true },
   { name: "type", label: "Mecanismo (antiguo)", type: "select", options: opts(TYPE_LABELS), hidden: true },
   { name: "material", label: "Material principal (antiguo)", type: "select", options: materials, hidden: true },
   { name: "materials", label: "Materiales del producto", type: "multiselect", options: materials, filterBy: { field: "familyId", map: familyMaterials }, column: true },

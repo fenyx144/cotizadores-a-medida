@@ -19,18 +19,33 @@ const slugify = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, ""
 const attrConf = z.array(z.object({ attributeId: z.number().int(), required: z.boolean(), valueIds: z.array(z.number().int()) }));
 const valueRow = z.object({ id: z.number().int().optional().nullable(), name: z.string().trim().min(1, "Indique el nombre").max(80), hex: hexOpt.nullable().transform((v) => v ?? ""), image: z.string().max(500).default("") });
 
+/** Slug único a partir del nombre ("roller-blackout", "roller-blackout-2"…). */
+export async function uniqueSlug(db: Parameters<NonNullable<CrudResource["beforeSave"]>>[1], table: typeof schema.materials | typeof schema.productModels, name: string) {
+  const base = slugify(name);
+  const taken = new Set((await db.select({ s: table.slug }).from(table)).map((x: { s: string }) => x.s));
+  let slug = base, n = 2;
+  while (taken.has(slug)) slug = `${base}-${n++}`;
+  return slug;
+}
+
 const resources: Record<string, CrudResource> = {
   products: {
     table: schema.productModels,
     orderBy: schema.productModels.sortOrder,
     schema: z.object({
-      name: z.string().min(2), slug: z.string().regex(/^[a-z0-9-]+$/, "Solo minúsculas, números y guiones"),
+      name: z.string().min(2), slug: z.string().regex(/^[a-z0-9-]*$/, "Solo minúsculas, números y guiones").default(""),
       type: z.enum(["enrollable", "dual", "vertical", "veneciana"]).default("enrollable"), material: z.string().regex(/^[a-z0-9-]*$/).default(""), materials: z.string().regex(/^[a-z0-9,-]*$/).min(1, "Elija al menos un material").default(""),
       uses: z.string().regex(/^[a-z,]*$/, "Ej: educacion,oficinas"), tagline: z.string(), description: z.string(), image: z.string().min(1, "Suba una foto principal"), gallery: z.array(z.string()).max(6, "Máximo 6 fotos").default([]),
       minWidth: cm, maxWidth: cm, minProjection: cm, maxProjection: cm, basePrice: money, pricePerM2: money, sortOrder: z.number().int().min(1, "Desde 1").nullable().default(null), active: z.boolean(), familyId: z.coerce.number().int().nullable().catch(null),
       specs: z.array(z.object({ label: z.string().min(1).max(60), value: z.string().min(1).max(200) })).max(30).default([]),
       attributes: attrConf.default([]),
     }),
+    // Dirección web automática desde el nombre al crear (única); al editar se conserva.
+    beforeSave: async (data, db, id) => {
+      if (id) { if (!data.slug) delete data.slug; return; }
+      if (data.slug) return;
+      data.slug = await uniqueSlug(db, schema.productModels, String(data.name ?? ""));
+    },
   },
   fabrics: {
     table: schema.fabrics,
@@ -108,11 +123,7 @@ const resources: Record<string, CrudResource> = {
     beforeSave: async (data, db, id) => {
       if (data.slug || (id && data.slug === undefined)) return;
       if (id) { delete data.slug; return; }
-      const base = slugify(String(data.name ?? ""));
-      const taken = new Set((await db.select({ s: schema.materials.slug }).from(schema.materials)).map((x) => x.s));
-      let slug = base, n = 2;
-      while (taken.has(slug)) slug = `${base}-${n++}`;
-      data.slug = slug;
+      data.slug = await uniqueSlug(db, schema.materials, String(data.name ?? ""));
     },
   },
   families: {
