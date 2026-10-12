@@ -142,7 +142,11 @@ export function CrudManager({
     const data = await res.json();
     setSaving(false);
     if (!res.ok) {
-      setErrors(data.fields ?? { _: data.error ?? "Error al guardar" });
+      // Errores de campos que no se ven en el formulario (ocultos o desconocidos): se muestran arriba.
+      const fe: Record<string, string> = data.fields ?? {};
+      const shown = new Set(fields.filter((f) => !f.hidden).map((f) => f.name));
+      const other = Object.entries(fe).filter(([k]) => !shown.has(k)).map(([k, v]) => `${fields.find((f) => f.name === k)?.label ?? k}: ${v}`);
+      setErrors({ ...fe, _: [data.error && !Object.keys(fe).length ? data.error : "", ...other].filter(Boolean).join(" · ") || (Object.keys(fe).length ? "Revise los campos marcados." : "No se pudo guardar.") });
       return;
     }
     setRows((prev) => (isNew ? [...prev, data] : prev.map((r) => (r.id === data.id ? data : r))));

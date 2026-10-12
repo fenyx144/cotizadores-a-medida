@@ -8,6 +8,7 @@ import { skuPart, skuPrefix } from "./admin-fields";
 import { getSession } from "./session";
 
 const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Color en formato #RRGGBB");
+const ignored = z.any().optional().transform(() => undefined);
 const cm = z.number().int().min(10, "Mínimo 10 cm").max(2000);
 const money = z.number().min(0, "No puede ser negativo");
 const optionRef = z.string().regex(/^(v|material|producto|familia):[\w-]+$/, "Opción no válida");
@@ -28,7 +29,7 @@ export async function uniqueSlug(db: Parameters<NonNullable<CrudResource["before
   return slug;
 }
 
-const resources: Record<string, CrudResource> = {
+export const resources: Record<string, CrudResource> = {
   products: {
     table: schema.productModels,
     orderBy: schema.productModels.sortOrder,
@@ -132,7 +133,8 @@ const resources: Record<string, CrudResource> = {
     schema: z.object({
       name: z.string().min(2), description: z.string(), materials: z.string().regex(/^[a-z0-9,-]*$/).default(""),
       attributes: z.array(z.object({ attributeId: z.number().int(), required: z.boolean(), valueIds: z.array(z.number().int()), material: z.string().max(60).optional() })).default([]),
-      minWidth: cm, maxWidth: cm, minHeight: cm, maxHeight: cm, sortOrder: z.number().int().min(1, "Desde 1").nullable().default(null),
+      // Medidas: ya no se editan en la categoría (vienen del producto); se ignoran si llegan.
+      minWidth: ignored, maxWidth: ignored, minHeight: ignored, maxHeight: ignored, sortOrder: z.number().int().min(1, "Desde 1").nullable().default(null),
     }),
   },
   constraints: {
