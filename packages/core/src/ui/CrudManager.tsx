@@ -4,6 +4,7 @@
  * Se configura con una lista de campos; habla con /api/admin/<recurso>.
  * Ejemplo de uso en la app: <CrudManager resource="fabrics" fields={[...]} ... />
  */
+import { ask, notify } from "./Dialog";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -133,13 +134,13 @@ export function CrudManager({
   }
 
   async function remove(row: Row) {
-    if (!confirm("¿Eliminar este registro? No se puede deshacer.")) return;
+    if (!(await ask({ title: "¿Eliminar este registro?", text: "No se puede deshacer.", ok: "Eliminar", danger: true }))) return;
     const res = await fetch(`/api/admin/${resource}/${row.id}`, { method: "DELETE" });
     if (res.ok) {
       setRows((prev) => prev.filter((r) => r.id !== row.id));
       if (editing?.id === row.id) setEditing(null);
       router.refresh();
-    } else alert("No se pudo eliminar (puede estar en uso).");
+    } else await notify("No se pudo eliminar", "Puede estar en uso.");
   }
 
   function display(f: CrudField, value: unknown) {

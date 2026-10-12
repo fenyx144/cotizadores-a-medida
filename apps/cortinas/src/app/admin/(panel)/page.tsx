@@ -5,7 +5,7 @@ import { StatusChip } from "@/components/StatusChip";
 import Link from "next/link";
 import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { formatMoney } from "@portafolio/core/pricing";
-import { PROJECT_STATUSES, summarizeProject } from "@portafolio/core/projects";
+import { PROJECT_STATUS_OPTIONS, summarizeProject } from "@portafolio/core/projects";
 import { getDb, schema } from "@/lib/db";
 
 export default async function Board({ searchParams }: { searchParams: Promise<{ q?: string; tipo?: string }> }) {
@@ -49,8 +49,8 @@ export default async function Board({ searchParams }: { searchParams: Promise<{ 
         </form>
       </div>
       <div className="mt-6 grid auto-cols-[minmax(240px,1fr)] grid-flow-col gap-0 overflow-x-auto" data-testid="board">
-        {PROJECT_STATUSES.map((status, i) => {
-          const list = rows.filter((r) => r.p.status === status);
+        {PROJECT_STATUS_OPTIONS.map((status, i) => {
+          const list = rows.filter((r) => (r.p.status === "cotizado" ? "en_revision" : r.p.status) === status);
           return (
             <section key={status} className={`min-h-[60vh] px-4 ${i ? "border-l border-line" : "pl-0"}`}>
               <h2 className="flex items-baseline justify-between border-b border-ink pb-2 text-xl">

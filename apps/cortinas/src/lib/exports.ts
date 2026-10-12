@@ -19,7 +19,7 @@ function rowsFor(data: ProjectData) {
     return {
       line: l,
       location: loc ? locationName(loc) : "Sin ubicación",
-      product: l.config ? [l.config.variantCode, l.config.modelName].filter(Boolean).join(" · ") : "Sin configurar",
+      product: l.config ? [l.config.variantCode, l.config.modelName].filter(Boolean).join(" · ") : "Sin producto",
       drive: configSummary(l.config),
       size: l.width && l.height ? `${formatMeters(l.width)} x ${formatMeters(l.height)}` : "-",
       total: l.config && l.unitPrice ? l.unitPrice * l.quantity : null,

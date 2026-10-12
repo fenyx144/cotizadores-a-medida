@@ -25,7 +25,7 @@ export function SiteFooter() {
         <div className="text-sm md:col-span-2">
           <p className="font-mono text-xs text-muted">Cuenta</p>
           <ul className="mt-2 space-y-1">
-            <li><Link className="link-grow" href="/cliente">Área de cliente</Link></li>
+            <li><Link className="link-grow" href="/cliente">Mis proyectos</Link></li>
             <li><Link className="link-grow" href="/admin">Acceso interno</Link></li>
           </ul>
         </div>

@@ -8,7 +8,7 @@ import type { ProductVariant } from "@portafolio/core/db/schema";
 const btn = "w-full border border-line bg-white px-4 py-3 text-left transition hover:border-ink";
 
 export function GuidePanel({ catalog, familyId, onPick, onCancel }: {
-  catalog: CatalogData; familyId: number;
+  catalog: CatalogData; familyId: number | null;
   onPick: (modelId: number, values: Answers, variant?: ProductVariant) => void; onCancel: () => void;
 }) {
   const items = useMemo(() => guideItems(catalog, familyId), [catalog, familyId]);
@@ -46,7 +46,8 @@ export function GuidePanel({ catalog, familyId, onPick, onCancel }: {
       ) : null}
 
       {(!q || results.length <= 3) && (
-        <div className="space-y-2 pt-2" data-testid="guide-results">
+        <div className="space-y-2 pt-4" data-testid="guide-results">
+          <p className="font-mono text-xs uppercase tracking-wide text-muted">{q ? "Podrías elegir" : "Coinciden"}</p>
           {results.map(({ model, variants }) => {
             const pre = answersFor(items, model.id, answers);
             return (

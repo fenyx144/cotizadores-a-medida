@@ -3,6 +3,7 @@
  * Pestaña "Ubicaciones y líneas": árbol edificio > piso > ambiente a la
  * izquierda, líneas de la ubicación elegida a la derecha y el editor.
  */
+import { ask } from "@portafolio/core/ui/Dialog";
 import { useMemo, useState } from "react";
 import { formatMoney, formatMeters } from "@portafolio/core/pricing";
 import { LINE_STATUS_COLORS, type LineStatus } from "@portafolio/core/projects";
@@ -145,7 +146,7 @@ function ByLocation({ ctx }: { ctx: EditorContext }) {
               type="button"
               className="ml-auto text-muted hover:text-danger"
               onClick={async () => {
-                if (confirm(`¿Eliminar ${current.room} y sus ventanas sin plano?`)) {
+                if (await ask({ title: `¿Eliminar ${current.room}?`, text: "Se eliminan también sus ventanas sin plano.", ok: "Eliminar", danger: true })) {
                   const r = await ctx.act(deleteLocation(data.project.id, current.id), "Ubicación eliminada.");
                   if (r) pick(r.data.locations[0]?.id ?? "all");
                 }
@@ -190,7 +191,7 @@ function ByLocation({ ctx }: { ctx: EditorContext }) {
                     {l.label}
                   </td>
                   <td className="py-2">
-                    {l.config ? l.config.modelName : <span className="text-muted">Sin configurar</span>}
+                    {l.config ? l.config.modelName : <span className="text-muted">Sin producto</span>}
                     {locId === "all" && <span className="block text-xs text-muted">{locName(l.locationId ? locById.get(l.locationId) : null)}</span>}
                   </td>
                   <td className="py-2 font-mono text-xs">{l.width && l.height ? `${formatMeters(l.width)} × ${formatMeters(l.height)}` : "—"}</td>

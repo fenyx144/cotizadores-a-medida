@@ -3,6 +3,7 @@
  * Reglas del configurador: constructor que se lee como una frase, matriz de compatibilidad,
  * probador y aviso de conflictos. Habla con /api/admin/constraints.
  */
+import { ask } from "@portafolio/core/ui/Dialog";
 import { SHOW_SURCHARGES } from "@/lib/flags";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -73,7 +74,7 @@ export function RulesStudio({ catalog, initialRules }: { catalog: CatalogData; i
     after(rules.map((x) => (x.id === row.id ? row : x)));
   }
   async function remove(r: ConstraintRule) {
-    if (!confirm(`¿Eliminar la regla “${r.name}”?`)) return;
+    if (!(await ask({ title: `¿Eliminar la regla “${r.name}”?`, ok: "Eliminar", danger: true }))) return;
     await fetch(`/api/admin/constraints/${r.id}`, { method: "DELETE" });
     after(rules.filter((x) => x.id !== r.id));
   }

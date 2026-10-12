@@ -1,4 +1,3 @@
-import { ProjectIntro } from "@/components/StepBar";
 import { notFound } from "next/navigation";
 import { requireClient } from "@/lib/client-session";
 import { loadProject } from "@/lib/project";
@@ -16,5 +15,5 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
   if (!data || data.project.clientId !== session.userId) notFound();
   const catalog = await getCatalog();
   const initialTab = tab === "ubicaciones" || tab === "plano" || tab === "importar" || tab === "resumen" ? tab : undefined;
-  return <><ProjectIntro /><ProjectEditor initial={data} catalog={catalog} initialTab={initialTab} /></>;
+  return <ProjectEditor initial={data} catalog={catalog} initialTab={initialTab} />;
 }

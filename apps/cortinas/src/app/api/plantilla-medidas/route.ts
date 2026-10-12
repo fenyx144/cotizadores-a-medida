@@ -14,7 +14,7 @@ const EXAMPLE: [string, string, number, number, number][] = [
 export async function GET(req: Request) {
   const catalog = await getCatalog();
   const attrs = gridAttributes(catalog);
-  const headers = ["ubicacion", "producto", "ancho_cm", "alto_cm", "cantidad", ...attrs.map((a) => a.name.toLowerCase()), "nota"];
+  const headers = ["ubicacion", "producto", "variante", "ancho_cm", "alto_cm", "cantidad", ...attrs.map((a) => a.name.toLowerCase()), "nota"];
   const rows = EXAMPLE.flatMap(([loc, slug, w, h, q]) => {
     const model = catalog.models.find((m) => m.slug === slug);
     if (!model) return [];
@@ -26,7 +26,9 @@ export async function GET(req: Request) {
       if (a.id === -1) return catalog.materials.find((x) => x.id === v)?.name ?? "";
       return catalog.values.find((x) => x.id === v)?.name ?? "";
     });
-    return [[loc, model.name, w, h, q, ...cells, ""]];
+    // Segunda fila de ejemplo con variante (si el producto tiene).
+    const v = loc === "Aula 102" ? (catalog.variants ?? []).find((x) => x.active && x.modelId === model.id) : undefined;
+    return [[loc, model.name, v?.code ?? "", w, h, q, ...cells, ""]];
   });
   if (new URL(req.url).searchParams.get("formato") === "xlsx") {
     const keys = headers.map((_, i) => `c${i}`);
@@ -34,7 +36,7 @@ export async function GET(req: Request) {
     const valName = (id: number) => catalog.values.find((x) => x.id === id)?.name ?? "";
     const attrName = (id: number) => catalog.attributes.find((x) => x.id === id)?.name ?? "";
     const buf = await buildXlsx([
-      { name: "Pedido", columns: headers.map((h, i) => ({ header: h, key: keys[i], width: i < 2 ? 24 : i < 5 ? 10 : 18 })),
+      { name: "Pedido", columns: headers.map((h, i) => ({ header: h, key: keys[i], width: i < 3 ? 24 : i < 6 ? 10 : 18 })),
         rows: rows.map((r) => Object.fromEntries(r.map((v, i) => [keys[i], v]))) },
       { name: "Productos", columns: [{ header: "producto", key: "p", width: 30 }, { header: "código", key: "c", width: 22 }, { header: "categoría", key: "f", width: 24 }, { header: "materiales", key: "m", width: 30 }],
         rows: catalog.models.map((m) => ({ p: m.name, c: m.slug, f: fam(m.familyId), m: productMaterials(catalog, m).map((x) => x.name).join(" + ") })) },

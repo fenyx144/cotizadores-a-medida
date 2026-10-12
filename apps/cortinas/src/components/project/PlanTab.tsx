@@ -3,6 +3,7 @@
  * Pestaña "Plano y fotos": visor con anotaciones, lista lateral sincronizada,
  * herramientas de dibujo, calibración de escala y edición de las ventanas.
  */
+import { ask } from "@portafolio/core/ui/Dialog";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import type { NewAnnotation, PlanTool } from "@portafolio/core/ui/PlanViewer";
@@ -59,7 +60,7 @@ export function PlanTab({ ctx, onGoToSummary, initialPlacing = null }: { ctx: Ed
     const marks = selected.filter(placedInPlan);
     if (!marks.length || readOnly) return;
     const labels = data.lines.filter((l) => marks.includes(l.id)).map((l) => l.label).join(", ");
-    if (!confirm(`¿Quitar la marca de ${labels}? La ventana sigue en la tabla (si está vacía, se elimina).`)) return;
+    if (!(await ask({ title: `¿Quitar la marca de ${labels}?`, text: "La ventana sigue en la tabla.", ok: "Quitar", danger: true }))) return;
     if (await ctx.act(removeMarks(data.project.id, marks), marks.length > 1 ? "Marcas quitadas." : "Marca quitada.")) setSelected([]);
   }
 
@@ -106,21 +107,8 @@ export function PlanTab({ ctx, onGoToSummary, initialPlacing = null }: { ctx: Ed
     return (
       <div className="grid gap-10 lg:grid-cols-12">
         <div className="lg:col-span-7">
-          <h2 className="text-[2rem] leading-tight">Suba el plano de la obra</h2>
-          <p className="mt-2 max-w-lg text-muted">Marque cada ventana con un punto o un rectángulo. También puede usar fotos de un ambiente.</p>
-          <p className="mt-2 text-sm text-blue">Las ventanas marcadas en el plano aparecen en la tabla y viceversa.</p>
-          <p className="mt-2 text-sm text-muted">¿Solo quiere enviarlo? Adjúntelo como documento en el paso 3, sin marcar nada.</p>
-          {!readOnly && <div className="mt-8"><PlanUpload ctx={ctx} onUploaded={setPlanId} /></div>}
-        </div>
-        <div className="border-t border-line pt-6 lg:col-span-4 lg:col-start-9 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
-          <p className="font-mono text-xs text-muted">¿No tiene plano?</p>
-          <ul className="mt-3 space-y-3 text-[0.95rem]">
-            <li>Liste las ventanas por ubicación en la primera pestaña.</li>
-            <li>Importe un CSV o Excel con las medidas.</li>
-            <li>
-              <button type="button" onClick={onGoToSummary} className="underline decoration-accent underline-offset-4">Solicite la medición en obra</button>: vamos, medimos y cargamos el proyecto por usted.
-            </li>
-          </ul>
+          <p className="max-w-lg text-muted">Marque cada ventana sobre el plano o una foto; se sincroniza con la tabla.</p>
+          {!readOnly && <div className="mt-6"><PlanUpload ctx={ctx} onUploaded={setPlanId} /></div>}
         </div>
       </div>
     );
@@ -213,7 +201,7 @@ export function PlanTab({ ctx, onGoToSummary, initialPlacing = null }: { ctx: Ed
           </div>
           {!readOnly && (
             <button type="button" className="mt-3 text-xs text-muted hover:text-danger" onClick={async () => {
-              if (confirm("¿Quitar este plano? Las ventanas se conservan sin marca.")) { await ctx.act(deletePlan(data.project.id, plan.id), "Plano quitado."); setPlanId(null); }
+              if (await ask({ title: "¿Quitar este plano?", text: "Las ventanas se conservan sin marca.", ok: "Quitar", danger: true })) { await ctx.act(deletePlan(data.project.id, plan.id), "Plano quitado."); setPlanId(null); }
             }}>Quitar este plano</button>
           )}
         </div>
@@ -244,7 +232,7 @@ export function PlanTab({ ctx, onGoToSummary, initialPlacing = null }: { ctx: Ed
                         <button type="button" onClick={() => { setPlacing(placing === l.id ? null : l.id); setTool("rect"); }}
                           className={`flex w-full justify-between gap-2 py-1.5 text-left ${placing === l.id ? "text-ink underline decoration-accent underline-offset-4" : "text-muted hover:text-ink"}`}>
                           <span className="font-mono text-xs">{l.label}</span>
-                          <span className="min-w-0 flex-1 truncate">{l.config?.modelName ?? "Sin configurar"} · {locName(l.locationId ? locById.get(l.locationId) : null)}</span>
+                          <span className="min-w-0 flex-1 truncate">{l.config?.modelName ?? "Sin producto"} · {locName(l.locationId ? locById.get(l.locationId) : null)}</span>
                           <span className="font-mono text-xs">{l.width && l.height ? `${l.width}×${l.height}` : ""}</span>
                         </button>
                       </li>
@@ -273,7 +261,7 @@ export function PlanTab({ ctx, onGoToSummary, initialPlacing = null }: { ctx: Ed
                     >
                       <span className="font-mono text-xs"><span className="mr-1 text-blue" aria-label="Marcada">✓</span>{l.label}</span>
                       <span className="truncate">
-                        {l.config?.modelName ?? <span className="text-muted">Sin configurar</span>}
+                        {l.config?.modelName ?? <span className="text-muted">Sin producto</span>}
                         <span className="block truncate text-xs text-muted">{locName(l.locationId ? locById.get(l.locationId) : null)}</span>
                       </span>
                       <span className="font-mono text-xs text-muted">{l.width && l.height ? `${l.width}×${l.height}` : ""}</span>

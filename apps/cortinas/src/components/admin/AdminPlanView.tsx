@@ -80,7 +80,7 @@ export function AdminPlanView({ plans, lines: initialLines, comments: initialCom
               </div>
               <dl className="mt-3 divide-y divide-line border-y border-line text-sm">
                 <div className="flex justify-between py-1.5"><dt className="text-muted">Ubicación</dt><dd>{current.locationId ? locById.get(current.locationId)?.room : "—"}</dd></div>
-                <div className="flex justify-between py-1.5"><dt className="text-muted">Producto</dt><dd>{current.config?.modelName ?? "Sin configurar"}</dd></div>
+                <div className="flex justify-between py-1.5"><dt className="text-muted">Producto</dt><dd>{current.config?.modelName ?? "Sin producto"}</dd></div>
                 <div className="flex justify-between py-1.5"><dt className="text-muted">Opciones</dt><dd className="text-right">{configSummary(current.config) || "—"}</dd></div>
                 <div className="flex justify-between py-1.5"><dt className="text-muted">Medidas</dt><dd className="font-mono text-xs">{current.width ?? "—"} × {current.height ?? "—"} cm</dd></div>
                 <div className="flex justify-between py-1.5"><dt className="text-muted">Cantidad · precio</dt><dd>{current.quantity} · {current.config && current.unitPrice ? formatMoney(current.unitPrice * current.quantity) : "—"}</dd></div>
@@ -110,7 +110,7 @@ export function AdminPlanView({ plans, lines: initialLines, comments: initialCom
                 <li key={l.id}>
                   <button type="button" className="grid w-full grid-cols-[3rem_1fr_auto] gap-2 py-2 text-left text-sm hover:bg-white-stone" onClick={() => { setFocusIds([l.id]); setSelected([l.id]); }}>
                     <span className="font-mono text-xs"><i className="mr-1.5 inline-block size-2 align-middle" style={{ background: LINE_STATUS_COLORS[l.status as LineStatus] }} />{l.label}</span>
-                    <span className="truncate">{l.config?.modelName ?? <span className="text-muted">Sin configurar</span>}<span className="block truncate text-xs text-muted">{l.locationId ? locById.get(l.locationId)?.room : ""}</span></span>
+                    <span className="truncate">{l.config?.modelName ?? <span className="text-muted">Sin producto</span>}<span className="block truncate text-xs text-muted">{l.locationId ? locById.get(l.locationId)?.room : ""}</span></span>
                     <span className="font-mono text-xs text-muted">{comments.some((c) => c.lineId === l.id) ? "●" : ""}</span>
                   </button>
                 </li>

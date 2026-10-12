@@ -17,6 +17,8 @@ export interface EditorContext {
   act: (p: Promise<ActionResult>, okMessage?: string) => Promise<Extract<ActionResult, { ok: true }> | null>;
   /** Ir al paso del plano para marcar una ventana de la tabla. */
   markOnPlan?: (lineId: number) => void;
+  /** Cambiar de pestaña. */
+  goTo?: (tab: "ubicaciones" | "plano" | "resumen") => void;
 }
 
 export function locName(l?: { building: string; floor: string; room: string } | null) {

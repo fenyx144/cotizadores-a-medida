@@ -223,3 +223,11 @@ describe("precio por materiales", () => {
     expect(materialPricing(c, c.models[0], 200)).toEqual({ basePrice: c.models[0].basePrice, pricePerM2: c.models[0].pricePerM2 });
   });
 });
+
+describe("ayúdame a elegir sin categoría", () => {
+  it("incluye productos de todas las categorías", async () => {
+    const { guideItems } = await import("./guide");
+    const fams = new Set(guideItems(c, null).map((x) => x.model.familyId));
+    expect(fams.size).toBeGreaterThan(1);
+  });
+});

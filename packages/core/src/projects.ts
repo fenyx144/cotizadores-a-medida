@@ -11,17 +11,30 @@ export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {
   borrador: "Borrador",
   enviado: "Recibido",
   en_revision: "En proceso",
-  cotizado: "Presupuestado",
+  cotizado: "En proceso", // ya no se elige; proyectos antiguos
   ganado: "Aceptado",
   perdido: "Descartado",
+};
+
+/** Estados que el administrador puede elegir ("cotizado" ya no se usa). */
+export const PROJECT_STATUS_OPTIONS = PROJECT_STATUSES.filter((s) => s !== "cotizado");
+
+/** Lo que ve el cliente. */
+export const CLIENT_STATUS_LABELS: Record<ProjectStatus, string> = {
+  borrador: "Borrador",
+  enviado: "Recibido",
+  en_revision: "En revisión",
+  cotizado: "En revisión",
+  ganado: "Aceptado",
+  perdido: "Cerrado",
 };
 
 export const LINE_STATUSES = ["sin_configurar", "configurada", "observada"] as const;
 export type LineStatus = (typeof LINE_STATUSES)[number];
 
 export const LINE_STATUS_LABELS: Record<LineStatus, string> = {
-  sin_configurar: "Sin configurar",
-  configurada: "Configurada",
+  sin_configurar: "Incompleta",
+  configurada: "Lista",
   observada: "Observada",
 };
 

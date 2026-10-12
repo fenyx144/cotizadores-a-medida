@@ -26,6 +26,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
   const [modelId, setModelId] = useState<number | null>(startModel?.id ?? null);
   const [material, setMaterial] = useState("");
   const [guided, setGuided] = useState(false);
+  const [transition, setTransition] = useState<string | null>(null);
   const [values, setValues] = useState<Values>({});
   // Variante elegida en el asistente: fija sus atributos (esos pasos se saltan). null = libre; undefined = sin decidir.
   const [variantId, setVariantId] = useState<number | null | undefined>(undefined);
@@ -107,6 +108,16 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
     );
   }
 
+  if (transition) {
+    return (
+      <div className="mx-auto max-w-xl py-16 text-center" data-testid="wizard-transition" onClick={() => setTransition(null)}>
+        <p className="font-mono text-xs text-accent">✓ {transition}</p>
+        <p className="mt-4 font-serif text-[2.2rem] leading-tight">Ahora elige las especificaciones de {transition}</p>
+        <div className="mx-auto mt-8 h-0.5 w-40 overflow-hidden bg-line"><div className="h-full animate-[grow_1.8s_linear_forwards] bg-accent" style={{ width: 0 }} /></div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-xl" data-testid="wizard">
       <div className="flex items-center justify-between font-mono text-xs text-muted">
@@ -118,7 +129,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
       <h1 className={`${attr?.group ? "mt-1" : "mt-8"} font-serif text-[2.2rem] leading-tight`} data-testid="wizard-title">{step.title}{attr && !attr.required ? <span className="ml-2 font-sans text-sm text-muted">opcional</span> : null}</h1>
 
       <div className="mt-6 space-y-2">
-        {step.key === "categoria" && families.map((f) => {
+        {step.key === "categoria" && !guided && families.map((f) => {
           const img = catalog.models.find((m) => m.familyId === f.id)?.image;
           return (
             <button key={f.id} className={`${big(familyId === f.id)} flex items-center gap-4`} onClick={() => { if (familyId !== f.id) { setModelId(null); setMaterial(""); setValues({}); setVariantId(undefined); } setFamilyId(f.id); go(1); }}>
@@ -128,14 +139,17 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
           );
         })}
 
-        {step.key === "producto" && guided && familyId && (
-          <GuidePanel catalog={catalog} familyId={familyId} onCancel={() => setGuided(false)}
+        {(step.key === "producto" || step.key === "categoria") && guided && (
+          <GuidePanel catalog={catalog} familyId={step.key === "producto" ? familyId : null} onCancel={() => setGuided(false)}
             onPick={(id, pre, v) => {
-              setModelId(id);
+              const m = catalog.models.find((x) => x.id === id)!;
+              setFamilyId(m.familyId); setModelId(id); setMaterial("");
               if (v) { setVariantId(v.id); setValues({ ...pre, ...variantValues(catalog, v) }); } else { setVariantId(undefined); setValues(pre); }
-              setGuided(false); go(v ? 2 : 1);
+              setGuided(false); setError(null); setI(v ? 3 : 2);
+              setTransition(m.name); setTimeout(() => setTransition(null), 1800);
             }} />
         )}
+        {step.key === "categoria" && !guided && <button className={`${big(false)} border-dashed`} data-testid="wizard-guide-all" onClick={() => setGuided(true)}>No sé qué modelo, ayúdame a elegir</button>}
         {step.key === "producto" && !guided && (
           <>
             {inFamily.length > 1 && <button className={`${big(false)} border-dashed`} data-testid="wizard-guide" onClick={() => setGuided(true)}>No sé qué modelo, ayúdame a elegir</button>}
@@ -147,7 +161,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
               </div>
             )}
             {inFamily.filter((m) => !material || productMaterials(catalog, m).some((x) => x.slug === material)).map((m) => (
-              <button key={m.id} className={`${big(modelId === m.id)} flex items-center gap-4`} onClick={() => { if (modelId !== m.id) { setValues({}); setVariantId(undefined); } setModelId(m.id); go(1); }}>
+              <button key={m.id} className={`${big(modelId === m.id)} flex items-center gap-4`} onClick={() => { if (modelId !== m.id) { setValues({}); setVariantId(undefined); } setModelId(m.id); go(1); setTransition(m.name); setTimeout(() => setTransition(null), 1800); }}>
                 {m.image && <span className="relative size-14 shrink-0 overflow-hidden bg-paper-deep"><Image src={m.image} alt="" fill sizes="56px" className="object-cover" /></span>}
                 <span><span className="block text-lg">{m.name}</span><span className="block text-sm text-muted">{productMaterials(catalog, m).map((x) => x.name).join(" · ")} · {m.tagline}</span></span>
               </button>

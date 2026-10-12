@@ -7,7 +7,7 @@ import { useState } from "react";
 const NAV = [
   { href: "/catalogo", label: "Catálogo" },
   { href: "/proyectos", label: "Proyectos" },
-  { href: "/cliente", label: "Área de cliente" },
+  { href: "/cliente", label: "Mis proyectos" },
 ];
 
 export function SiteHeader({ clientName }: { clientName?: string | null }) {
@@ -26,9 +26,7 @@ export function SiteHeader({ clientName }: { clientName?: string | null }) {
               {item.label}
             </Link>
           ))}
-          <Link href={clientName ? "/cliente" : "/cliente/registro"} className="ml-2 bg-blue px-4 py-2.5 text-white-stone transition-colors hover:bg-ink">
-            {clientName ? "Mis proyectos" : "Cotizar por plano"}
-          </Link>
+          {!clientName && <Link href="/cliente/registro" className="ml-2 bg-blue px-4 py-2.5 text-white-stone transition-colors hover:bg-ink">Cotizar por plano</Link>}
         </nav>
         <button className="text-sm lg:hidden" onClick={() => setOpen(!open)} aria-expanded={open}>
           {open ? "Cerrar" : "Menú"}
@@ -36,7 +34,7 @@ export function SiteHeader({ clientName }: { clientName?: string | null }) {
       </div>
       {open && (
         <nav className="border-t border-line px-5 pb-6 lg:hidden">
-          {[...NAV, { href: "/cliente/registro", label: "Cotizar por plano" }].map((item) => (
+          {[...NAV, ...(clientName ? [] : [{ href: "/cliente/registro", label: "Cotizar por plano" }])].map((item) => (
             <Link key={item.href} href={item.href} onClick={() => setOpen(false)} className="block border-b border-line py-3 font-serif text-xl">
               {item.label}
             </Link>

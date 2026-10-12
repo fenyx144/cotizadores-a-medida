@@ -34,7 +34,7 @@ export default async function ClientHome({ searchParams }: { searchParams: Promi
         <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-6">
           <div>
             <p className="font-mono text-xs text-muted">Particular · {client.name}</p>
-            <h1 className="mt-3 text-[3rem] leading-none">Mis solicitudes</h1>
+            <h1 className="mt-3 text-[3rem] leading-none">Mis proyectos</h1>
           </div>
           <form action={logout}><button className="text-sm text-muted hover:text-ink">Salir</button></form>
         </div>
@@ -45,7 +45,7 @@ export default async function ClientHome({ searchParams }: { searchParams: Promi
               <li key={p.id} className="flex flex-wrap items-baseline justify-between gap-3 py-4">
                 <Link href={`/proyecto/${p.id}`} className="font-serif text-xl hover:text-blue">{p.name}</Link>
                 <span className="font-mono text-xs text-muted">{p.reference} · {p.windows} cortinas · {p.updatedAt.toLocaleDateString("es-PE")}</span>
-                <StatusChip status={p.status} />
+                <StatusChip status={p.status} client />
               </li>
             ))}
           </ul>
@@ -93,7 +93,7 @@ export default async function ClientHome({ searchParams }: { searchParams: Promi
                 <td className="hidden py-4 text-muted md:table-cell">{p.district}</td>
                 <td className="py-4 text-right font-mono text-sm">{p.windows}</td>
                 <td className="py-4 pl-6">
-                  <StatusChip status={p.status} />
+                  <StatusChip status={p.status} client />
                 </td>
                 <td className="hidden py-4 text-right text-sm text-muted md:table-cell">{p.updatedAt.toLocaleDateString("es-PE")}</td>
               </tr>

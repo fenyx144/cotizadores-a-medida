@@ -10,9 +10,10 @@ export interface GuideItem { model: ProductModel; variant?: ProductVariant; opti
 export interface GuideQuestion { attributeId: number; name: string; group?: string; answers: { value: number; label: string; hex?: string; count: number }[] }
 
 /** Productos de la categoría y sus variantes, con los valores posibles de cada atributo de lista. */
-export function guideItems(c: RulesCatalog, familyId: number): GuideItem[] {
+/** familyId null: todos los productos. */
+export function guideItems(c: RulesCatalog, familyId: number | null): GuideItem[] {
   const out: GuideItem[] = [];
-  for (const model of c.models.filter((m) => m.familyId === familyId)) {
+  for (const model of c.models.filter((m) => familyId == null || m.familyId === familyId)) {
     const options = new Map<number, Set<number>>();
     for (const f of evaluate(c, { modelId: model.id }).fields) {
       if (f.kind !== "lista") continue;

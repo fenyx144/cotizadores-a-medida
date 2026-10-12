@@ -4,6 +4,7 @@
  * Calcula el precio en vivo en el navegador con el mismo motor que el servidor;
  * el servidor lo recalcula al guardar (nunca confiamos en el precio del cliente).
  */
+import { ask } from "@portafolio/core/ui/Dialog";
 import { drawingType, modelDrawing } from "@/lib/drawing";
 import { useState } from "react";
 import { formatMoney } from "@portafolio/core/pricing";
@@ -72,7 +73,7 @@ export function LineEditor({ ctx, lines, isNew, defaultLocationId = null, sugges
   }
 
   async function remove() {
-    if (!confirm(bulk ? `¿Eliminar ${lines.length} ventanas?` : `¿Eliminar ${first.label}?`)) return;
+    if (!(await ask({ title: bulk ? `¿Eliminar ${lines.length} ventanas?` : `¿Eliminar ${first.label}?`, ok: "Eliminar", danger: true }))) return;
     const r = await ctx.act(deleteLines(data.project.id, lines.map((l) => l.id)), "Eliminado.");
     if (r) onDone?.();
   }

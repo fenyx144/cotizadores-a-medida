@@ -7,16 +7,17 @@ import { StatusChip } from "@/components/StatusChip";
  */
 import { useState } from "react";
 import { formatMoney } from "@portafolio/core/pricing";
-import { PROJECT_STATUS_LABELS, summarizeProject, type ProjectStatus } from "@portafolio/core/projects";
+import { CLIENT_STATUS_LABELS, summarizeProject, type ProjectStatus } from "@portafolio/core/projects";
 import { LocationsTab } from "./LocationsTab";
 import { PlanTab } from "./PlanTab";
 import { SummaryTab } from "./SummaryTab";
+import { AttachmentsBlock } from "./AttachmentsBlock";
 import type { ActionResult, CatalogData, EditorContext, ProjectData } from "./shared";
 
 type Tab = "ubicaciones" | "plano" | "resumen";
 const TABS: { key: Tab; label: string }[] = [
   { key: "ubicaciones", label: "Ventanas" },
-  { key: "plano", label: "Plano (opcional)" },
+  { key: "plano", label: "Documentos" },
   { key: "resumen", label: "Revisar y enviar" },
 ];
 
@@ -26,8 +27,6 @@ export function ProjectEditor({ initial, catalog, initialTab }: { initial: Proje
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
   const readOnly = data.project.status !== "borrador";
-  // Proyecto nuevo y vacío: preguntamos si hay plano antes de mostrar la tabla.
-  const [askPlan, setAskPlan] = useState(!readOnly && initial.lines.length === 0 && initial.plans.length === 0 && !initialTab);
 
   const act: EditorContext["act"] = async (p, okMessage) => {
     setBusy(true);
@@ -48,7 +47,7 @@ export function ProjectEditor({ initial, catalog, initialTab }: { initial: Proje
     return null;
   };
   const [placing, setPlacing] = useState<number | null>(null);
-  const ctx: EditorContext = { data, catalog, readOnly, busy, act, markOnPlan: readOnly ? undefined : (id) => { setPlacing(id); setTab("plano"); } };
+  const ctx: EditorContext = { data, catalog, readOnly, busy, act, markOnPlan: readOnly ? undefined : (id) => { setPlacing(id); setTab("plano"); }, goTo: (t) => { setTab(t); window.scrollTo({ top: 0, behavior: "smooth" }); } };
   const s = summarizeProject(data.lines.map((l) => ({ locationName: "", productName: l.config?.modelName ?? null, quantity: l.quantity, unitPrice: l.config ? l.unitPrice : null })));
 
   return (
@@ -56,7 +55,7 @@ export function ProjectEditor({ initial, catalog, initialTab }: { initial: Proje
       <header className="grid gap-4 border-b border-line pb-5 md:grid-cols-12 md:items-end">
         <div className="md:col-span-7">
           <p className="font-mono text-xs text-muted">
-            {data.project.reference} · {data.client.company || data.client.name} · <StatusChip status={data.project.status} />
+            {data.project.reference} · {data.client.company || data.client.name} · <StatusChip status={data.project.status} client />
           </p>
           <h1 className="mt-2 text-[2.3rem] leading-[1.05] md:text-[2.8rem]">{data.project.name}</h1>
         </div>
@@ -69,9 +68,9 @@ export function ProjectEditor({ initial, catalog, initialTab }: { initial: Proje
 
       <nav className="sticky top-[61px] z-[900] -mx-5 flex gap-6 overflow-x-auto border-b border-line bg-paper/95 px-5 text-[0.95rem] backdrop-blur md:-mx-10 md:gap-10 md:px-10" role="tablist" aria-label="Pasos">
         {TABS.map((t, i) => (
-          <button key={t.key} role="tab" aria-selected={tab === t.key && !askPlan} type="button" onClick={() => { setAskPlan(false); setTab(t.key); }}
-            className={`-mb-px flex shrink-0 items-center gap-2 border-b py-3 ${tab === t.key && !askPlan ? "border-ink text-ink" : "border-transparent text-muted hover:text-ink"}`}>
-            <span className={`inline-flex size-6 items-center justify-center rounded-full border font-mono text-xs ${tab === t.key && !askPlan ? "border-ink bg-ink text-paper" : "border-line"}`}>{i + 1}</span>
+          <button key={t.key} role="tab" aria-selected={tab === t.key} type="button" onClick={() => setTab(t.key)}
+            className={`-mb-px flex shrink-0 items-center gap-2 border-b py-3 ${tab === t.key ? "border-ink text-ink" : "border-transparent text-muted hover:text-ink"}`}>
+            <span className={`inline-flex size-6 items-center justify-center rounded-full border font-mono text-xs ${tab === t.key ? "border-ink bg-ink text-paper" : "border-line"}`}>{i + 1}</span>
             {t.label}
           </button>
         ))}
@@ -82,31 +81,22 @@ export function ProjectEditor({ initial, catalog, initialTab }: { initial: Proje
 
       {readOnly && (
         <p className="mt-4 border-l-2 border-blue pl-3 text-sm text-muted">
-          Proyecto en estado “{PROJECT_STATUS_LABELS[data.project.status as ProjectStatus]}”: solo lectura. Las observaciones de Cota aparecen en cada ventana.
+          Proyecto en estado “{CLIENT_STATUS_LABELS[data.project.status as ProjectStatus]}”: solo lectura. Las observaciones de Cota aparecen en cada ventana.
         </p>
       )}
 
-      {askPlan ? (
-        <section className="mx-auto mt-14 max-w-2xl text-center" data-testid="plan-choice">
-          <h2 className="text-[2.2rem] leading-tight">¿Tiene un plano de la obra?</h2>
-          <div className="mt-8 grid gap-4 text-left sm:grid-cols-2">
-            <button type="button" onClick={() => { setAskPlan(false); setTab("plano"); }} className="border border-line p-6 hover:border-ink">
-              <span className="font-serif text-2xl">Sí</span>
-              <span className="mt-2 block text-sm text-muted">Súbalo, marque las ventanas y complete los datos en la tabla.</span>
-            </button>
-            <button type="button" onClick={() => { setAskPlan(false); setTab("ubicaciones"); }} className="border border-line p-6 hover:border-ink">
-              <span className="font-serif text-2xl">No</span>
-              <span className="mt-2 block text-sm text-muted">Vaya directo a la tabla de ventanas.</span>
-            </button>
-          </div>
-        </section>
-      ) : (
       <div className="mt-8">
         {tab === "ubicaciones" && <LocationsTab ctx={ctx} />}
-        {tab === "plano" && <PlanTab key={placing ?? 0} ctx={ctx} initialPlacing={placing} onGoToSummary={() => { setPlacing(null); setTab("resumen"); }} />}
+        {tab === "plano" && <>
+          <AttachmentsBlock ctx={ctx} />
+          <details className="mt-12 border-t border-line pt-6" open={placing != null || data.plans.length > 0} data-testid="plan-optional">
+            <summary className="cursor-pointer text-[1.5rem]">Plano interactivo <span className="text-base text-muted">(opcional)</span></summary>
+            <div className="mt-6"><PlanTab key={placing ?? 0} ctx={ctx} initialPlacing={placing} onGoToSummary={() => { setPlacing(null); setTab("resumen"); }} /></div>
+          </details>
+          <div className="mt-10 flex justify-end border-t border-ink pt-5"><button type="button" className="bg-ink px-6 py-3 text-paper" onClick={() => ctx.goTo!("resumen")} data-testid="to-summary">Continuar</button></div>
+        </>}
         {tab === "resumen" && <SummaryTab ctx={ctx} />}
       </div>
-      )}
     </div>
   );
 }

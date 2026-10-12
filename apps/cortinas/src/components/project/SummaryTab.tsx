@@ -1,15 +1,16 @@
 "use client";
 /** Pestaña "Resumen y envío": totales, descuento por volumen, notas, medición en obra y envío. */
 import { useState } from "react";
+import { ask } from "@portafolio/core/ui/Dialog";
 import { formatMoney } from "@portafolio/core/pricing";
 import { summarizeProject } from "@portafolio/core/projects";
 import { requestMeasurement, sendProject, updateNotes } from "@/app/actions/project";
 import { DISTRICTS } from "@/lib/content";
-import { AttachmentsBlock } from "./AttachmentsBlock";
 import { btnLine, btnPrimary, inputCls, labelCls, locName, type EditorContext } from "./shared";
 
 export function SummaryTab({ ctx }: { ctx: EditorContext }) {
   const { data, readOnly } = ctx;
+  const [sent, setSent] = useState(false);
   const locById = new Map(data.locations.map((l) => [l.id, l]));
   const s = summarizeProject(
     data.lines.map((l) => ({
@@ -29,13 +30,32 @@ export function SummaryTab({ ctx }: { ctx: EditorContext }) {
   });
   const [showMeasure, setShowMeasure] = useState(!!mr);
 
+  if (sent) {
+    return (
+      <section className="mx-auto max-w-2xl py-10 text-center" data-testid="sent-screen">
+        <p className="mx-auto grid size-14 place-items-center rounded-full bg-accent text-2xl text-white">✓</p>
+        <h2 className="mt-6 text-[2.6rem] leading-tight">Gracias, recibimos su proyecto</h2>
+        <p className="mt-2 font-mono text-sm text-muted">{data.project.reference} · {data.project.name}</p>
+        <ol className="mx-auto mt-10 max-w-md space-y-4 text-left">
+          {["Revisamos medidas y opciones.", "Le enviamos el presupuesto en 48 horas hábiles.", "Si hace falta, coordinamos la medición en obra."].map((t, i) => (
+            <li key={t} className="flex gap-4 border-b border-line pb-4"><span className="font-mono text-sm text-accent">{i + 1}</span>{t}</li>
+          ))}
+        </ol>
+        <div className="mt-10 flex justify-center gap-3">
+          <a href="/cliente" className={btnPrimary}>Mis proyectos</a>
+          <button type="button" className={btnLine} onClick={() => setSent(false)}>Ver proyecto</button>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <div className="grid gap-12 lg:grid-cols-12">
       <section className="lg:col-span-7">
         <div className="grid grid-cols-3 border-y border-ink">
           {[
             ["Cortinas", String(s.windows)],
-            ["Configuradas", String(s.configured)],
+            ["Listas", String(s.configured)],
             ["Pendientes", String(s.pending)],
           ].map(([k, v], i) => (
             <div key={k} className={`py-5 ${i ? "border-l border-line pl-5" : ""}`}>
@@ -70,7 +90,6 @@ export function SummaryTab({ ctx }: { ctx: EditorContext }) {
             ))}
           </tbody>
         </table>
-        <AttachmentsBlock ctx={ctx} />
       </section>
 
       <aside className="space-y-10 lg:col-span-5">
@@ -142,7 +161,10 @@ export function SummaryTab({ ctx }: { ctx: EditorContext }) {
           <div className="border-t border-ink pt-6">
             <p className="text-sm text-muted">Al enviar, el proyecto queda en solo lectura y lo revisa nuestro equipo técnico. Respuesta en 48 horas hábiles.</p>
             <button type="button" className={`${btnPrimary} mt-4 px-6 py-3`} disabled={ctx.busy} data-testid="send-project"
-              onClick={async () => { if (confirm("¿Enviar el proyecto a Cota?")) await ctx.act(sendProject(data.project.id), "Proyecto enviado. Le escribiremos pronto."); }}>
+              onClick={async () => {
+                if (!(await ask({ title: "¿Enviar el proyecto a Cota?", text: "Después no podrá editarlo.", ok: "Enviar" }))) return;
+                if (await ctx.act(sendProject(data.project.id))) { setSent(true); window.scrollTo({ top: 0, behavior: "smooth" }); }
+              }}>
               Enviar a Cota
             </button>
           </div>

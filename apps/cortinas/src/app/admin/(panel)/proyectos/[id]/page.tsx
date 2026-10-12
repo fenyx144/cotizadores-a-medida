@@ -4,7 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { getDb, schema } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { formatMeters, formatMoney } from "@portafolio/core/pricing";
-import { LINE_STATUS_COLORS, LINE_STATUS_LABELS, PROJECT_STATUSES, PROJECT_STATUS_LABELS, type LineStatus } from "@portafolio/core/projects";
+import { LINE_STATUS_COLORS, LINE_STATUS_LABELS, PROJECT_STATUS_OPTIONS, PROJECT_STATUS_LABELS, type LineStatus } from "@portafolio/core/projects";
 import { loadProject, locationName, projectSummary } from "@/lib/project";
 import { configSummary } from "@portafolio/core/db/project-schema";
 import { addProjectNote, updateProjectStatus } from "@/app/admin/actions";
@@ -34,7 +34,7 @@ export default async function AdminProject({ params }: { params: Promise<{ id: s
           <form action={updateProjectStatus} className="flex items-end gap-2">
             <input type="hidden" name="id" value={project.id} />
             <select name="status" defaultValue={project.status} className="border-b border-line bg-transparent py-1.5 text-sm" aria-label="Estado">
-              {PROJECT_STATUSES.map((st) => <option key={st} value={st}>{PROJECT_STATUS_LABELS[st]}</option>)}
+              {PROJECT_STATUS_OPTIONS.map((st) => <option key={st} value={st}>{PROJECT_STATUS_LABELS[st]}</option>)}
             </select>
             <button className="border border-line px-3 py-1.5 text-sm hover:border-ink">Cambiar estado</button>
           </form>

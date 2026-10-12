@@ -8,7 +8,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <div className="mx-auto grid max-w-[1360px] gap-12 px-5 pt-14 md:grid-cols-12 md:px-10">
       <div className="md:col-span-5">
-        <p className="font-mono text-xs text-muted">Área de cliente</p>
+        <p className="font-mono text-xs text-muted">Mis proyectos</p>
         <h1 className="mt-4 text-[3rem] leading-none">Ingresar</h1>
         <p className="mt-4 max-w-sm text-muted">Sus proyectos guardados, en borrador o enviados, con su estado.</p>
         <div className="mt-10 max-w-sm"><ClientLoginForm next={next} /></div>

@@ -110,3 +110,5 @@ input[type="range"] {
 .bg-blue:hover, .bg-accent:hover { background-color: var(--color-accent-deep); }
 .bg-ink:hover { background-color: var(--color-accent); }
 button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+@keyframes grow { from { width: 0; } to { width: 100%; } }

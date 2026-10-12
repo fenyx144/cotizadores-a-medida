@@ -1,6 +1,5 @@
 import { modelDrawing } from "@/lib/drawing";
 import { SHOW_SURCHARGES } from "@/lib/flags";
-import { StepBar } from "@/components/StepBar";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -45,7 +44,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <nav className="font-mono text-xs text-muted">
         <Link href="/catalogo" className="hover:text-ink">Catálogo</Link> / {family ? <Link href={`/catalogo?categoria=${family.id}`} className="hover:text-ink">{family.name}</Link> : TYPE_LABELS[modelDrawing(catalog, model)]}
       </nav>
-      <div className="mt-4"><StepBar current={2} /></div>
       <div className="mt-6 grid gap-12 md:grid-cols-12">
         {/* Fotos */}
         <div className="md:col-span-7">

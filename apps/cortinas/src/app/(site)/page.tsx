@@ -120,9 +120,9 @@ export default function HomePage() {
               ))}
             </div>
             <p className="mt-3 flex flex-wrap gap-x-6 gap-y-1 font-mono text-xs text-muted">
-              <span><i className="mr-1.5 inline-block size-2 bg-blue align-middle" />Configurada</span>
+              <span><i className="mr-1.5 inline-block size-2 bg-blue align-middle" />Lista</span>
               <span><i className="mr-1.5 inline-block size-2 bg-danger align-middle" />Observada</span>
-              <span><i className="mr-1.5 inline-block size-2 bg-muted align-middle" />Sin configurar</span>
+              <span><i className="mr-1.5 inline-block size-2 bg-muted align-middle" />Incompleta</span>
             </p>
           </div>
         </div>

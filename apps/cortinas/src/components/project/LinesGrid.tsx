@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import { formatMoney } from "@portafolio/core/pricing";
 import { readSheetFile, saveGrid, type GridCellErrors, type GridRowInput } from "@/app/actions/project";
 import { priceLine } from "@/lib/line-price";
-import { evaluate, gridAttributes, matchVariant, parseAttributeCell, withDefaults, type Choice, type Values } from "@/lib/rules";
+import { evaluate, gridAttributes, matchVariant, parseAttributeCell, selectedValueIds, variantGroups, variantValues, variantsFor, withDefaults, type Choice, type Values } from "@/lib/rules";
 import { btnLine, btnPrimary, labelCls, locName, type EditorContext } from "./shared";
 
 /** Columnas fijas; las de atributos son "a<id>". */
@@ -19,6 +19,7 @@ interface Row {
   id?: number;
   location: string;
   modelId: number | null;
+  variantId?: number | null;
   width: string;
   height: string;
   quantity: string;
@@ -29,7 +30,8 @@ interface Row {
 
 const BASE_ALIASES: Record<string, string[]> = {
   location: ["ubicacion", "ambiente", "aula", "oficina", "espacio", "local"],
-  model: ["producto", "modelo", "tipo"],
+  model: ["producto", "modelo", "tipo", "producto / variante"],
+  variant: ["variante", "codigo variante", "sku"],
   width: ["ancho_cm", "ancho", "ancho (cm)"],
   height: ["alto_cm", "alto", "alto (cm)"],
   quantity: ["cantidad", "cant", "unidades", "uds"],
@@ -56,7 +58,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
   const attrs = useMemo(() => gridAttributes(catalog), [catalog]);
   const COLS = useMemo(() => [
     { key: "location", label: "Ubicación", w: "min-w-[150px]" },
-    { key: "model", label: "Producto", w: "min-w-[170px]" },
+    { key: "model", label: "Producto / variante", w: "min-w-[200px]" },
     { key: "width", label: "Ancho cm", w: "w-[76px]" },
     { key: "height", label: "Alto cm", w: "w-[76px]" },
     { key: "quantity", label: "Cant.", w: "w-[56px]" },
@@ -64,12 +66,20 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
     { key: "note", label: "Nota", w: "min-w-[140px]" },
   ], [attrs]);
 
-  const fromData = () =>
-    data.lines.map<Row>((l) => ({
+  const fromData = (): Row[] => {
+    const out = data.lines.map<Row>((l) => ({
       key: `l${l.id}`, id: l.id, location: locName(l.locationId ? locById.get(l.locationId) : null) || "",
       modelId: l.config?.modelId ?? null, width: l.width ? String(l.width) : "", height: l.height ? String(l.height) : "", quantity: String(l.quantity),
-      values: l.config?.values ?? {}, note: l.note,
+      values: l.config?.values ?? {}, note: l.note, variantId: l.config?.variantId ?? null,
     }));
+    // Proyecto nuevo: una fila vacía para empezar.
+    return out.length || readOnly ? out : [blankFirst()];
+  };
+  const firstLoc = () => locName(data.locations[0]) || "Ubicación 1";
+  function blankFirst(): Row {
+    const m = catalog.models[0];
+    return { key: newKey(), location: firstLoc(), modelId: m?.id ?? null, width: "", height: "", quantity: "1", values: m ? withDefaults(catalog, { modelId: m.id, values: {} }, true) : {}, note: "" };
+  }
   const [rows, setRows] = useState<Row[]>(fromData);
   const [dirty, setDirty] = useState(false);
   const [sel, setSel] = useState<Set<string>>(new Set());
@@ -122,7 +132,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
   };
   const blank = (): Row => {
     const last = rows[rows.length - 1];
-    return normalizeRow({ key: newKey(), location: last?.location || `Ubicación ${data.locations.length + 1}`, modelId: last?.modelId ?? catalog.models[0]?.id ?? null, width: "", height: "", quantity: "1", values: { ...(last?.values ?? {}) }, note: "" });
+    return normalizeRow({ key: newKey(), location: last?.location || firstLoc(), modelId: last?.modelId ?? catalog.models[0]?.id ?? null, width: "", height: "", quantity: "1", values: { ...(last?.values ?? {}) }, note: "" });
   };
   const change = (fn: (rs: Row[]) => Row[]) => { setRows(fn); setServerErr({}); setDirty(true); };
 
@@ -132,7 +142,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
     if (!t.length) return [];
     const aliases: Record<Col, string[]> = { ...BASE_ALIASES };
     for (const a of attrs) aliases[`a${a.id}`] = [norm(a.name), norm(a.name).replace(/ /g, "_"), ...(LEGACY[norm(a.name)] ?? [])];
-    const order: Col[] = ["location", "model", "width", "height", "quantity", ...attrs.map((a) => `a${a.id}`), "note"];
+    const order: Col[] = ["location", "model", "variant", "width", "height", "quantity", ...attrs.map((a) => `a${a.id}`), "note"];
     const head = t[0].map(norm);
     const hasHeader = head.some((h) => Object.values(aliases).some((a) => a.includes(h)));
     const idx: Record<Col, number> = {};
@@ -142,9 +152,14 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
       const get = (c: Col) => (idx[c] != null ? (cells[idx[c]] ?? "").trim() : "");
       const unmatched: Row["unmatched"] = {};
       const pName = get("model");
-      const model = pName ? catalog.models.find((m) => norm(m.name) === norm(pName) || m.slug === norm(pName) || norm(m.name).startsWith(norm(pName))) : catalog.models[0];
+      // Producto o variante (por código o nombre), en la columna Producto o en Variante.
+      const vName = get("variant");
+      const findVariant = (t: string) => t ? (catalog.variants ?? []).find((v) => v.active && (norm(v.code) === norm(t) || norm(v.name) === norm(t) || norm(`${catalog.models.find((m) => m.id === v.modelId)?.name} / ${v.name}`) === norm(t))) : undefined;
+      const variant = findVariant(vName) ?? findVariant(pName);
+      const model = variant ? catalog.models.find((m) => m.id === variant.modelId) : pName ? catalog.models.find((m) => norm(m.name) === norm(pName) || m.slug === norm(pName) || norm(m.name).startsWith(norm(pName))) : catalog.models[0];
       if (pName && !model) unmatched.model = pName;
-      const values: Values = {};
+      if (vName && !variant) unmatched.model = vName;
+      const values: Values = variant ? variantValues(catalog, variant) : {};
       for (const a of attrs) {
         const txt = get(`a${a.id}`);
         if (!txt) continue;
@@ -153,7 +168,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
         else values[a.id] = v;
       }
       return normalizeRow({
-        key: newKey(), location: get("location") || "Ubicación 1", modelId: model?.id ?? null, width: toCm(get("width")), height: toCm(get("height")),
+        key: newKey(), location: get("location") || firstLoc(), modelId: model?.id ?? null, variantId: variant?.id ?? null, width: toCm(get("width")), height: toCm(get("height")),
         quantity: String(Math.max(1, Math.round(Number(get("quantity").replace(",", ".")) || 1))), values, note: get("note"), unmatched,
       });
     });
@@ -196,7 +211,8 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
     }
     setDirty(false);
     setImportMsg(null);
-    await ctx.act(Promise.resolve(res), `Tabla guardada: ${payload.length} filas.`);
+    const ok = await ctx.act(Promise.resolve(res), `Tabla guardada: ${payload.length} filas.`);
+    if (ok) ctx.goTo?.("plano");
   }
 
   const toggle = (k: string) => setSel((s) => { const n = new Set(s); if (n.has(k)) n.delete(k); else n.add(k); return n; });
@@ -222,6 +238,32 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
       {choices.map((c) => <option key={String(c.value)} value={c.value} disabled={!!c.disabled}>{c.label}{c.disabled ? ` — ${c.disabled}` : ""}</option>)}
     </select>
   );
+
+  /** Producto o variante en un solo selector ("m<id>" / "v<id>"). */
+  const productCell = (i: number, r: Row) => {
+    const chosen = r.modelId ? new Set(selectedValueIds(catalog, { modelId: r.modelId, values: r.values })) : new Set<number>();
+    const v = r.variantId ? (catalog.variants ?? []).find((x) => x.id === r.variantId && x.modelId === r.modelId) : undefined;
+    const still = v && [...variantGroups(catalog, v).values()].every((g) => g.some((id) => chosen.has(id)));
+    const value = still ? `v${v!.id}` : r.modelId ? `m${r.modelId}` : "";
+    return (
+      <select className={cell} value={value} disabled={readOnly} aria-label={`Producto fila ${i + 1}`} data-testid="row-product"
+        onChange={(e) => {
+          const k = e.target.value, id = Number(k.slice(1));
+          if (k.startsWith("v")) {
+            const nv = catalog.variants!.find((x) => x.id === id)!;
+            update(i, { modelId: nv.modelId, variantId: nv.id, values: { ...(nv.modelId === r.modelId ? r.values : {}), ...variantValues(catalog, nv, r.values) } }, "model");
+          } else update(i, { modelId: id || null, variantId: null }, "model");
+        }}>
+        {!value && <option value="">{r.unmatched?.model ?? "Sin producto"}</option>}
+        {catalog.models.map((m) => (
+          <optgroup key={m.id} label={m.name}>
+            <option value={`m${m.id}`}>{m.name}</option>
+            {variantsFor(catalog, m.id).map((x) => <option key={x.id} value={`v${x.id}`}>{m.name} / {x.name}</option>)}
+          </optgroup>
+        ))}
+      </select>
+    );
+  };
 
   /** Celda de un atributo: según la categoría del producto de la fila (— si no lo pide). */
   const attrCell = (i: number, r: Row, attrId: number) => {
@@ -254,13 +296,10 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
               Importar Excel/CSV
               <input type="file" accept=".csv,.xlsx,.txt" className="sr-only" onChange={onImport} data-testid="grid-import" />
             </label>
-            <a className={btnLine} href="/api/plantilla-medidas?formato=xlsx" data-testid="grid-template">Descargar plantilla</a><a className="text-muted underline underline-offset-4" href="/api/plantilla-medidas">CSV</a>
+            <a className={btnLine} href="/api/plantilla-medidas?formato=xlsx" data-testid="grid-template">Descargar plantilla</a>
           </span>
         </div>
       )}
-      <p className="mt-3 text-xs text-muted">
-        Rellene la hoja «Pedido» de la plantilla e impórtela, o pegue las filas (Ctrl + V).
-      </p>
       {importMsg && <p className="mt-2 text-sm text-blue" data-testid="grid-message">{importMsg}</p>}
 
       <div className="mt-3 overflow-x-auto">
@@ -290,7 +329,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
                   <td className="py-1 pt-2 align-top font-mono text-[11px] text-muted">{i + 1}</td>
                   {td("location", <input className={cell} value={r.location} disabled={readOnly} list="grid-locations" onChange={(e) => update(i, { location: e.target.value }, "location")} aria-label={`Ubicación fila ${i + 1}`} />)}
                   {td("model", <>
-                    {select(i, "model", r.modelId, catalog.models.map((m) => ({ value: m.id, label: m.name })), (v) => update(i, { modelId: v }, "model"), r.unmatched?.model ?? "Sin configurar")}
+                    {productCell(i, r)}
                     {r.modelId && (() => { const v = matchVariant(catalog, { modelId: r.modelId!, values: r.values }); return v ? <span className="block px-1.5 pb-1 font-mono text-[11px] text-muted" data-testid="row-variant">{v.code}</span> : null; })()}
                   </>)}
                   {td("width", <input className={`${cell} font-mono`} inputMode="numeric" value={r.width} disabled={readOnly} onChange={(e) => update(i, { width: e.target.value.replace(/\D/g, "") })} aria-label={`Ancho fila ${i + 1}`} placeholder={ev ? `${ev.limits.minWidth}–${ev.limits.maxWidth}` : ""} />)}
