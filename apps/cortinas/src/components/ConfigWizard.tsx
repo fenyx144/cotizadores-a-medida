@@ -5,9 +5,10 @@
  */
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { addFromWizard } from "@/app/actions/project";
 import { GuidePanel } from "./GuidePanel";
+import { stepsToAsk } from "@/lib/guide";
 import type { CatalogData } from "@/lib/line-price";
 import { MATERIAL_ATTR, evaluate, matchVariant, productMaterials, variantFixed, variantGroups, variantValues, variantsFor, type Values } from "@/lib/rules";
 
@@ -27,6 +28,9 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
   const [material, setMaterial] = useState("");
   const [guided, setGuided] = useState(false);
   const [transition, setTransition] = useState<string | null>(null);
+  // Atributos ya respondidos en "Ayúdame a elegir": no se vuelven a preguntar (se cambian desde el resumen).
+  const [answered, setAnswered] = useState<number[]>([]);
+  const [jumpTo, setJumpTo] = useState<string | null>(null);
   const [values, setValues] = useState<Values>({});
   // Variante elegida en el asistente: fija sus atributos (esos pasos se saltan). null = libre; undefined = sin decidir.
   const [variantId, setVariantId] = useState<number | null | undefined>(undefined);
@@ -49,7 +53,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
     { key: "categoria", title: "¿Qué tipo de cortina busca?" },
     { key: "producto", title: "Elija el producto" },
     ...(variants.length ? [{ key: "variante", title: "¿Usar una variante?" }] : []),
-    ...fields.filter((f) => !locked.includes(f.attribute.id)).map((f) => ({ key: `a${f.attribute.id}`, title: f.attribute.name })),
+    ...stepsToAsk(fields, locked, answered).map((f) => ({ key: `a${f.attribute.id}`, title: f.attribute.name })),
     { key: "medidas", title: "Medidas y cantidad" },
     { key: "ubicacion", title: "¿Dónde va?" },
     { key: "resumen", title: "Resumen" },
@@ -86,13 +90,25 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
     if (res.ok) { setDone(res.projectId); setProjectId(res.projectId); } else setError(res.error);
   }
   function again() {
-    setDone(null); setModelId(null); setValues({}); setVariantId(undefined); setDims({ width: "", height: "", quantity: "1" }); setPlace({ room: place.room, note: "" }); setI(familyId ? 1 : 0);
+    setDone(null); setAnswered([]); setModelId(null); setValues({}); setVariantId(undefined); setDims({ width: "", height: "", quantity: "1" }); setPlace({ room: place.room, note: "" }); setI(familyId ? 1 : 0);
   }
+
+  useEffect(() => {
+    if (!jumpTo) return;
+    const k = steps.findIndex((x) => x.key === jumpTo);
+    if (k >= 0) { setI(k); setJumpTo(null); }
+  }, [jumpTo, steps]);
+  /** Cambiar desde el resumen un atributo respondido en la guía o fijado por la variante. */
+  const editAttr = (id: number) => {
+    setAnswered((a) => a.filter((x) => x !== id));
+    if (locked.includes(id)) setVariantId(null);
+    setJumpTo(`a${id}`);
+  };
 
   const valueName = (id: number) => catalog.values.find((v) => v.id === id)?.name ?? "";
   const summary = fields.map((f) => {
     const v = values[f.attribute.id];
-    return [f.attribute.name, v == null || v === false ? "—" : v === true ? "Sí" : f.kind === "numero" ? `${v} ${f.attribute.unit}` : f.attribute.id === MATERIAL_ATTR ? catalog.materials?.find((m) => m.id === v)?.name ?? "" : valueName(v as number)] as const;
+    return [f.attribute.name, (v == null || v === false ? "—" : v === true ? "Sí" : f.kind === "numero" ? `${v} ${f.attribute.unit}` : f.attribute.id === MATERIAL_ATTR ? catalog.materials?.find((m) => m.id === v)?.name ?? "" : valueName(v as number)), f.attribute.id] as const;
   });
 
   if (done) {
@@ -132,7 +148,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
         {step.key === "categoria" && !guided && families.map((f) => {
           const img = catalog.models.find((m) => m.familyId === f.id)?.image;
           return (
-            <button key={f.id} className={`${big(familyId === f.id)} flex items-center gap-4`} onClick={() => { if (familyId !== f.id) { setModelId(null); setMaterial(""); setValues({}); setVariantId(undefined); } setFamilyId(f.id); go(1); }}>
+            <button key={f.id} className={`${big(familyId === f.id)} flex items-center gap-4`} onClick={() => { setAnswered([]); if (familyId !== f.id) { setModelId(null); setMaterial(""); setValues({}); setVariantId(undefined); } setFamilyId(f.id); go(1); }}>
               {img && <span className="relative size-14 shrink-0 overflow-hidden bg-paper-deep"><Image src={img} alt="" fill sizes="56px" className="object-cover" /></span>}
               <span><span className="block text-lg">{f.name}</span>{f.description && <span className="block text-sm text-muted">{f.description}</span>}</span>
             </button>
@@ -145,6 +161,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
               const m = catalog.models.find((x) => x.id === id)!;
               setFamilyId(m.familyId); setModelId(id); setMaterial("");
               if (v) { setVariantId(v.id); setValues({ ...pre, ...variantValues(catalog, v) }); } else { setVariantId(undefined); setValues(pre); }
+              setAnswered(Object.keys(pre).map(Number));
               setGuided(false); setError(null); setI(v ? 3 : 2);
               setTransition(m.name); setTimeout(() => setTransition(null), 1800);
             }} />
@@ -161,7 +178,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
               </div>
             )}
             {inFamily.filter((m) => !material || productMaterials(catalog, m).some((x) => x.slug === material)).map((m) => (
-              <button key={m.id} className={`${big(modelId === m.id)} flex items-center gap-4`} onClick={() => { if (modelId !== m.id) { setValues({}); setVariantId(undefined); } setModelId(m.id); go(1); setTransition(m.name); setTimeout(() => setTransition(null), 1800); }}>
+              <button key={m.id} className={`${big(modelId === m.id)} flex items-center gap-4`} onClick={() => { if (modelId !== m.id) { setValues({}); setVariantId(undefined); } setAnswered([]); setModelId(m.id); go(1); setTransition(m.name); setTimeout(() => setTransition(null), 1800); }}>
                 {m.image && <span className="relative size-14 shrink-0 overflow-hidden bg-paper-deep"><Image src={m.image} alt="" fill sizes="56px" className="object-cover" /></span>}
                 <span><span className="block text-lg">{m.name}</span><span className="block text-sm text-muted">{productMaterials(catalog, m).map((x) => x.name).join(" · ")} · {m.tagline}</span></span>
               </button>
@@ -239,8 +256,11 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
         {step.key === "resumen" && model && (
           <div className="space-y-6" data-testid="wizard-summary">
             <dl className="divide-y divide-line border-y border-line text-sm">
-              {[["Producto", model.name], ...(currentVariant ? [["Variante", `${currentVariant.code} · ${currentVariant.name}`]] : []), ...summary, ["Medidas", `${w} × ${h} cm`], ["Cantidad", dims.quantity], ["Ambiente", place.room || "—"], ...(place.note ? [["Nota", place.note]] : [])].map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-4 py-2"><dt className="text-muted">{k}</dt><dd className="text-right">{v}</dd></div>
+              {([["Producto", model.name], ...(currentVariant ? [["Variante", `${currentVariant.code} · ${currentVariant.name}`]] : []), ...summary, ["Medidas", `${w} × ${h} cm`], ["Cantidad", dims.quantity], ["Ambiente", place.room || "—"], ...(place.note ? [["Nota", place.note]] : [])] as (readonly [string, string, number?])[]).map(([k, v, id]) => (
+                <div key={k} className="flex justify-between gap-4 py-2"><dt className="text-muted">{k}</dt>
+                  <dd className="text-right">{v}{id != null && (answered.includes(id) || locked.includes(id)) && (
+                    <button type="button" className="ml-3 text-xs text-muted underline underline-offset-4 hover:text-ink" onClick={() => editAttr(id)} data-testid="summary-edit">Cambiar</button>
+                  )}</dd></div>
               ))}
             </dl>
             {!loggedIn ? (

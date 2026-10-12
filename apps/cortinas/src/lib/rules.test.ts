@@ -231,3 +231,16 @@ describe("ayúdame a elegir sin categoría", () => {
     expect(fams.size).toBeGreaterThan(1);
   });
 });
+
+describe("asistente tras la guía", () => {
+  it("no vuelve a preguntar lo respondido ni lo fijado por la variante", async () => {
+    const { stepsToAsk, guideItems, answersFor } = await import("./guide");
+    const ev = evaluate(c, { modelId: 1, values: {} });
+    const ids = ev.fields.map((f) => f.attribute.id);
+    const pre = answersFor(guideItems(c, c.models[0].familyId), 1, { [ids[0]]: ev.fields[0].choices[0]?.value as number });
+    const asked = stepsToAsk(ev.fields, [ids[1]], Object.keys(pre).map(Number)).map((f) => f.attribute.id);
+    expect(asked).not.toContain(ids[1]);
+    if (Object.keys(pre).length) expect(asked).not.toContain(ids[0]);
+    expect(asked.length).toBeLessThan(ids.length);
+  });
+});

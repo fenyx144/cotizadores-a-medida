@@ -73,3 +73,8 @@ export const answersFor = (items: GuideItem[], modelId: number, answers: Answers
   const base = items.find((i) => i.model.id === modelId && !i.variant);
   return Object.fromEntries(Object.entries(answers).filter(([a, v]) => base?.options.get(Number(a))?.has(v))) as Answers;
 };
+
+/** Atributos que el asistente aún debe preguntar: ni fijados por la variante ni respondidos en la guía. */
+export function stepsToAsk<T extends { attribute: { id: number } }>(fields: T[], locked: number[], answered: number[]): T[] {
+  return fields.filter((f) => !locked.includes(f.attribute.id) && !answered.includes(f.attribute.id));
+}
