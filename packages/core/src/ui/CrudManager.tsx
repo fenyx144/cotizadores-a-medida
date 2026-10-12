@@ -146,7 +146,18 @@ export function CrudManager({
       const fe: Record<string, string> = data.fields ?? {};
       const shown = new Set(fields.filter((f) => !f.hidden).map((f) => f.name));
       const other = Object.entries(fe).filter(([k]) => !shown.has(k)).map(([k, v]) => `${fields.find((f) => f.name === k)?.label ?? k}: ${v}`);
-      setErrors({ ...fe, _: [data.error && !Object.keys(fe).length ? data.error : "", ...other].filter(Boolean).join(" · ") || (Object.keys(fe).length ? "Revise los campos marcados." : "No se pudo guardar.") });
+      // Errores por campo (las rutas "specs.0.label" van al campo "specs"); lista explícita arriba y salto al primero.
+      const byField: Record<string, string> = {};
+      for (const [k, v] of Object.entries(fe)) { const n = k.split(".")[0]; byField[n] ??= v; }
+      const named = Object.entries(byField).map(([k, v]) => `${fields.find((f) => f.name === k)?.label ?? k}: ${v}`);
+      setErrors({ ...byField, _: named.length ? `Revise: ${named.join(" · ")}` : (data.error ?? "No se pudo guardar.") });
+      const first = Object.keys(byField).find((k) => shown.has(k));
+      requestAnimationFrame(() => {
+        const el = first ? document.querySelector<HTMLElement>(`[data-field="${first}"]`) : document.querySelector<HTMLElement>('[data-testid="form-errors"]');
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+        el?.querySelector<HTMLElement>("input, select, textarea, button")?.focus({ preventScroll: true });
+      });
+      void other;
       return;
     }
     setRows((prev) => (isNew ? [...prev, data] : prev.map((r) => (r.id === data.id ? data : r))));
@@ -239,7 +250,8 @@ export function CrudManager({
             className="space-y-4 self-start border-t border-ink pt-4 lg:sticky lg:top-8 lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto lg:pr-2"
           >
             <p className="font-serif text-xl">{editing.id ? "Editar" : "Nuevo registro"}</p>
-            {fields.filter((f) => !f.readOnly && !f.hidden).map((f) => f.type === "image" || f.type === "gallery" ? (
+            {errors._ && <div className="border-l-2 border-danger bg-danger/[0.05] px-3 py-2 text-sm text-danger" role="alert" data-testid="form-errors">{errors._}</div>}
+            {fields.filter((f) => !f.readOnly && !f.hidden).map((f) => <div key={f.name} data-field={f.name} className={errors[f.name] ? "-mx-2 px-2 py-1 outline outline-1 outline-danger/60" : ""}>{f.type === "image" || f.type === "gallery" ? (
               <PhotoField key={f.name} field={f} value={editing[f.name]} error={errors[f.name]} onChange={(v) => setEditing({ ...editing, [f.name]: v })} />
             ) : f.type === "attrs" ? (
               <AttrsEditor key={f.name} field={f.attrsBy ? { ...f, attrOptions: f.attrsBy.map[String(editing[f.attrsBy.field] ?? "")] ?? f.attrsBy.map["*"] ?? [] } : f} error={errors[f.name]} value={(editing[f.name] as AttrConf[] | undefined) ?? []} linked={f.materialLinks ? String(editing[f.materialLinks.field] || (f.attrsBy ? editing.material : "") || "") : ""}
@@ -311,8 +323,7 @@ export function CrudManager({
                 {f.hint && <span className="mt-1 block text-xs text-muted">{f.hint}</span>}
                 {errors[f.name] && <span className="mt-1 block text-xs text-danger">{errors[f.name]}</span>}
               </FieldWrap>
-            ))}
-            {errors._ && <p className="text-sm text-danger">{errors._}</p>}
+            )}</div>)}
             <div className="flex gap-4 pt-2">
               <button disabled={saving} className="bg-ink px-4 py-2 text-sm text-paper disabled:opacity-50">{saving ? "Guardando…" : "Guardar"}</button>
               <button type="button" onClick={() => setEditing(null)} className="text-sm text-muted underline underline-offset-4">Cancelar</button>

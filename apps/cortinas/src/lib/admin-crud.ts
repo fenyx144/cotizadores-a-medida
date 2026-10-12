@@ -35,9 +35,9 @@ export const resources: Record<string, CrudResource> = {
     orderBy: schema.productModels.sortOrder,
     schema: z.object({
       name: z.string().min(2), slug: z.string().regex(/^[a-z0-9-]*$/, "Solo minúsculas, números y guiones").default(""),
-      type: z.enum(["enrollable", "dual", "vertical", "veneciana"]).default("enrollable"), material: z.string().regex(/^[a-z0-9-]*$/).default(""), materials: z.string().regex(/^[a-z0-9,-]*$/).min(1, "Elija al menos un material").default(""),
-      uses: z.string().regex(/^[a-z,]*$/, "Ej: educacion,oficinas"), tagline: z.string(), description: z.string(), image: z.string().min(1, "Suba una foto principal"), gallery: z.array(z.string()).max(6, "Máximo 6 fotos").default([]),
-      minWidth: cm, maxWidth: cm, minProjection: cm, maxProjection: cm, basePrice: money, pricePerM2: money, sortOrder: z.number().int().min(1, "Desde 1").nullable().default(null), active: z.boolean(), familyId: z.coerce.number().int().nullable().catch(null),
+      type: z.enum(["enrollable", "dual", "vertical", "veneciana"]).catch("enrollable"), material: z.string().regex(/^[a-z0-9-]*$/).catch(""), materials: z.string().regex(/^[a-z0-9,-]*$/).min(1, "Elija al menos un material").default(""),
+      uses: z.preprocess((v) => String(v ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().split(/[,;]/).map((x) => x.trim().replace(/\s+/g, "-")).filter(Boolean).join(","), z.string().regex(/^[a-z,-]*$/, "Solo usos de la lista")), tagline: z.string().default(""), description: z.string().default(""), image: z.string().min(1, "Suba una foto principal"), gallery: z.array(z.string()).max(6, "Máximo 6 fotos").default([]),
+      minWidth: cm, maxWidth: cm, minProjection: cm, maxProjection: cm, basePrice: money.catch(0), pricePerM2: money.catch(0), sortOrder: z.number().int().min(1).nullable().catch(null), active: z.boolean(), familyId: z.coerce.number().int().nullable().catch(null),
       specs: z.array(z.object({ label: z.string().min(1).max(60), value: z.string().min(1).max(200) })).max(30).default([]),
       attributes: attrConf.default([]),
     }),

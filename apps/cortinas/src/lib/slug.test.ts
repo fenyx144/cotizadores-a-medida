@@ -36,3 +36,18 @@ describe("formulario de producto: atributos", () => {
     expect(map["999"]).toBeUndefined(); // el formulario usa "*" como respaldo
   });
 });
+
+describe("crear producto solo con campos visibles", () => {
+  it("valida aunque los ocultos lleguen vacíos y normaliza Usos", async () => {
+    const { resources } = await import("./admin-crud");
+    const { productFields } = await import("./admin-fields");
+    const fields = productFields([{ value: "1", label: "Cat" }], [{ value: "screen", label: "Screen" }]);
+    const row: Record<string, unknown> = { name: "Persiana de aluminio 25 mm", image: "/x.jpg", familyId: "1", materials: "screen", uses: "Educacion, salud",
+      tagline: "", description: "", gallery: [], specs: [{ label: "Lama", value: "25 mm" }], attributes: [], minWidth: 40, maxWidth: 240, minProjection: 40, maxProjection: 260, active: true };
+    for (const f of fields) if (f.hidden && !(f.name in row)) row[f.name] = f.type === "number" ? "" : undefined;
+    const r = resources.products.schema.safeParse(row);
+    expect(r.error?.issues ?? []).toEqual([]);
+    expect((r.data as { uses: string }).uses).toBe("educacion,salud");
+    expect(fields.find((f) => f.name === "uses")!.type).toBe("multiselect");
+  });
+});

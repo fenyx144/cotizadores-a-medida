@@ -1,7 +1,7 @@
 /** Campos de cada recurso del catálogo para el CrudManager (servidor y cliente). */
 import { SHOW_SURCHARGES } from "./flags";
 import type { AttrOption, CrudField } from "@portafolio/core/ui/CrudManager";
-import { MATERIAL_LABELS, TYPE_LABELS } from "./content";
+import { MATERIAL_LABELS, TYPE_LABELS, USE_LABELS } from "./content";
 
 const UPLOAD = "/api/admin/fotos";
 
@@ -18,7 +18,7 @@ export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_
   { name: "type", label: "Mecanismo (antiguo)", type: "select", options: opts(TYPE_LABELS), hidden: true },
   { name: "material", label: "Material principal (antiguo)", type: "select", options: materials, hidden: true },
   { name: "materials", label: "Materiales del producto", type: "multiselect", options: materials, filterBy: { field: "familyId", map: familyMaterials }, column: true },
-  { name: "uses", label: "Usos", type: "text" },
+  { name: "uses", label: "Usos", type: "multiselect", options: opts(USE_LABELS) },
   { name: "tagline", label: "Frase corta", type: "text" },
   { name: "description", label: "Descripción", type: "textarea" },
   { name: "gallery", label: "Galería", type: "gallery", uploadUrl: UPLOAD },
