@@ -1,5 +1,5 @@
 /** Campos de cada recurso del catálogo para el CrudManager (servidor y cliente). */
-import { SHOW_SURCHARGES } from "@/lib/flags";
+import { SHOW_SURCHARGES } from "./flags";
 import type { AttrOption, CrudField } from "@portafolio/core/ui/CrudManager";
 import { MATERIAL_LABELS, TYPE_LABELS } from "./content";
 
@@ -91,12 +91,20 @@ export const MATERIAL_FIELDS: CrudField[] = [
   { name: "active", label: "Visible", type: "boolean", column: true },
 ];
 
-export const variantFields = (models: Opt[], values: Opt[], materials: Opt[] = []): CrudField[] => [
+/** Prefijo de SKU desde el código del producto: roller-blackout → RB. */
+export const skuPrefix = (slug: string) => slug.split("-").filter(Boolean).map((w) => w[0]).join("").toUpperCase();
+/** Parte de SKU de un valor: número RAL si lo hay; si no, el nombre en mayúsculas sin tildes. */
+export const skuPart = (v: { name: string; code: string }) => {
+  const ral = v.code.match(/RAL\s*(\d+)/i);
+  return ral ? ral[1] : v.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "").toUpperCase();
+};
+
+export const variantFields = (models: Opt[], values: Opt[], _materials: Opt[] = [], autoCode?: CrudField["autoCode"]): CrudField[] => [
   { name: "modelId", label: "Producto", type: "select", options: models, column: true },
-  { name: "code", label: "Código (SKU)", type: "text", column: true },
+  { name: "code", label: "Código (SKU)", type: "text", column: true, autoCode, hint: "Se sugiere solo; puede cambiarlo." },
   { name: "name", label: "Nombre", type: "text", column: true },
-  { name: "material", label: "Solo si el producto usa", type: "select", nullable: true, options: materials, column: true, hint: "Vacío = siempre. Fije en Combinación los valores de cada material (p. ej. Arena + perfil RAL 9016); lo que no fije lo elige el cliente." },
-  { name: "valueIds", label: "Combinación", type: "multiselect", options: values, column: true, hint: "Valores que fija esta variante." },
+  { name: "material", label: "Material (antiguo)", type: "select", nullable: true, options: [], hidden: true },
+  { name: "valueIds", label: "Combinación", type: "multiselect", options: values, column: true, hint: "Valores que fija (de uno o varios materiales). Lo que no fije lo elige el cliente." },
   { name: "attributes", label: "Otros datos", type: "text", hint: "Ej.: cofre 80 mm" },
   { name: "priceAdjustment", label: "Ajuste de precio (S/ por unidad)", type: "number", column: true },
   { name: "sortOrder", label: "Orden", type: "number", nullable: true, hint: "Vacío = al final." },

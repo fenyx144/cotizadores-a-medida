@@ -4,7 +4,7 @@
  * Se configura con una lista de campos; habla con /api/admin/<recurso>.
  * Ejemplo de uso en la app: <CrudManager resource="fabrics" fields={[...]} ... />
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export type FieldType = "text" | "textarea" | "number" | "color" | "boolean" | "select" | "specs" | "multiselect" | "image" | "gallery" | "attrs";
@@ -12,6 +12,9 @@ export type FieldType = "text" | "textarea" | "number" | "color" | "boolean" | "
 /** Para "attrs": atributos disponibles con sus valores. */
 export interface AttrOption { id: number; name: string; values: { id: number; name: string }[]; defaultOn?: boolean; note?: string }
 type AttrConf = { attributeId: number; required: boolean; valueIds: number[] };
+
+import { suggestCode, type AutoCode } from "../autocode";
+export { suggestCode, type AutoCode };
 
 export interface CrudField {
   name: string;
@@ -38,6 +41,8 @@ export interface CrudField {
   noRequired?: boolean;
   /** Mostrar en la tabla. */
   column?: boolean;
+  /** Texto sugerido a partir de otros campos (p. ej. SKU = código de producto + códigos de valores). Se rellena mientras no se edite a mano. */
+  autoCode?: AutoCode;
   /** Mínimo del número. En "sortOrder" por defecto 1 (orden visible desde 1; un registro nuevo va al final). */
   min?: number;
   /** Oculto en tabla y formulario (se conserva su valor al guardar). */
@@ -66,6 +71,15 @@ export function CrudManager({
   const [editing, setEditing] = useState<Partial<Row> | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const autos = fields.filter((f) => f.autoCode);
+  useEffect(() => {
+    if (!editing) return;
+    const next: Record<string, unknown> = {};
+    for (const f of autos) { if (touched[f.name]) continue; const sug = suggestCode(f.autoCode!, editing); if (sug && editing[f.name] !== sug) next[f.name] = sug; }
+    if (Object.keys(next).length) setEditing({ ...editing, ...next });
+  }, [editing, touched]); // eslint-disable-line react-hooks/exhaustive-deps
+  const open = (row: Partial<Row>) => { setTouched(Object.fromEntries(autos.map((f) => [f.name, !!row[f.name] && row[f.name] !== suggestCode(f.autoCode!, row)]))); setEditing(row); };
   // La columna Visible/Activo va siempre al final de la tabla.
   const columns = fields.filter((f) => f.column && !f.hidden).sort((a, b) => Number(a.name === "active") - Number(b.name === "active"));
 
@@ -153,7 +167,7 @@ export function CrudManager({
           <h1 className="font-serif text-3xl">{title}</h1>
           {description && <p className="mt-1 text-sm text-muted">{description}</p>}
         </div>
-        <button onClick={() => { setErrors({}); setEditing(emptyRow()); }} className="bg-ink px-4 py-2 text-sm text-paper hover:bg-ink/85">
+        <button onClick={() => { setErrors({}); open(emptyRow()); }} className="bg-ink px-4 py-2 text-sm text-paper hover:bg-ink/85">
           {newLabel}
         </button>
       </div>
@@ -176,7 +190,7 @@ export function CrudManager({
                     <td key={c.name} className="py-3 pr-4">{display(c, row[c.name])}</td>
                   ))}
                   <td className="whitespace-nowrap py-3 text-right">
-                    <button onClick={() => { setErrors({}); setEditing({ ...row }); }} className="text-ink underline underline-offset-4">Editar</button>
+                    <button onClick={() => { setErrors({}); open({ ...row }); }} className="text-ink underline underline-offset-4">Editar</button>
                     <button onClick={() => remove(row)} className="ml-4 text-muted hover:text-danger">Eliminar</button>
                   </td>
                 </tr>
@@ -256,7 +270,7 @@ export function CrudManager({
                     <input value={String(editing[f.name] ?? "")} onChange={(e) => setEditing({ ...editing, [f.name]: e.target.value })} className="w-full border-b border-line bg-transparent py-1" />
                   </span>
                 ) : (
-                  <input type={f.type} step={f.step} min={f.min ?? (f.name === "sortOrder" ? 1 : undefined)} value={editing[f.name] == null ? "" : String(editing[f.name])} onChange={(e) => setEditing({ ...editing, [f.name]: e.target.value })} className="mt-1 w-full border-b border-line bg-transparent py-1" />
+                  <input type={f.type} step={f.step} min={f.min ?? (f.name === "sortOrder" ? 1 : undefined)} value={editing[f.name] == null ? "" : String(editing[f.name])} onChange={(e) => { if (f.autoCode) setTouched({ ...touched, [f.name]: e.target.value !== "" }); setEditing({ ...editing, [f.name]: e.target.value }); }} className="mt-1 w-full border-b border-line bg-transparent py-1" />
                 )}
                 {f.hint && <span className="mt-1 block text-xs text-muted">{f.hint}</span>}
                 {errors[f.name] && <span className="mt-1 block text-xs text-danger">{errors[f.name]}</span>}

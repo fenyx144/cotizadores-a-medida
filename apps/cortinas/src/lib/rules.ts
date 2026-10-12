@@ -372,10 +372,7 @@ export function variantsFor(c: RulesCatalog, modelId: number) {
 /** Variante que corresponde a una selección: todos sus valores elegidos; la más específica primero. */
 export function matchVariant(c: RulesCatalog, sel: Selection) {
   const chosen = new Set(selectedValueIds(c, sel));
-  const m0 = selModel(c, sel);
-  const mats = m0 ? productMaterialSlugs(m0) : [];
-  return variantsFor(c, sel.modelId)
-    .filter((v) => !v.material || mats.includes(v.material))
+  return variantsFor(c, sel.modelId) // el campo material de la variante ya no se usa
     .map((v) => ({ v, need: ids(v.valueIds) }))
     .filter(({ need }) => need.every((id) => chosen.has(id)))
     .sort((a, b) => b.need.length - a.need.length)[0]?.v;
