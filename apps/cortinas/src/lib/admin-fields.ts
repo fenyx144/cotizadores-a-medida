@@ -37,10 +37,10 @@ export const PRODUCT_FIELDS = productFields([]);
 export const ATTRIBUTE_FIELDS: CrudField[] = [
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "kind", label: "Tipo", type: "select", options: [{ value: "lista", label: "Lista de opciones" }, { value: "numero", label: "Número" }, { value: "sino", label: "Sí / no" }], column: true },
+
   { name: "scope", label: "Aplica a", type: "select", options: [{ value: "generico", label: "Genérico (todos los materiales)" }, { value: "material", label: "Según material" }], column: true },
   { name: "unit", label: "Unidad", type: "text" },
   { name: "sortOrder", label: "Orden en el configurador", type: "number", nullable: true, column: true },
-  { name: "values", label: "Valores", type: "values", uploadUrl: UPLOAD },
 ];
 
 export const valueFields = (attrs: Opt[]): CrudField[] => [
