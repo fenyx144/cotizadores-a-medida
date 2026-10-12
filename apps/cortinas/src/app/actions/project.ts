@@ -495,3 +495,20 @@ export async function addFromWizard(input: { projectId: number | null; newProjec
   const res = await addFromCatalog(projectId, input);
   return res.ok ? { ok: true, projectId } : { ok: false, error: res.error };
 }
+
+/** El cliente borra un proyecto suyo que aún no fue aceptado (con ubicaciones, planos, líneas y adjuntos). */
+export async function deleteOwnProject(projectId: number): Promise<{ ok: true } | { ok: false; error: string }> {
+  const session = await getClientSession();
+  if (!session) return { ok: false, error: "Su sesión expiró. Vuelva a ingresar." };
+  const db = getDb();
+  const [project] = await db.select().from(schema.projects).where(eq(schema.projects.id, projectId));
+  if (!project || project.clientId !== session.userId) return { ok: false, error: "Proyecto no encontrado." };
+  if (project.status === "ganado") return { ok: false, error: "Un proyecto aceptado no se puede eliminar." };
+  const keys = [
+    ...(await db.select({ k: schema.plans.imageKey }).from(schema.plans).where(eq(schema.plans.projectId, projectId))).map((r) => r.k),
+    ...(await db.select({ k: schema.projectAttachments.storageKey }).from(schema.projectAttachments).where(eq(schema.projectAttachments.projectId, projectId))).map((r) => r.k),
+  ];
+  await db.delete(schema.projects).where(eq(schema.projects.id, projectId));
+  for (const k of keys) await deleteFile(k).catch(() => {});
+  return { ok: true };
+}

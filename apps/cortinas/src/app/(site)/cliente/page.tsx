@@ -7,6 +7,7 @@ import { logout } from "@/app/actions/client";
 import { NewProjectForm } from "@/components/forms/ClientForms";
 import { QuickQuote } from "@/components/QuickQuote";
 import { getCatalog } from "@/lib/catalog";
+import { DeleteProjectButton } from "@/components/DeleteProjectButton";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Mis proyectos — Cota" };
@@ -46,6 +47,7 @@ export default async function ClientHome({ searchParams }: { searchParams: Promi
                 <Link href={`/proyecto/${p.id}`} className="font-serif text-xl hover:text-blue">{p.name}</Link>
                 <span className="font-mono text-xs text-muted">{p.reference} · {p.windows} cortinas · {p.updatedAt.toLocaleDateString("es-PE")}</span>
                 <StatusChip status={p.status} client />
+                {p.status !== "ganado" && <DeleteProjectButton id={p.id} name={p.name} />}
               </li>
             ))}
           </ul>
@@ -83,6 +85,7 @@ export default async function ClientHome({ searchParams }: { searchParams: Promi
               <th className="py-3 text-right font-normal">Cortinas</th>
               <th className="py-3 pl-6 font-normal">Estado</th>
               <th className="hidden py-3 text-right font-normal md:table-cell">Actualizado</th>
+              <th className="py-3" />
             </tr>
           </thead>
           <tbody>
@@ -96,6 +99,7 @@ export default async function ClientHome({ searchParams }: { searchParams: Promi
                   <StatusChip status={p.status} client />
                 </td>
                 <td className="hidden py-4 text-right text-sm text-muted md:table-cell">{p.updatedAt.toLocaleDateString("es-PE")}</td>
+                <td className="py-4 pl-4 text-right">{p.status !== "ganado" && <DeleteProjectButton id={p.id} name={p.name} />}</td>
               </tr>
             ))}
           </tbody>
