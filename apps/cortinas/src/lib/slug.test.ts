@@ -51,3 +51,26 @@ describe("crear producto solo con campos visibles", () => {
     expect(fields.find((f) => f.name === "uses")!.type).toBe("multiselect");
   });
 });
+
+describe("crear categoría con el payload exacto del formulario", () => {
+  it("visibles + ocultos tal como los envía el formulario", async () => {
+    const { resources } = await import("./admin-crud");
+    const { familyFields } = await import("./admin-fields");
+    const fields = familyFields([{ id: 1, name: "Mando", values: [] }, { id: 2, name: "Tipo de tela", values: [] }], [{ value: "mixto", label: "Tela día y noche" }, { value: "tubo-aluminio", label: "Tubo" }],
+      { field: "materials", scoped: [2], materials: [{ slug: "mixto", name: "Tela día y noche", attrs: [{ attributeId: 2, valueIds: [] }] }] });
+    // Igual que emptyRow + toPayload del CrudManager.
+    const row: Record<string, unknown> = {};
+    for (const f of fields) row[f.name] = f.type === "attrs" ? [] : f.type === "multiselect" ? "" : f.type === "number" ? (f.nullable ? null : 0) : "";
+    Object.assign(row, { name: "Doble roller", materials: "mixto,tubo-aluminio",
+      attributes: [{ attributeId: 1, required: true, valueIds: [] }, { attributeId: 2, required: true, valueIds: [], material: "mixto" }] });
+    const r = resources.families.schema.safeParse(row);
+    expect(r.error?.issues ?? []).toEqual([]);
+    // Entradas antiguas (sin "required", material null) y "Todos" desmarcado no rompen.
+    const old = resources.families.schema.safeParse({ ...row, materials: "!", attributes: [{ attributeId: 1, valueIds: [], material: null }] });
+    expect(old.error?.issues ?? []).toEqual([]);
+    expect((old.data as { attributes: unknown[] }).attributes).toEqual([{ attributeId: 1, required: false, valueIds: [] }]);
+    // Edición (parcial).
+    const schema = resources.families.schema as unknown as { partial(): { safeParse(v: unknown): { success: boolean } } };
+    expect(schema.partial().safeParse({ ...row, id: 3, requiresFabric: true, allowedDrives: "" }).success).toBe(true);
+  });
+});

@@ -131,10 +131,19 @@ export const resources: Record<string, CrudResource> = {
     table: schema.productFamilies,
     orderBy: schema.productFamilies.sortOrder,
     schema: z.object({
-      name: z.string().min(2), description: z.string(), materials: z.string().regex(/^[a-z0-9,-]*$/).default(""),
-      attributes: z.array(z.object({ attributeId: z.number().int(), required: z.boolean(), valueIds: z.array(z.number().int()), material: z.string().max(60).optional() })).default([]),
+      name: z.string().trim().min(2, "Indique el nombre"), description: z.string().catch(""),
+      // Materiales: "!" (Todos desmarcado sin elegir) se trata como ninguno elegido.
+      materials: z.preprocess((v) => String(v ?? "").split(",").map((x) => x.trim()).filter((x) => x && x !== "!").join(","), z.string().regex(/^[a-z0-9,-]*$/, "Material no válido")),
+      // Permisos: tolerantes con entradas antiguas (sin "required", material nulo, valores sueltos).
+      attributes: z.array(z.object({
+        attributeId: z.coerce.number().int(),
+        required: z.boolean().catch(false),
+        valueIds: z.array(z.coerce.number().int()).catch([]),
+        material: z.string().max(60).nullish().transform((v) => v || undefined),
+      }).transform((e) => (e.material ? e : { attributeId: e.attributeId, required: e.required, valueIds: e.valueIds })))
+        .default([]),
       // Medidas: ya no se editan en la categoría (vienen del producto); se ignoran si llegan.
-      minWidth: ignored, maxWidth: ignored, minHeight: ignored, maxHeight: ignored, sortOrder: z.number().int().min(1, "Desde 1").nullable().default(null),
+      minWidth: ignored, maxWidth: ignored, minHeight: ignored, maxHeight: ignored, sortOrder: z.number().int().min(1).nullable().catch(null),
     }),
   },
   constraints: {
