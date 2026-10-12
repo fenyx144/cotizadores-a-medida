@@ -73,7 +73,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <dl className="mt-8 divide-y divide-line border-y border-line text-[0.95rem]">
             <div className="flex justify-between py-3"><dt className="text-muted">Ancho</dt><dd className="font-mono text-sm">{formatMeters(model.minWidth)} – {formatMeters(model.maxWidth)}</dd></div>
             <div className="flex justify-between py-3"><dt className="text-muted">Alto</dt><dd className="font-mono text-sm">{formatMeters(model.minProjection)} – {formatMeters(model.maxProjection)}</dd></div>
-            <div className="flex justify-between py-3"><dt className="text-muted">Precio base</dt><dd>{formatMoney(model.basePrice)} + {formatMoney(model.pricePerM2)}/m²</dd></div>
+            <div className="flex justify-between py-3"><dt className="text-muted">Precio</dt><dd className="text-right">{mats.some((x) => x.price > 0) ? mats.map((x) => `${x.name} ${formatMoney(x.price)}/${x.priceUnit === "ml" ? "m" : "m²"}`).join(" + ") : `${formatMoney(model.basePrice)} + ${formatMoney(model.pricePerM2)}/m²`}</dd></div>
           </dl>
 
           {model.specs?.length > 0 && (

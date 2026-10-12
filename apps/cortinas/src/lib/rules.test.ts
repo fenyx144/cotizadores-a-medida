@@ -80,7 +80,7 @@ describe("motor de reglas (atributos genéricos)", () => {
   });
 
   it("material ∩ categoría: atributos y valores", () => {
-    const bambu = { id: 9, slug: "bambu", name: "Bambú", description: "", sortOrder: 9, active: true, attributes: [{ attributeId: TELA, required: false, valueIds: [6] }, { attributeId: PERFIL, required: false, valueIds: [-1] }, { attributeId: ACC, required: false, valueIds: [-1] }, { attributeId: CENEFA, required: false, valueIds: [-1] }] };
+    const bambu = { id: 9, slug: "bambu", name: "Bambú", description: "", sortOrder: 9, active: true, price: 0, priceUnit: "m2", attributes: [{ attributeId: TELA, required: false, valueIds: [6] }, { attributeId: PERFIL, required: false, valueIds: [-1] }, { attributeId: ACC, required: false, valueIds: [-1] }, { attributeId: CENEFA, required: false, valueIds: [-1] }] };
     const cc = { ...c, materials: [...c.materials!, bambu], models: [...c.models, { ...c.models[1], id: 9, material: "bambu", materials: "bambu" }] };
     const ev = evaluate(cc, { modelId: 9, values: {} });
     expect(ev.fields.map((x) => x.attribute.name)).toEqual(["Tela", "Lado del mando"]);
@@ -207,5 +207,19 @@ describe("el producto acota la categoría", () => {
     expect(evaluate(cc, { modelId: 2, values: { [PERFIL]: 15 } }).errors[`a${PERFIL}`]).toBeTruthy();
     expect(withDefaults(cc, { modelId: 2 })[PERFIL]).toBe(13);
     expect(f(evaluate(cc, { modelId: 1 }), PERFIL)!.choices.length).toBeGreaterThan(1);
+  });
+});
+
+describe("precio por materiales", () => {
+  it("suma tela por m² y tubo por metro lineal", async () => {
+    const { priceLine, materialPricing } = await import("./line-price");
+    const cc = { ...c, rules: [], constraints: [], materials: c.materials!.map((m) => (m.slug === "screen" ? { ...m, price: 100, priceUnit: "m2" } : m.slug === "tubo-aluminio" ? { ...m, price: 20, priceUnit: "ml" } : m)),
+      models: c.models.map((m) => (m.id === 1 ? { ...m, materials: "screen,tubo-aluminio" } : m)) };
+    const m1 = cc.models.find((m) => m.id === 1)!;
+    expect(materialPricing(cc, m1, 200)).toEqual({ basePrice: 40, pricePerM2: 100 });
+    // 2 m × 1,5 m: 3 m² × 100 + 2 m × 20 = 340
+    expect(priceLine(cc, { modelId: 1, values: {}, width: 200, height: 150 })!.unitPrice).toBe(340);
+    // Sin precios de material: usa los del producto (compatibilidad).
+    expect(materialPricing(c, c.models[0], 200)).toEqual({ basePrice: c.models[0].basePrice, pricePerM2: c.models[0].pricePerM2 });
   });
 });

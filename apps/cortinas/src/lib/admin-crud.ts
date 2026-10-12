@@ -102,7 +102,7 @@ const resources: Record<string, CrudResource> = {
   materials: {
     table: schema.materials,
     orderBy: schema.materials.sortOrder,
-    schema: z.object({ name: z.string().min(2), slug: z.string().regex(/^[a-z0-9-]*$/, "Solo minúsculas, números y guiones").default(""), description: z.string().default(""), sortOrder: z.number().int().min(1, "Desde 1").nullable().default(null), active: z.boolean(),
+    schema: z.object({ name: z.string().min(2), slug: z.string().regex(/^[a-z0-9-]*$/, "Solo minúsculas, números y guiones").default(""), description: z.string().default(""), price: money.default(0), priceUnit: z.enum(["m2", "ml"]).default("m2"), sortOrder: z.number().int().min(1, "Desde 1").nullable().default(null), active: z.boolean(),
       attributes: z.array(z.object({ attributeId: z.number().int(), required: z.boolean(), valueIds: z.array(z.number().int()) })).default([]) }),
     // Código interno automático desde el nombre (único).
     beforeSave: async (data, db, id) => {

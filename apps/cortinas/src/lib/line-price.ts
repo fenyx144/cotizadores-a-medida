@@ -4,7 +4,7 @@
  */
 import { calculatePrice, type PricingRule } from "@portafolio/core/pricing";
 import type { LineConfig, LineOption } from "@portafolio/core/db/project-schema";
-import { evaluate, matchVariant, ruleSurcharges, selectionRefs, selectedValueIds, type RulesCatalog, type Values } from "./rules";
+import { evaluate, matchVariant, productMaterials, ruleSurcharges, selectionRefs, selectedValueIds, type RulesCatalog, type Values } from "./rules";
 
 export interface CatalogData extends RulesCatalog {
   rules: PricingRule[];
@@ -50,7 +50,7 @@ export function priceLine(catalog: CatalogData, input: LineInput): { config: Lin
     surcharges.push({ id: -100000 - r.id, name: r.name, kind: r.surchargeKind === "por_m2" ? "por_m2" : "fijo", amount: r.surcharge, drive: null, modelType: null, minArea: null, active: true });
   const result = calculatePrice(
     { modelId: model.id, width: input.width, projection: input.height, fabricId: 0, frameColorId: 0, drive: "manual" },
-    { model, rules: [...surcharges, ...catalog.rules.map((r) => ({ ...r, drive: null }))], refs },
+    { model: { ...model, ...materialPricing(catalog, model, input.width) }, rules: [...surcharges, ...catalog.rules.map((r) => ({ ...r, drive: null }))], refs },
   );
   const variant = matchVariant(catalog, sel);
   // El ajuste de la variante se suma al precio unitario (redondeado a la decena, como el resto).
@@ -68,4 +68,16 @@ export function priceLine(catalog: CatalogData, input: LineInput): { config: Lin
     },
     unitPrice,
   };
+}
+
+/**
+ * Precio del producto según sus materiales: suma de cada material por m² (ancho × alto) o por metro lineal (ancho).
+ * Devuelve base (parte lineal para ese ancho) y precio por m². Sin precios de material, usa los del producto.
+ */
+export function materialPricing(catalog: CatalogData, model: CatalogData["models"][number], widthCm: number) {
+  const mats = productMaterials(catalog, model) as (ReturnType<typeof productMaterials>[number] & { price?: number; priceUnit?: string })[];
+  if (!mats.some((m) => (m.price ?? 0) > 0)) return { basePrice: model.basePrice, pricePerM2: model.pricePerM2 };
+  const perM2 = mats.filter((m) => m.priceUnit !== "ml").reduce((n, m) => n + (m.price ?? 0), 0);
+  const perMl = mats.filter((m) => m.priceUnit === "ml").reduce((n, m) => n + (m.price ?? 0), 0);
+  return { basePrice: perMl * (widthCm / 100), pricePerM2: perM2 };
 }

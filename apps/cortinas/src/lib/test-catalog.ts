@@ -51,7 +51,7 @@ export const variants = [
   { id: 2, modelId: 2, code: "RBK-01", name: "Blanco", valueIds: "5", priceAdjustment: 0, active: true, sortOrder: 2, attributes: "", fabricId: null, frameColorId: null },
 ] as ProductVariant[];
 // Cada material activa la tela con sus valores (Tela es "según material").
-const mat = (id: number, slug: string, attributes: Material["attributes"]) => ({ id, slug, name: slug, description: "", sortOrder: id, active: true, attributes }) as Material;
+const mat = (id: number, slug: string, attributes: Material["attributes"]) => ({ id, slug, name: slug, description: "", sortOrder: id, active: true, attributes, price: 0, priceUnit: "m2" }) as Material;
 export const materials = [
   mat(1, "screen", [{ attributeId: TELA, required: false, valueIds: [1] }]),
   mat(2, "blackout", [{ attributeId: TELA, required: false, valueIds: [5, 6] }]),

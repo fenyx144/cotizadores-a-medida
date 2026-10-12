@@ -31,7 +31,9 @@
           "required": false,
           "valueIds": []
         }
-      ]
+      ],
+      "price": 110,
+      "price_unit": "m2"
     },
     {
       "id": 2,
@@ -62,7 +64,9 @@
           "required": false,
           "valueIds": []
         }
-      ]
+      ],
+      "price": 120,
+      "price_unit": "m2"
     },
     {
       "id": 3,
@@ -95,7 +99,9 @@
           "required": false,
           "valueIds": []
         }
-      ]
+      ],
+      "price": 150,
+      "price_unit": "m2"
     },
     {
       "id": 4,
@@ -125,7 +131,9 @@
           "required": false,
           "valueIds": []
         }
-      ]
+      ],
+      "price": 95,
+      "price_unit": "m2"
     },
     {
       "id": 5,
@@ -156,7 +164,9 @@
           "required": false,
           "valueIds": []
         }
-      ]
+      ],
+      "price": 105,
+      "price_unit": "m2"
     },
     {
       "id": 6,
@@ -171,7 +181,9 @@
           "required": false,
           "valueIds": []
         }
-      ]
+      ],
+      "price": 12,
+      "price_unit": "ml"
     }
   ],
   "families": [

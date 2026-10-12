@@ -88,6 +88,8 @@ export const MATERIAL_FIELDS: CrudField[] = [
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "slug", label: "Código", type: "text", hidden: true },
   { name: "description", label: "Descripción", type: "textarea", column: true },
+  { name: "price", label: "Precio (S/)", type: "number", step: 0.01, column: true },
+  { name: "priceUnit", label: "Unidad", type: "select", options: [{ value: "m2", label: "por m²" }, { value: "ml", label: "por metro lineal" }], column: true },
   { name: "active", label: "Visible", type: "boolean", column: true },
 ];
 

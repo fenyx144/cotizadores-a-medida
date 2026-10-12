@@ -1,3 +1,4 @@
+import { priceLine } from "@/lib/line-price";
 import { modelDrawing } from "@/lib/drawing";
 import Image from "next/image";
 import Link from "next/link";
@@ -153,7 +154,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
                 </div>
                 <p className="mt-1 text-muted">{m.tagline}</p>
                 <p className="mt-3 text-sm">
-                  Desde <span className="font-medium">{formatMoney(m.basePrice + 2.25 * m.pricePerM2 + 25)}</span>
+                  Desde <span className="font-medium">{formatMoney(Math.round(priceLine(catalog, { modelId: m.id, values: {}, width: 150, height: 150 })?.unitPrice ?? 0))}</span>
                   <span className="text-muted"> · {m.uses.split(",").map((u) => USE_LABELS[u]).join(", ")}</span>
                 </p>
               </Link>

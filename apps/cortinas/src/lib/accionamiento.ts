@@ -102,7 +102,12 @@ export function ensureMaterialNames() {
 /** Columna nueva (no destructiva): atributos acotados por producto. Debe ir antes de cualquier lectura de productos. */
 let schemaP: Promise<void> | null = null;
 export function ensureSchema() {
-  schemaP ??= getDb().execute(sql`alter table product_models add column if not exists attributes jsonb not null default '[]'::jsonb`).then(() => undefined)
+  schemaP ??= (async () => {
+    const db = getDb();
+    await db.execute(sql`alter table product_models add column if not exists attributes jsonb not null default '[]'::jsonb`);
+    await db.execute(sql`alter table materials add column if not exists price real not null default 0`);
+    await db.execute(sql`alter table materials add column if not exists price_unit text not null default 'm2'`);
+  })()
     .catch((e) => { schemaP = null; fail("esquema", e); });
   return schemaP;
 }
@@ -132,4 +137,32 @@ export function ensureMaterialScopes() {
     });
   })().catch((e) => { scopes = null; fail("ámbitos", e); });
   return scopes;
+}
+
+/**
+ * Precio por material (una vez, si ningún material tiene precio): se deriva de los precios actuales de producto
+ * para que el cliente vea importes parecidos. Por m²: precio/m² del producto + precio base repartido en 2,25 m².
+ * Tubo de aluminio: por metro lineal.
+ */
+let prices: Promise<void> | null = null;
+export function ensureMaterialPrices() {
+  prices ??= (async () => {
+    const db = getDb();
+    const mats = await db.select().from(schema.materials);
+    if (!mats.length || mats.some((m) => m.price > 0)) return;
+    const models = await db.select().from(schema.productModels);
+    await db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(771125)`);
+      const again = await tx.select().from(schema.materials);
+      if (again.some((m) => m.price > 0)) return;
+      for (const m of again) {
+        if (m.slug === "tubo-aluminio") { await tx.update(schema.materials).set({ price: 12, priceUnit: "ml" }).where(sql`${schema.materials.id} = ${m.id}`); continue; }
+        const own = models.filter((p) => (p.materials || p.material).split(",").includes(m.slug));
+        const base = own;
+        const price = base.length ? Math.round(base.reduce((n, p) => n + p.pricePerM2 + p.basePrice / 2.25, 0) / base.length) : 0;
+        await tx.update(schema.materials).set({ price, priceUnit: "m2" }).where(sql`${schema.materials.id} = ${m.id}`);
+      }
+    });
+  })().catch((e) => { prices = null; fail("precios", e); });
+  return prices;
 }

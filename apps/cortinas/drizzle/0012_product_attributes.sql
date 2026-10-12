@@ -1,1 +1,3 @@
 ALTER TABLE product_models ADD COLUMN IF NOT EXISTS attributes jsonb NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE materials ADD COLUMN IF NOT EXISTS price real NOT NULL DEFAULT 0;
+ALTER TABLE materials ADD COLUMN IF NOT EXISTS price_unit text NOT NULL DEFAULT 'm2';

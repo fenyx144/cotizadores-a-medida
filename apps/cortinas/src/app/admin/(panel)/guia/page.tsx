@@ -4,7 +4,7 @@ export const metadata = { title: "Guía del catálogo — Cota" };
 
 const STEPS = [
   { n: 1, title: "Atributos", href: "/admin/catalogo/atributos", text: "Cree cada atributo con sus valores en el mismo formulario: genéricos (accionamiento, mando…) o según material (tela, perfil)." },
-  { n: 2, title: "Materiales", href: "/admin/catalogo/materiales", text: "Marque qué atributos del material (tipo y color de tela, color del perfil) y valores admite." },
+  { n: 2, title: "Materiales", href: "/admin/catalogo/materiales", text: "Precio por m² o por metro lineal, y qué atributos del material (tipo y color de tela, color del perfil) y valores admite." },
   { n: 3, title: "Categorías", href: "/admin/catalogo/familias", text: "Elija sus materiales permitidos, qué atributos pide y qué valores admite (p. ej. solo Accionamiento Enrollable)." },
   { n: 4, title: "Productos", href: "/admin/catalogo/productos", text: "Dé a cada producto su categoría, los materiales que usa a la vez y, si hace falta, acote los valores de la categoría." },
   { n: 5, title: "Variantes", href: "/admin/catalogo/variantes", text: "Marque un valor (fijo) o varios (el cliente elige entre ellos) de los atributos del producto. El SKU se genera solo." },

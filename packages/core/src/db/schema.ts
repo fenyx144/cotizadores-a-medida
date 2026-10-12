@@ -17,6 +17,9 @@ export const materials = pgTable("materials", {
   active: boolean("active").notNull().default(true),
   /** Atributos que aplican a este material y sus valores permitidos (vacío = todos). Lista vacía = todos los atributos. */
   attributes: jsonb("attributes").$type<FamilyAttribute[]>().notNull().default([]),
+  /** Precio del material: por m² (ancho × alto, telas) o por metro lineal (ancho, tubos y perfiles). */
+  price: real("price").notNull().default(0),
+  priceUnit: text("price_unit").notNull().default("m2"),
 });
 
 /**
