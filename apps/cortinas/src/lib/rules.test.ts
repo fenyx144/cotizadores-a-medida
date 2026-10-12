@@ -268,3 +268,11 @@ describe("permisos por (material, atributo) en el producto", () => {
     expect(conf).toEqual([{ attributeId: 5, required: false, valueIds: [] }, { attributeId: 6, required: false, valueIds: [] }]);
   });
 });
+
+describe("medidas solo del producto", () => {
+  it("la categoría ya no limita ancho/alto", () => {
+    const m = c.models[0];
+    const cc = { ...c, families: (c.families ?? []).map((f) => (f.id === m.familyId ? { ...f, minWidth: 1, maxWidth: 2, minHeight: 1, maxHeight: 2 } : f)) };
+    expect(evaluate(cc, { modelId: m.id, values: {} }).limits).toEqual({ minWidth: m.minWidth, maxWidth: m.maxWidth, minHeight: m.minProjection, maxHeight: m.maxProjection });
+  });
+});

@@ -1,6 +1,6 @@
 import { AdminShell } from "@portafolio/core/ui/AdminShell";
 import { requireAdmin } from "@/lib/session";
-import { ensureMaterialPerms, ensureMaterialScopes, ensureOrderFromOne, ensureProductPerms, ensureSchema } from "@/lib/accionamiento";
+import { ensureMaterialPerms, ensureMaterialScopes, ensureOrderFromOne, ensureProductPerms, ensureProductSizes, ensureSchema } from "@/lib/accionamiento";
 import { logout } from "../actions";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +24,7 @@ export default async function PanelLayout({ children }: { children: React.ReactN
   await ensureMaterialScopes();
   await ensureMaterialPerms();
   await ensureProductPerms();
+  await ensureProductSizes();
   return (
     <AdminShell brand="Cota" items={NAV} userName={session.name} logoutAction={logout}>
       {children}

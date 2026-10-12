@@ -353,7 +353,7 @@ export function evaluate(c: RulesCatalog, sel: Selection): Evaluation {
     const isMin = k.startsWith("min");
     if (isMin ? v > limits[k] : v < limits[k]) { limits[k] = v; if (msg) why[k] = msg; }
   };
-  if (family) { tighten("minWidth", family.minWidth); tighten("maxWidth", family.maxWidth); tighten("minHeight", family.minHeight); tighten("maxHeight", family.maxHeight); }
+  // Las medidas vienen solo del producto (la categoría ya no las define).
   const chosen = chosenByAttr(c, sel);
   for (const r of c.constraints ?? []) {
     if (r.kind !== "medidas" || !ruleInScope(r, model) || !conditionsMet(r.conditions, chosen, { model, width: sel.width, height: sel.height })) continue;

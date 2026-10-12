@@ -1,5 +1,5 @@
 /** Lectura del catálogo y cálculo del precio de una línea (servidor). */
-import { ensureSchema, ensureMaterialScopes, ensureMaterialPrices, ensureDemoRestore, ensureMaterialPerms, ensureProductPerms, ensureAccionamiento, ensureCombinedDemo, ensureOrderFromOne, ensureMaterialNames } from "./accionamiento";
+import { ensureSchema, ensureMaterialScopes, ensureMaterialPrices, ensureDemoRestore, ensureMaterialPerms, ensureProductPerms, ensureProductSizes, ensureAccionamiento, ensureCombinedDemo, ensureOrderFromOne, ensureMaterialNames } from "./accionamiento";
 import "server-only";
 import { asc, eq } from "drizzle-orm";
 import type { PricingRule } from "@portafolio/core/pricing";
@@ -17,6 +17,7 @@ export async function getCatalog() {
   await ensureDemoRestore();
   await ensureMaterialPerms();
   await ensureProductPerms();
+  await ensureProductSizes();
   const db = getDb();
   const [models, attributes, values, rules, families, constraints, materials, variants] = await Promise.all([
     db.select().from(schema.productModels).where(eq(schema.productModels.active, true)).orderBy(asc(schema.productModels.sortOrder)),

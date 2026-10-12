@@ -70,12 +70,10 @@ export const familyFields = (attrOptions: AttrOption[], materials: Opt[] = [], m
   { name: "materials", label: "Materiales permitidos", type: "multiselect", options: materials, allLabel: "Todos", column: true },
   { name: "description", label: "Descripción", type: "textarea" },
   { name: "attributes", label: "Atributos resultantes", type: "attrs", attrOptions, materialLinks, noValues: true, column: true },
-  { name: "minWidth", label: "Ancho mínimo por defecto (cm)", type: "number" },
-  { name: "maxWidth", label: "Ancho máximo por defecto (cm)", type: "number" },
-  { name: "minHeight", label: "Alto mínimo por defecto (cm)", type: "number" },
-  { name: "maxHeight", label: "Alto máximo por defecto (cm)", type: "number" },
-  { name: "anchoRango", label: "Ancho (cm)", type: "text", column: true, readOnly: true, rangeOf: ["minWidth", "maxWidth"] },
-  { name: "altoRango", label: "Alto (cm)", type: "text", column: true, readOnly: true, rangeOf: ["minHeight", "maxHeight"] },
+  { name: "minWidth", label: "Ancho mínimo por defecto (cm)", type: "number", hidden: true },
+  { name: "maxWidth", label: "Ancho máximo por defecto (cm)", type: "number", hidden: true },
+  { name: "minHeight", label: "Alto mínimo por defecto (cm)", type: "number", hidden: true },
+  { name: "maxHeight", label: "Alto máximo por defecto (cm)", type: "number", hidden: true },
 ];
 
 

@@ -331,3 +331,36 @@ export function ensureProductPerms() {
   })().catch((e) => { prodPermsP = null; fail("permisos-producto", e); });
   return prodPermsP;
 }
+
+/**
+ * Medidas solo en el producto. Una vez (marca en cota_migrations): cada producto toma lo que antes resultaba de
+ * combinar sus medidas con las de su categoría (sin medida propia, las de la categoría). Guarda las anteriores.
+ */
+let sizesP: Promise<void> | null = null;
+export function ensureProductSizes() {
+  sizesP ??= (async () => {
+    const db = getDb();
+    await db.execute(sql`create table if not exists cota_migrations (name text primary key, at timestamptz not null default now(), data jsonb)`);
+    const rowsOf = (r: unknown) => ((r as { rows?: unknown[] }).rows ?? (r as unknown[]));
+    if (rowsOf(await db.execute(sql`select 1 from cota_migrations where name = 'medidas-producto'`)).length) return;
+    await db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(771129)`);
+      if (rowsOf(await tx.execute(sql`select 1 from cota_migrations where name = 'medidas-producto'`)).length) return;
+      const fams = await tx.select().from(schema.productFamilies);
+      const before: Record<number, number[]> = {};
+      for (const p of await tx.select().from(schema.productModels)) {
+        const f = fams.find((x) => x.id === p.familyId);
+        if (!f) continue;
+        const lo = (own: number, cat: number) => (own ? Math.max(own, cat || 0) : cat);
+        const hi = (own: number, cat: number) => (own ? (cat ? Math.min(own, cat) : own) : cat);
+        const next = { minWidth: lo(p.minWidth, f.minWidth), maxWidth: hi(p.maxWidth, f.maxWidth), minProjection: lo(p.minProjection, f.minHeight), maxProjection: hi(p.maxProjection, f.maxHeight) };
+        if (next.minWidth > next.maxWidth || next.minProjection > next.maxProjection) continue; // sin solape: se deja como estaba
+        if (next.minWidth === p.minWidth && next.maxWidth === p.maxWidth && next.minProjection === p.minProjection && next.maxProjection === p.maxProjection) continue;
+        before[p.id] = [p.minWidth, p.maxWidth, p.minProjection, p.maxProjection];
+        await tx.update(schema.productModels).set(next).where(sql`id = ${p.id}`);
+      }
+      await tx.execute(sql`insert into cota_migrations (name, data) values ('medidas-producto', ${JSON.stringify(before)}::jsonb)`);
+    });
+  })().catch((e) => { sizesP = null; fail("medidas-producto", e); });
+  return sizesP;
+}
