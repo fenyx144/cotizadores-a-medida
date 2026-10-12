@@ -9,10 +9,14 @@ import { sql } from "drizzle-orm";
 import { getDb, schema } from "./db";
 import { TYPE_LABELS } from "./content";
 
+/** Últimos errores de las migraciones automáticas (para /api/salud). */
+export const upgradeErrors: string[] = [];
+const fail = (k: string, e: unknown) => { upgradeErrors.push(`${k}: ${e instanceof Error ? e.message : String(e)}`.slice(0, 300)); console.error(k, e); };
+
 let done: Promise<void> | null = null;
 
 export function ensureAccionamiento() {
-  done ??= migrate().catch((e) => { done = null; console.error("accionamiento", e); });
+  done ??= migrate().catch((e) => { done = null; fail("accionamiento", e); });
   return done;
 }
 
@@ -65,7 +69,7 @@ export function ensureCombinedDemo() {
       await tx.update(schema.productModels).set({ materials: `${rs.materials || rs.material},tubo-aluminio` }).where(sql`${schema.productModels.id} = ${rs.id}`);
       if (rs.familyId) await tx.execute(sql`update product_families set materials = materials || ',tubo-aluminio' where id = ${rs.familyId} and materials <> '' and position('tubo-aluminio' in materials) = 0`);
     });
-  })().catch((e) => { combo = null; console.error("combinado", e); });
+  })().catch((e) => { combo = null; fail("combinado", e); });
   return combo;
 }
 
@@ -80,7 +84,7 @@ export function ensureOrderFromOne() {
       const where = by ? `where ${by} in (select ${by} from ${t} where sort_order < 1)` : `where exists (select 1 from ${t} where sort_order < 1)`;
       await db.execute(sql.raw(`update ${t} x set sort_order = n.rn from (select id, row_number() over (${part}order by sort_order, id) as rn from ${t} ${where}) n where x.id = n.id`));
     }
-  })().catch((e) => { order = null; console.error("orden", e); });
+  })().catch((e) => { order = null; fail("orden", e); });
   return order;
 }
 
@@ -89,8 +93,8 @@ let names: Promise<void> | null = null;
 export function ensureMaterialNames() {
   names ??= (async () => {
     const db = getDb();
-    await db.execute(sql`update materials set name = 'Tela día y noche' where slug = 'mixto' and name = 'Mixto (día/noche)'`);
-    await db.execute(sql`update materials set name = 'Lámina de aluminio' where slug = 'aluminio' and name = 'Aluminio'`);
-  })().catch((e) => { names = null; console.error("nombres", e); });
+    await db.execute(sql`update materials set name = 'Tela día y noche' where slug = 'mixto' and name ilike 'mixto%'`);
+    await db.execute(sql`update materials set name = 'Lámina de aluminio' where slug = 'aluminio' and trim(name) ilike 'aluminio'`);
+  })().catch((e) => { names = null; fail("nombres", e); });
   return names;
 }
