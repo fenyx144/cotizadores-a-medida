@@ -6,6 +6,7 @@
  * y el servidor vuelve a validar al guardar.
  */
 import { useEffect, useMemo, useState } from "react";
+import { ask } from "@portafolio/core/ui/Dialog";
 import { formatMoney } from "@portafolio/core/pricing";
 import { readSheetFile, saveGrid, type GridCellErrors, type GridRowInput } from "@/app/actions/project";
 import { priceLine } from "@/lib/line-price";
@@ -310,6 +311,7 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
               <th className="w-8 py-2 font-normal">#</th>
               {COLS.map((c) => <th key={c.key} className={`py-2 pl-1.5 font-normal ${c.w}`}>{c.label}</th>)}
               <th className="py-2 pr-1 text-right font-normal">Total</th>
+              {!readOnly && <th className="w-8 py-2" />}
             </tr>
           </thead>
           <tbody>
@@ -346,10 +348,21 @@ export function LinesGrid({ ctx }: { ctx: EditorContext }) {
                         : <button type="button" className="block whitespace-nowrap pt-1 text-[11px] text-muted underline hover:text-ink" onClick={() => ctx.markOnPlan!(r.id!)} data-testid="mark-on-plan">Marcar en plano</button>;
                     })()}
                   </td>
+                  {!readOnly && (
+                    <td className="py-1 pt-1.5 text-center align-top">
+                      <button type="button" className="p-1 text-muted hover:text-danger" aria-label={`Eliminar fila ${i + 1}`} data-testid="row-delete"
+                        onClick={async () => {
+                          if (!(await ask({ title: `¿Eliminar la fila ${i + 1}?`, text: [r.location, catalog.models.find((m) => m.id === r.modelId)?.name].filter(Boolean).join(" · "), ok: "Eliminar", danger: true }))) return;
+                          change((rs) => rs.filter((x) => x.key !== r.key));
+                        }}>
+                        <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3" /></svg>
+                      </button>
+                    </td>
+                  )}
                 </tr>
               );
             })}
-            {rows.length === 0 && <tr><td colSpan={COLS.length + 3} className="py-6 text-muted">Sin líneas. Agregue una fila, pegue desde Excel o importe la plantilla.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={COLS.length + 4} className="py-6 text-muted">Sin líneas. Agregue una fila, pegue desde Excel o importe la plantilla.</td></tr>}
           </tbody>
         </table>
         <datalist id="grid-locations">{data.locations.map((l) => <option key={l.id} value={locName(l)} />)}</datalist>

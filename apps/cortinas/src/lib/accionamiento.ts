@@ -184,86 +184,69 @@ export async function demoCleanedUp(): Promise<boolean> {
   if (rows.length) { cleanupInfo.done = true; cleanupInfo.summary = rows[0].data; }
   return rows.length > 0;
 }
-export function ensureDemoCleanup() {
-  cleanupP ??= (async () => {
-    if (await demoCleanedUp()) return;
+// (La limpieza de la demo se retiró: no se borran datos del catálogo.)
+
+/**
+ * Deshace la limpieza de la demo si llegó a ejecutarse: reinserta con sus ids originales lo borrado
+ * y repone las referencias (permisos de Accionamiento en categorías y Blackout en productos/categorías).
+ */
+let restoreP: Promise<void> | null = null;
+export const restoreInfo: { restored?: boolean; error?: string } = {};
+export function ensureDemoRestore() {
+  restoreP ??= (async () => {
     const db = getDb();
+    await db.execute(sql`create table if not exists cota_migrations (name text primary key, at timestamptz not null default now(), data jsonb)`);
     await db.transaction(async (tx) => {
       await tx.execute(sql`select pg_advisory_xact_lock(771126)`);
-      const r = await tx.execute(sql`select 1 from cota_migrations where name = 'limpieza-demo'`);
-      if (((r as unknown as { rows?: unknown[] }).rows ?? (r as unknown as unknown[])).length) return;
-      const S = schema;
-      const attrs = await tx.select().from(S.attributes);
-      const vals = await tx.select().from(S.attributeValues);
-      const mats = await tx.select().from(S.materials);
-      const fams = await tx.select().from(S.productFamilies);
-      const models = await tx.select().from(S.productModels);
-      const variants = await tx.select().from(S.productVariants);
-      const rules = await tx.select().from(S.constraintRules);
-      const n = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-      const valsOf = (a: number) => vals.filter((v) => v.attributeId === a);
-
-      const acc = attrs.find((a) => n(a.name) === "accionamiento" && valsOf(a.id).length === 4);
-      const accVals = acc ? valsOf(acc.id).map((v) => v.id) : [];
-      const blackout = mats.find((m) => m.slug === "blackout" || n(m.name) === "blackout");
-      const dnModels = models.filter((m) => (m.materials || m.material).split(",").includes("mixto"));
-      const fam = fams.find((f) => n(f.name).startsWith("doble roller")) ?? fams.find((f) => dnModels.some((m) => m.familyId === f.id));
-      const persiana = models.find((m) => n(m.name).startsWith("persiana de aluminio 25"));
-      const famModels = fam ? models.filter((m) => m.familyId === fam.id) : [];
-      const delModels = [...famModels, ...(persiana && !famModels.includes(persiana) ? [persiana] : [])];
-      const delModelIds = new Set(delModels.map((m) => m.id));
-      const tipo = attrs.find((a) => n(a.name) === "tipo de tela");
-      const lamina = vals.find((v) => v.attributeId === tipo?.id && n(v.name).startsWith("lamina"));
-      const colorTela = attrs.find((a) => n(a.name) === "color de tela");
-      const lamRule = rules.find((r) => (n(r.name).includes("lamina aluminio") && n(r.name).includes("plata")) ||
-        (lamina && colorTela && r.targetAttributeId === colorTela.id && (r.conditions ?? []).some((c) => (c.valueIds ?? []).includes(lamina.id)) && !r.familyId && !r.modelId));
-
-      const delRules = rules.filter((r) =>
-        r === lamRule ||
-        (acc && (r.targetAttributeId === acc.id || (r.conditions ?? []).some((c) => c.attributeId === acc.id))) ||
-        (blackout && (r.conditions ?? []).some((c) => (c.materials ?? []).includes(blackout.slug))) ||
-        (r.modelId != null && delModelIds.has(r.modelId)) || (fam && r.familyId === fam.id));
-      const delVariants = variants.filter((v) => delModelIds.has(v.modelId));
-      const snapshot = {
-        attribute: acc ? { ...acc, values: valsOf(acc.id) } : null,
-        material: blackout ?? null,
-        family: fam ?? null,
-        models: delModels, variants: delVariants, rules: delRules,
-        blackoutProducts: blackout ? models.filter((m) => !delModelIds.has(m.id) && (m.materials || m.material).split(",").includes(blackout.slug)).map((m) => ({ id: m.id, name: m.name, materials: m.materials, material: m.material })) : [],
+      const r = await tx.execute(sql`select data from cota_migrations where name = 'limpieza-demo'`);
+      const rows = ((r as unknown as { rows?: { data: unknown }[] }).rows ?? (r as unknown as { data: unknown }[]));
+      if (!rows.length) return;
+      type Snap = {
+        attribute: (typeof schema.attributes.$inferSelect & { values: (typeof schema.attributeValues.$inferSelect)[] }) | null;
+        material: typeof schema.materials.$inferSelect | null; family: typeof schema.productFamilies.$inferSelect | null;
+        models: (typeof schema.productModels.$inferSelect)[]; variants: (typeof schema.productVariants.$inferSelect)[];
+        rules: (typeof schema.constraintRules.$inferSelect)[];
+        blackoutProducts: { id: number; materials: string; material: string }[];
       };
-
-      const strip = (list: { attributeId: number }[] | null) => (list ?? []).filter((e) => e.attributeId !== acc?.id);
-      if (acc) {
-        for (const f of fams) await tx.update(S.productFamilies).set({ attributes: strip(f.attributes) as typeof f.attributes }).where(sql`id = ${f.id}`);
-        for (const m of mats) await tx.update(S.materials).set({ attributes: strip(m.attributes) as typeof m.attributes }).where(sql`id = ${m.id}`);
-        for (const m of models) await tx.update(S.productModels).set({ attributes: strip(m.attributes) as typeof m.attributes }).where(sql`id = ${m.id}`);
-        for (const v of variants) {
-          const ids = v.valueIds.split(",").filter((x) => x && !accVals.includes(Number(x)));
-          if (ids.join(",") !== v.valueIds) await tx.update(S.productVariants).set({ valueIds: ids.join(",") }).where(sql`id = ${v.id}`);
-        }
-        await tx.delete(S.attributeValues).where(sql`attribute_id = ${acc.id}`);
-        await tx.delete(S.attributes).where(sql`id = ${acc.id}`);
+      const s = rows[0].data as Snap;
+      const S = schema;
+      if (s.attribute) {
+        const { values, ...a } = s.attribute;
+        await tx.insert(S.attributes).values(a).onConflictDoNothing();
+        if (values.length) await tx.insert(S.attributeValues).values(values).onConflictDoNothing();
       }
-      for (const r of delRules) await tx.delete(S.constraintRules).where(sql`id = ${r.id}`);
-      for (const v of delVariants) await tx.delete(S.productVariants).where(sql`id = ${v.id}`);
-      for (const m of delModels) await tx.delete(S.productModels).where(sql`id = ${m.id}`);
-      if (fam) await tx.delete(S.productFamilies).where(sql`id = ${fam.id}`);
-      if (blackout) {
-        const drop = (list: string) => list.split(",").filter((x) => x && x !== blackout.slug).join(",");
-        for (const f of fams) if (f.id !== fam?.id && f.materials.split(",").includes(blackout.slug)) await tx.update(S.productFamilies).set({ materials: drop(f.materials) }).where(sql`id = ${f.id}`);
-        for (const m of models) {
-          if (delModelIds.has(m.id)) continue;
-          const list = (m.materials || m.material).split(",");
-          if (!list.includes(blackout.slug)) continue;
-          const rest = drop(m.materials || m.material);
-          await tx.update(S.productModels).set({ materials: rest, material: rest.split(",")[0] ?? "" }).where(sql`id = ${m.id}`);
+      if (s.material) await tx.insert(S.materials).values(s.material).onConflictDoNothing();
+      if (s.family) await tx.insert(S.productFamilies).values(s.family).onConflictDoNothing();
+      for (const m of s.models) await tx.insert(S.productModels).values({ ...m }).onConflictDoNothing();
+      for (const v of s.variants) await tx.insert(S.productVariants).values(v).onConflictDoNothing();
+      for (const ru of s.rules) await tx.insert(S.constraintRules).values(ru).onConflictDoNothing();
+      for (const p of s.blackoutProducts) await tx.update(S.productModels).set({ materials: p.materials, material: p.material }).where(sql`id = ${p.id}`);
+      // Permisos de Accionamiento por categoría (como los creó la migración original: requerido, valores de sus productos).
+      if (s.attribute) {
+        const byCode = new Map(s.attribute.values.map((v) => [v.code, v.id]));
+        const models = await tx.select().from(S.productModels);
+        for (const f of await tx.select().from(S.productFamilies)) {
+          const list = f.attributes ?? [];
+          if (!list.length || list.some((e) => e.attributeId === s.attribute!.id)) continue;
+          const ids = [...new Set(models.filter((m) => m.familyId === f.id).map((m) => byCode.get(m.type)!).filter(Boolean))];
+          await tx.update(S.productFamilies).set({ attributes: [{ attributeId: s.attribute.id, required: true, valueIds: ids }, ...list] }).where(sql`id = ${f.id}`);
         }
-        await tx.execute(sql`update product_variants set material = '' where material = ${blackout.slug}`);
-        await tx.delete(S.materials).where(sql`id = ${blackout.id}`);
       }
-      await tx.execute(sql`insert into cota_migrations (name, data) values ('limpieza-demo', ${JSON.stringify(snapshot)}::jsonb)`);
+      // Blackout de vuelta en las categorías de sus productos (si la categoría limita materiales).
+      if (s.material) {
+        const slug = s.material.slug;
+        const models = await tx.select().from(S.productModels);
+        for (const f of await tx.select().from(S.productFamilies)) {
+          const uses = models.some((m) => m.familyId === f.id && (m.materials || m.material).split(",").includes(slug));
+          const list = f.materials.split(",").filter(Boolean);
+          if (uses && list.length && !list.includes(slug)) await tx.update(S.productFamilies).set({ materials: [...list, slug].join(",") }).where(sql`id = ${f.id}`);
+        }
+      }
+      await tx.execute(sql`insert into cota_migrations (name, data) values ('restaurar-demo', ${JSON.stringify(s)}::jsonb) on conflict (name) do nothing`);
+      await tx.execute(sql`delete from cota_migrations where name = 'limpieza-demo'`);
+      restoreInfo.restored = true;
     });
-    await demoCleanedUp();
-  })().catch((e) => { cleanupP = null; fail("limpieza-demo", e); });
-  return cleanupP;
+    cleanupInfo.done = false;
+  })().catch((e) => { restoreP = null; restoreInfo.error = String(e); fail("restaurar-demo", e); });
+  return restoreP;
 }
