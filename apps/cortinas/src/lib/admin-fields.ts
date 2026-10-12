@@ -23,13 +23,13 @@ export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_
   { name: "description", label: "Descripción", type: "textarea" },
   { name: "gallery", label: "Galería", type: "gallery", uploadUrl: UPLOAD },
   { name: "specs", label: "Ficha técnica", type: "specs" },
+  { name: "attributes", label: "Atributos y valores del producto", type: "attrs", attrOptions: [], attrsBy, materialLinks, noRequired: true },
   { name: "minWidth", label: "Ancho mínimo (cm)", type: "number" },
   { name: "maxWidth", label: "Ancho máximo (cm)", type: "number", column: true },
   { name: "minProjection", label: "Alto mínimo (cm)", type: "number" },
   { name: "maxProjection", label: "Alto máximo (cm)", type: "number", column: true },
   { name: "basePrice", label: "Precio base (S/)", type: "number", hidden: true },
   { name: "pricePerM2", label: "Precio por m² (S/)", type: "number", hidden: true },
-  { name: "attributes", label: "Atributos y valores del producto", type: "attrs", attrOptions: [], attrsBy, materialLinks, noRequired: true },
   { name: "active", label: "Visible en la web", type: "boolean", column: true },
 ];
 export const PRODUCT_FIELDS = productFields([]);
