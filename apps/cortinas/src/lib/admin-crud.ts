@@ -44,7 +44,7 @@ const resources: Record<string, CrudResource> = {
   },
   attributes: {
     table: schema.attributes,
-    orderBy: schema.attributes.sortOrder,
+    orderBy: schema.attributes.id,
     schema: z.object({ name: z.string().trim().min(2, "Indique el nombre").max(60), kind: z.enum(["lista", "numero", "sino"]), scope: z.enum(["generico", "material"]).default("generico"), unit: z.string().max(10).default(""), sortOrder: z.number().int().min(1, "Desde 1").nullable().default(null),
       values: z.array(valueRow).max(200).optional() }),
     // Valores editados dentro del atributo: actualiza, crea y borra filas (orden = posición en la lista).
@@ -61,13 +61,13 @@ const resources: Record<string, CrudResource> = {
           else await db.insert(schema.attributeValues).values({ ...set, attributeId, surcharge: 0, surchargeKind: "fijo" });
         }
       }
-      const values = await db.select().from(schema.attributeValues).where(eq(schema.attributeValues.attributeId, attributeId)).orderBy(schema.attributeValues.sortOrder);
+      const values = await db.select().from(schema.attributeValues).where(eq(schema.attributeValues.attributeId, attributeId)).orderBy(schema.attributeValues.id);
       return { values: values.map((v) => ({ id: v.id, name: v.name, hex: v.hex, image: v.image })) };
     },
   },
   values: {
     table: schema.attributeValues,
-    orderBy: schema.attributeValues.sortOrder,
+    orderBy: schema.attributeValues.id,
     schema: z.object({
       attributeId: z.coerce.number().int().min(1, "Elija el atributo"), name: z.string().trim().min(1, "Indique el nombre").max(80), code: z.string().max(40).default(""),
       hex: hexOpt.nullable().transform((v) => v ?? ""), image: z.string().max(500).default(""), surcharge: z.number().min(-5000).max(5000), surchargeKind: z.enum(["fijo", "por_m2"]), onlyFor: z.string().regex(/^[a-z0-9,-]*$/, "Ej.: screen,mixto").default(""),

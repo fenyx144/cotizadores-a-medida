@@ -18,15 +18,17 @@ export async function getCatalog() {
   const db = getDb();
   const [models, attributes, values, rules, families, constraints, materials, variants] = await Promise.all([
     db.select().from(schema.productModels).where(eq(schema.productModels.active, true)).orderBy(asc(schema.productModels.sortOrder)),
-    db.select().from(schema.attributes).orderBy(asc(schema.attributes.sortOrder), asc(schema.attributes.id)),
-    db.select().from(schema.attributeValues).orderBy(asc(schema.attributeValues.sortOrder), asc(schema.attributeValues.id)),
+    db.select().from(schema.attributes).orderBy(asc(schema.attributes.id)),
+    db.select().from(schema.attributeValues).orderBy(asc(schema.attributeValues.id)),
     db.select().from(schema.priceRules).where(eq(schema.priceRules.active, true)),
     db.select().from(schema.productFamilies).orderBy(asc(schema.productFamilies.sortOrder), asc(schema.productFamilies.id)),
     db.select().from(schema.constraintRules).where(eq(schema.constraintRules.active, true)),
     db.select().from(schema.materials).orderBy(asc(schema.materials.sortOrder), asc(schema.materials.id)),
     db.select().from(schema.productVariants).where(eq(schema.productVariants.active, true)),
   ]);
-  return { models, attributes, values, rules: rules as PricingRule[], families, constraints, materials, variants } satisfies CatalogData;
+  // Atributos y valores: por orden de creación (sort_order ya no se usa).
+  const byId = <T extends { id: number; sortOrder: number }>(l: T[]) => l.map((x) => ({ ...x, sortOrder: x.id }));
+  return { models, attributes: byId(attributes), values: byId(values), rules: rules as PricingRule[], families, constraints, materials, variants } satisfies CatalogData;
 }
 
 export type Catalog = Awaited<ReturnType<typeof getCatalog>>;

@@ -40,7 +40,6 @@ export const ATTRIBUTE_FIELDS: CrudField[] = [
   { name: "values", label: "Valores", type: "values", uploadUrl: UPLOAD },
   { name: "scope", label: "Aplica a", type: "select", options: [{ value: "generico", label: "Genérico (todos los materiales)" }, { value: "material", label: "Según material" }], column: true },
   { name: "unit", label: "Unidad", type: "text" },
-  { name: "sortOrder", label: "Orden en el configurador", type: "number", nullable: true, column: true },
 ];
 
 export const valueFields = (attrs: Opt[]): CrudField[] => [
