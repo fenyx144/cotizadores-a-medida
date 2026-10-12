@@ -74,3 +74,14 @@ describe("crear categoría con el payload exacto del formulario", () => {
     expect(schema.partial().safeParse({ ...row, id: 3, requiresFabric: true, allowedDrives: "" }).success).toBe(true);
   });
 });
+
+describe("asistente del cliente sin textos internos", () => {
+  it("no muestra motivos de restricción ni códigos de variante", async () => {
+    const { readFileSync } = await import("node:fs");
+    for (const f of ["ConfigWizard.tsx", "GuidePanel.tsx", "VariantPicker.tsx"]) {
+      const src = readFileSync(new URL(`../components/${f}`, import.meta.url), "utf8");
+      expect(src).not.toMatch(/No disponible: \{/);
+      expect(src).not.toMatch(/\{v\.code\}|currentVariant\.code/);
+    }
+  });
+});

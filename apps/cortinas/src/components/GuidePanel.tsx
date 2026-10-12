@@ -58,7 +58,7 @@ export function GuidePanel({ catalog, familyId, onPick, onCancel }: {
                 </button>
                 {variants.map((v) => (
                   <button key={v.id} className="block w-full border-t border-line px-4 py-2 text-left text-sm hover:bg-paper" data-testid="guide-pick-variant" onClick={() => onPick(model.id, pre, v)}>
-                    <span className="font-mono">{v.code}</span> · {v.name}
+                    {v.name}
                   </button>
                 ))}
               </div>

@@ -189,11 +189,9 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
         {step.key === "variante" && (
           <>
             {variants.map((v) => {
-              const fixed = [...variantGroups(catalog, v).values()].map((g) => g.map((x) => catalog.values.find((y) => y.id === x)?.name).filter(Boolean).join(" o ")).filter(Boolean).join(" · ");
               return (
                 <button key={v.id} className={big(variantId === v.id)} data-testid="wizard-variant" onClick={() => { setVariantId(v.id); setValues({ ...values, ...variantValues(catalog, v) }); go(1); }}>
-                  <span className="block"><span className="font-mono text-sm">{v.code}</span> · {v.name}</span>
-                  {fixed && <span className="block text-sm text-muted">{fixed}</span>}
+                  <span className="block">{v.name}</span>
                 </button>
               );
             })}
@@ -202,11 +200,11 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
         )}
 
         {attr && (attr.kind === "sino" ? (
-          [true, false].map((b) => {
+          [true, false].filter((b) => !(b && attr.choices[0]?.disabled)).map((b) => {
             const why = b ? attr.choices[0]?.disabled : undefined;
             return (
               <button key={String(b)} disabled={!!why} className={big((values[attr.attribute.id] === true) === b, !!why)} onClick={() => { setValues({ ...values, [attr.attribute.id]: b }); go(1); }}>
-                {b ? "Sí" : "No"}{why && <span className="block text-xs">{why}</span>}
+                {b ? "Sí" : "No"}
               </button>
             );
           })
@@ -215,17 +213,18 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
             onChange={(e) => setValues({ ...values, [attr.attribute.id]: e.target.value === "" ? null : Number(e.target.value.replace(",", ".")) })} placeholder={attr.attribute.unit} />
         ) : (
           <>
-            {attr.choices.map((c) => (
+            {/* Solo opciones disponibles; las que una regla o variante descarta no se muestran (sin textos de restricción). */}
+            {attr.choices.filter((c) => !c.disabled).map((c) => (
               <button key={c.value} disabled={!!c.disabled} className={`${big(values[attr.attribute.id] === c.value, !!c.disabled)} flex items-center gap-3`} data-testid="wizard-choice"
                 onClick={() => { setValues({ ...values, [attr.attribute.id]: c.value }); go(1); }}>
                 {c.image ? <img src={c.image} alt="" className="size-10 shrink-0 border border-line object-cover" /> : c.hex && <span className="size-6 shrink-0 rounded-full border border-line" style={{ background: c.hex }} />}
-                <span><span className="block">{c.label}</span>{c.disabled && <span className="block text-xs" data-testid="wizard-reason">No disponible: {c.disabled}</span>}</span>
+                <span className="block">{c.label}</span>
               </button>
             ))}
             {!attr.required && <button className={big(values[attr.attribute.id] == null)} onClick={() => { setValues({ ...values, [attr.attribute.id]: null }); go(1); }}>Sin preferencia</button>}
           </>
         ))}
-        {attrErr && <p className="text-sm text-danger">{attrErr}</p>}
+        {attrErr && <p className="text-sm text-danger">Elija otra opción.</p>}
 
         {step.key === "medidas" && ev && (
           <div className="space-y-6">
@@ -238,7 +237,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
             <label className="block"><span className="text-sm text-muted">Cantidad</span>
               <input className={`${field} font-mono`} inputMode="numeric" value={dims.quantity} onChange={(e) => setDims({ ...dims, quantity: e.target.value.replace(/\D/g, "") })} aria-label="Cantidad" />
             </label>
-            {w && h && dimErr && <p className="text-sm text-danger" data-testid="wizard-dim-error">{dimErr}</p>}
+            {w && h && dimErr && <p className="text-sm text-danger" data-testid="wizard-dim-error">{dimErr.split(". ")[0].replace(/\.?$/, ".")}</p>}
           </div>
         )}
 
@@ -256,7 +255,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
         {step.key === "resumen" && model && (
           <div className="space-y-6" data-testid="wizard-summary">
             <dl className="divide-y divide-line border-y border-line text-sm">
-              {([["Producto", model.name], ...(currentVariant ? [["Variante", `${currentVariant.code} · ${currentVariant.name}`]] : []), ...summary, ["Medidas", `${w} × ${h} cm`], ["Cantidad", dims.quantity], ["Ambiente", place.room || "—"], ...(place.note ? [["Nota", place.note]] : [])] as (readonly [string, string, number?])[]).map(([k, v, id]) => (
+              {([["Producto", model.name], ...(currentVariant ? [["Variante", currentVariant.name]] : []), ...summary, ["Medidas", `${w} × ${h} cm`], ["Cantidad", dims.quantity], ["Ambiente", place.room || "—"], ...(place.note ? [["Nota", place.note]] : [])] as (readonly [string, string, number?])[]).map(([k, v, id]) => (
                 <div key={k} className="flex justify-between gap-4 py-2"><dt className="text-muted">{k}</dt>
                   <dd className="text-right">{v}{id != null && (answered.includes(id) || locked.includes(id)) && (
                     <button type="button" className="ml-3 text-xs text-muted underline underline-offset-4 hover:text-ink" onClick={() => editAttr(id)} data-testid="summary-edit">Cambiar</button>
