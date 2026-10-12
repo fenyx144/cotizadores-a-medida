@@ -2,7 +2,7 @@
  * "Ayúdame a elegir": preguntas cuyas respuestas salen solo de los productos y variantes de la categoría.
  * Cada respuesta filtra la lista; nunca se ofrece una respuesta que deje cero productos.
  */
-import { evaluate, variantValues, variantsFor, type RulesCatalog } from "./rules";
+import { evaluate, variantGroups, variantsFor, type RulesCatalog } from "./rules";
 import type { ProductModel, ProductVariant } from "@portafolio/core/db/schema";
 
 export type Answers = Record<number, number>;
@@ -20,9 +20,8 @@ export function guideItems(c: RulesCatalog, familyId: number): GuideItem[] {
     }
     out.push({ model, options });
     for (const variant of variantsFor(c, model.id)) {
-      const fixed = variantValues(c, variant);
       const vo = new Map(options);
-      for (const [a, v] of Object.entries(fixed)) if (typeof v === "number" && options.has(Number(a))) vo.set(Number(a), new Set([v]));
+      for (const [a, g] of variantGroups(c, variant)) if (options.has(a)) vo.set(a, new Set(g.filter((x) => options.get(a)!.has(x))));
       out.push({ model, variant, options: vo });
     }
   }

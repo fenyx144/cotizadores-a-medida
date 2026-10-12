@@ -7,7 +7,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export type FieldType = "text" | "textarea" | "number" | "color" | "boolean" | "select" | "specs" | "multiselect" | "image" | "gallery" | "attrs";
+export type FieldType = "text" | "textarea" | "number" | "color" | "boolean" | "select" | "specs" | "multiselect" | "image" | "gallery" | "attrs" | "combo";
 
 /** Para "attrs": atributos disponibles con sus valores. */
 export interface AttrOption { id: number; name: string; values: { id: number; name: string }[]; defaultOn?: boolean; note?: string }
@@ -43,6 +43,8 @@ export interface CrudField {
   column?: boolean;
   /** Texto sugerido a partir de otros campos (p. ej. SKU = código de producto + códigos de valores). Se rellena mientras no se edite a mano. */
   autoCode?: AutoCode;
+  /** En "combo": atributos y valores permitidos según otro campo (p. ej. producto). Varios valores de un atributo = el cliente elige entre ellos; uno = fijo. */
+  combo?: { field: string; map: Record<string, AttrOption[]> };
   /** Mínimo del número. En "sortOrder" por defecto 1 (orden visible desde 1; un registro nuevo va al final). */
   min?: number;
   /** Oculto en tabla y formulario (se conserva su valor al guardar). */
@@ -85,7 +87,7 @@ export function CrudManager({
 
   function emptyRow(): Partial<Row> {
     const r: Record<string, unknown> = {};
-    for (const f of fields) r[f.name] = f.type === "specs" || f.type === "gallery" || f.type === "attrs" ? [] : f.type === "multiselect" ? "" : f.type === "boolean" ? true : f.type === "number" ? (f.nullable ? null : 0) : f.type === "color" ? (f.nullable ? "" : "#cccccc") : f.nullable ? null : (f.options?.[0]?.value ?? "");
+    for (const f of fields) r[f.name] = f.type === "specs" || f.type === "gallery" || f.type === "attrs" ? [] : f.type === "multiselect" || f.type === "combo" ? "" : f.type === "boolean" ? true : f.type === "number" ? (f.nullable ? null : 0) : f.type === "color" ? (f.nullable ? "" : "#cccccc") : f.nullable ? null : (f.options?.[0]?.value ?? "");
     return r;
   }
 
@@ -152,7 +154,7 @@ export function CrudManager({
       return list.length ? list.map((a) => `${f.attrOptions?.find((o) => o.id === a.attributeId)?.name ?? a.attributeId}${a.required ? "" : " (opc.)"}`).join(", ") : "—";
     }
     if (f.type === "specs") return Array.isArray(value) && value.length ? `${value.length} filas` : "—";
-    if (f.type === "multiselect") {
+    if (f.type === "multiselect" || f.type === "combo") {
       const v = String(value ?? "").split(",").filter(Boolean);
       return v.length ? v.map((x) => f.options?.find((o) => o.value === x)?.label ?? x).join(", ") : "Todas";
     }
@@ -212,6 +214,9 @@ export function CrudManager({
               <PhotoField key={f.name} field={f} value={editing[f.name]} error={errors[f.name]} onChange={(v) => setEditing({ ...editing, [f.name]: v })} />
             ) : f.type === "attrs" ? (
               <AttrsEditor key={f.name} field={f} error={errors[f.name]} value={(editing[f.name] as AttrConf[] | undefined) ?? []} linked={f.materialLinks ? String(editing[f.materialLinks.field] ?? "") : ""}
+                onChange={(v) => setEditing({ ...editing, [f.name]: v })} />
+            ) : f.type === "combo" ? (
+              <ComboEditor key={f.name} field={f} error={errors[f.name]} value={String(editing[f.name] ?? "")} attrs={f.combo?.map[String(editing[f.combo.field] ?? "")] ?? []}
                 onChange={(v) => setEditing({ ...editing, [f.name]: v })} />
             ) : f.type === "specs" ? (
               <SpecsEditor key={f.name} label={f.label} hint={f.hint} error={errors[f.name]}
@@ -461,6 +466,32 @@ function AttrsEditor({ field, value, error, onChange, linked = "" }: { field: Cr
       </div>
       {field.hint && <span className="mt-1 block text-xs text-muted">{field.hint}</span>}
       {error && <span className="mt-1 block text-xs text-danger">{error}</span>}
+    </div>
+  );
+}
+
+/** Combinación de una variante: por atributo del producto, marque uno (fijo) o varios valores (el cliente elige entre ellos). */
+function ComboEditor({ field, value, attrs, error, onChange }: { field: CrudField; value: string; attrs: AttrOption[]; error?: string; onChange: (v: string) => void }) {
+  const cur = value.split(",").filter(Boolean).map(Number);
+  const toggle = (id: number) => onChange((cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]).join(","));
+  return (
+    <div className="space-y-2 text-sm" data-testid="combo">
+      <span className="text-muted">{field.label}</span>
+      {attrs.length === 0 && <p className="text-muted">Elija un producto.</p>}
+      {attrs.map((a) => (
+        <div key={a.id} className="border-b border-line pb-2">
+          <p className="font-medium">{a.name}</p>
+          <span className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+            {a.values.map((v) => (
+              <label key={v.id} className="inline-flex items-center gap-1.5">
+                <input type="checkbox" className="accent-ink" checked={cur.includes(v.id)} onChange={() => toggle(v.id)} aria-label={`${a.name} ${v.name}`} />
+                <span>{v.name}</span>
+              </label>
+            ))}
+          </span>
+        </div>
+      ))}
+      {error && <p className="text-danger">{error}</p>}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ConstraintRule } from "@portafolio/core/db/schema";
-import { MATERIAL_ATTR, attributeMaterial, cleanValues, evaluate, findConflicts, matchVariant, variantValues, parseAttributeCell, ruleSentence, withDefaults } from "./rules";
+import { MATERIAL_ATTR, attributeMaterial, cleanValues, variantFixed, evaluate, findConflicts, matchVariant, variantValues, parseAttributeCell, ruleSentence, withDefaults } from "./rules";
 import { priceLine } from "./line-price";
 import { ACC, CENEFA, LADO, PERFIL, TELA, attributes, catalog as c, constraints } from "./test-catalog";
 
@@ -176,5 +176,24 @@ describe("plantilla de pedido", () => {
       { name: "Pedido", columns: [{ header: "ubicacion", key: "u" }, { header: "producto", key: "p" }], rows: [{ u: "Aula 1", p: "Roller Screen 5%" }] },
     ]);
     expect(await readTable(buf, "plantilla.xlsx")).toEqual([["ubicacion", "producto"], ["Aula 1", "Roller Screen 5%"]]);
+  });
+});
+
+describe("variantes que acotan valores", () => {
+  // Variante de Roller Blackout: tela Blanco o Arena (el cliente elige) y perfil Blanco fijo.
+  const v = { ...c.variants![0], id: 50, modelId: 2, code: "RB-9016", valueIds: "5,6,13", material: "" };
+  const cc = { ...c, variants: [v] };
+  it("en el asistente solo ofrece los valores de la variante y fija los de un valor", () => {
+    const ev = evaluate(cc, { modelId: 2, values: { [TELA]: 5, [PERFIL]: 13 }, variantId: 50 });
+    expect(f(ev, TELA)!.choices.map((x) => x.value)).toEqual([5, 6]);
+    expect(f(ev, PERFIL)!.choices.map((x) => x.value)).toEqual([13]);
+    expect(variantFixed(cc, v)).toEqual({ [PERFIL]: 13 });
+    expect(variantValues(cc, v, { [TELA]: 6 })).toEqual({ [TELA]: 6, [PERFIL]: 13 });
+    expect(evaluate(cc, { modelId: 2, values: { [TELA]: 5, [PERFIL]: 15 }, variantId: 50 }).errors[`a${PERFIL}`]).toBeTruthy();
+  });
+  it("la tabla y el servidor reconocen la variante con cualquiera de sus valores", () => {
+    expect(matchVariant(cc, { modelId: 2, values: { [TELA]: 6, [PERFIL]: 13 } })?.code).toBe("RB-9016");
+    expect(matchVariant(cc, { modelId: 2, values: { [TELA]: 5, [PERFIL]: 13 } })?.code).toBe("RB-9016");
+    expect(matchVariant(cc, { modelId: 2, values: { [TELA]: 6, [PERFIL]: 15 } })).toBeUndefined();
   });
 });

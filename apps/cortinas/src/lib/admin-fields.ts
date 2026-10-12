@@ -15,13 +15,13 @@ export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_
   { name: "image", label: "Foto principal", type: "image", uploadUrl: UPLOAD, column: true },
   { name: "familyId", label: "Categoría", type: "select", nullable: true, options: families, column: true },
   { name: "slug", label: "Dirección web", type: "text" },
-  { name: "type", label: "Mecanismo (antiguo)", type: "select", options: opts(TYPE_LABELS), hidden: true, hint: "Sustituido por el atributo Accionamiento." },
+  { name: "type", label: "Mecanismo (antiguo)", type: "select", options: opts(TYPE_LABELS), hidden: true },
   { name: "material", label: "Material principal (antiguo)", type: "select", options: materials, hidden: true },
-  { name: "materials", label: "Materiales del producto", type: "multiselect", options: materials, filterBy: { field: "familyId", map: familyMaterials }, column: true, hint: "Los que usa a la vez (p. ej. tela Screen + tubo de aluminio). El cliente ve los atributos de todos, agrupados por material." },
-  { name: "uses", label: "Usos", type: "text", hint: "Separados por comas: educacion,oficinas,salud" },
+  { name: "materials", label: "Materiales del producto", type: "multiselect", options: materials, filterBy: { field: "familyId", map: familyMaterials }, column: true },
+  { name: "uses", label: "Usos", type: "text" },
   { name: "tagline", label: "Frase corta", type: "text" },
   { name: "description", label: "Descripción", type: "textarea" },
-  { name: "gallery", label: "Galería", type: "gallery", uploadUrl: UPLOAD, hint: "Hasta 6 fotos. Use las flechas para ordenarlas." },
+  { name: "gallery", label: "Galería", type: "gallery", uploadUrl: UPLOAD },
   { name: "specs", label: "Ficha técnica", type: "specs" },
   { name: "minWidth", label: "Ancho mínimo (cm)", type: "number" },
   { name: "maxWidth", label: "Ancho máximo (cm)", type: "number", column: true },
@@ -29,7 +29,6 @@ export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_
   { name: "maxProjection", label: "Alto máximo (cm)", type: "number", column: true },
   { name: "basePrice", label: "Precio base (S/)", type: "number", column: true },
   { name: "pricePerM2", label: "Precio por m² (S/)", type: "number", column: true },
-  { name: "sortOrder", label: "Orden", type: "number", nullable: true, hint: "Vacío = al final." },
   { name: "active", label: "Visible en la web", type: "boolean", column: true },
 ];
 export const PRODUCT_FIELDS = productFields([]);
@@ -37,20 +36,19 @@ export const PRODUCT_FIELDS = productFields([]);
 export const ATTRIBUTE_FIELDS: CrudField[] = [
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "kind", label: "Tipo", type: "select", options: [{ value: "lista", label: "Lista de opciones" }, { value: "numero", label: "Número" }, { value: "sino", label: "Sí / no" }], column: true },
-  { name: "scope", label: "Aplica a", type: "select", options: [{ value: "generico", label: "Genérico (todos los materiales)" }, { value: "material", label: "Según material" }], column: true, hint: "Según material: solo donde el material lo activa." },
-  { name: "unit", label: "Unidad", type: "text", hint: "Solo para números. Ej.: cm" },
-  { name: "sortOrder", label: "Orden en el configurador", type: "number", nullable: true, column: true, hint: "Vacío = al final." },
+  { name: "scope", label: "Aplica a", type: "select", options: [{ value: "generico", label: "Genérico (todos los materiales)" }, { value: "material", label: "Según material" }], column: true },
+  { name: "unit", label: "Unidad", type: "text" },
+  { name: "sortOrder", label: "Orden en el configurador", type: "number", nullable: true, column: true },
 ];
 
 export const valueFields = (attrs: Opt[]): CrudField[] => [
   { name: "attributeId", label: "Atributo", type: "select", options: attrs, column: true },
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "code", label: "Código", type: "text", column: true },
-  { name: "hex", label: "Muestra de color", type: "color", nullable: true, column: true, hint: "Opcional." },
-  { name: "image", label: "Imagen", type: "image", uploadUrl: UPLOAD, column: true, hint: "Miniatura opcional." },
+  { name: "hex", label: "Muestra de color", type: "color", nullable: true, column: true },
+  { name: "image", label: "Imagen", type: "image", uploadUrl: UPLOAD, column: true },
   { hidden: !SHOW_SURCHARGES, name: "surcharge", label: "Recargo (S/)", type: "number", step: 0.01, column: true },
   { hidden: !SHOW_SURCHARGES, name: "surchargeKind", label: "Recargo por", type: "select", options: [{ value: "fijo", label: "Unidad" }, { value: "por_m2", label: "m²" }] },
-  { name: "sortOrder", label: "Orden", type: "number", nullable: true, hint: "Vacío = al final." },
   { name: "active", label: "Activo", type: "boolean", column: true },
 ];
 
@@ -70,24 +68,22 @@ export const familyFields = (attrOptions: AttrOption[], materials: Opt[] = [], m
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "materials", label: "Materiales permitidos", type: "multiselect", options: materials, allLabel: "Todos", column: true },
   { name: "description", label: "Descripción", type: "textarea" },
-  { name: "attributes", label: "Atributos resultantes", type: "attrs", attrOptions, materialLinks, column: true, hint: "Genéricos y los que activan los materiales elegidos." },
+  { name: "attributes", label: "Atributos resultantes", type: "attrs", attrOptions, materialLinks, column: true },
   { name: "minWidth", label: "Ancho mínimo por defecto (cm)", type: "number" },
   { name: "maxWidth", label: "Ancho máximo por defecto (cm)", type: "number", column: true },
   { name: "minHeight", label: "Alto mínimo por defecto (cm)", type: "number" },
   { name: "maxHeight", label: "Alto máximo por defecto (cm)", type: "number", column: true },
-  { name: "sortOrder", label: "Orden", type: "number", nullable: true, hint: "Vacío = al final." },
 ];
 
 
 export const materialFields = (attrOptions: AttrOption[]): CrudField[] => [...MATERIAL_FIELDS,
   { name: "usedBy", label: "Categorías que lo usan", type: "text", column: true, readOnly: true },
-  { name: "attributes", label: "Atributos de este material", type: "attrs", attrOptions, noRequired: true, hint: "Marque los que aplican y sus valores." }];
+  { name: "attributes", label: "Atributos de este material", type: "attrs", attrOptions, noRequired: true }];
 
 export const MATERIAL_FIELDS: CrudField[] = [
   { name: "name", label: "Nombre", type: "text", column: true },
-  { name: "slug", label: "Código", type: "text", column: true, hint: "Minúsculas, sin espacios. Ej.: blackout" },
+  { name: "slug", label: "Código", type: "text", column: true },
   { name: "description", label: "Descripción", type: "textarea", column: true },
-  { name: "sortOrder", label: "Orden", type: "number", nullable: true, hint: "Vacío = al final." },
   { name: "active", label: "Visible", type: "boolean", column: true },
 ];
 
@@ -99,14 +95,13 @@ export const skuPart = (v: { name: string; code: string }) => {
   return ral ? ral[1] : v.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "").toUpperCase();
 };
 
-export const variantFields = (models: Opt[], values: Opt[], _materials: Opt[] = [], autoCode?: CrudField["autoCode"]): CrudField[] => [
+export const variantFields = (models: Opt[], values: Opt[], _materials: Opt[] = [], autoCode?: CrudField["autoCode"], combo?: CrudField["combo"]): CrudField[] => [
   { name: "modelId", label: "Producto", type: "select", options: models, column: true },
-  { name: "code", label: "Código (SKU)", type: "text", column: true, autoCode, hint: "Se sugiere solo; puede cambiarlo." },
+  { name: "code", label: "Código (SKU)", type: "text", column: true, autoCode },
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "material", label: "Material (antiguo)", type: "select", nullable: true, options: [], hidden: true },
-  { name: "valueIds", label: "Combinación", type: "multiselect", options: values, column: true, hint: "Valores que fija (de uno o varios materiales). Lo que no fije lo elige el cliente." },
-  { name: "attributes", label: "Otros datos", type: "text", hint: "Ej.: cofre 80 mm" },
+  { name: "valueIds", label: "Combinación", type: "combo", options: values, column: true, combo },
+  { name: "attributes", label: "Otros datos", type: "text" },
   { name: "priceAdjustment", label: "Ajuste de precio (S/ por unidad)", type: "number", column: true },
-  { name: "sortOrder", label: "Orden", type: "number", nullable: true, hint: "Vacío = al final." },
   { name: "active", label: "Activa", type: "boolean", column: true },
 ];

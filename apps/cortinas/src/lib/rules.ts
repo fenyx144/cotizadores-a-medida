@@ -31,6 +31,8 @@ export type Values = Record<string, number | boolean | null | undefined>;
 export interface Selection {
   modelId: number;
   values?: Values;
+  /** Variante elegida: sus atributos quedan fijos (un valor) o acotados (varios valores). */
+  variantId?: number | null;
   width?: number | null;
   height?: number | null;
 }
@@ -293,6 +295,11 @@ export function evaluate(c: RulesCatalog, sel: Selection): Evaluation {
     });
     return { attribute, kind: (attribute.kind as AttributeKind) ?? "lista", required, choices };
   });
+  const variant = sel.variantId ? (c.variants ?? []).find((v) => v.id === sel.variantId && v.modelId === model.id) : undefined;
+  if (variant) {
+    const groups = variantGroups(c, variant);
+    for (const f of fields) { const g = groups.get(f.attribute.id); if (g && f.kind === "lista") f.choices = f.choices.filter((x) => g.includes(x.value as number)); }
+  }
   const pm = productMaterials(c, model);
   if (pm.length > 1) {
     for (const f of fields) f.group = attributeMaterial(c, model, f.attribute.id)?.name ?? "General";
@@ -369,23 +376,41 @@ export function variantsFor(c: RulesCatalog, modelId: number) {
   return (c.variants ?? []).filter((v) => v.active && v.modelId === modelId).sort(byOrder);
 }
 
-/** Variante que corresponde a una selección: todos sus valores elegidos; la más específica primero. */
-export function matchVariant(c: RulesCatalog, sel: Selection) {
-  const chosen = new Set(selectedValueIds(c, sel));
-  return variantsFor(c, sel.modelId) // el campo material de la variante ya no se usa
-    .map((v) => ({ v, need: ids(v.valueIds) }))
-    .filter(({ need }) => need.every((id) => chosen.has(id)))
-    .sort((a, b) => b.need.length - a.need.length)[0]?.v;
-}
-
-/** Valores que fija una variante, por atributo. */
-export function variantValues(c: RulesCatalog, variant: ProductVariant): Values {
-  const out: Values = {};
+/**
+ * Valores de una variante agrupados por atributo: un valor = fijo; varios = el cliente elige entre ellos.
+ */
+export function variantGroups(c: RulesCatalog, variant: ProductVariant): Map<number, number[]> {
+  const out = new Map<number, number[]>();
   for (const id of ids(variant.valueIds)) {
     const v = c.values.find((x) => x.id === id);
     if (!v) continue;
-    const a = c.attributes.find((x) => x.id === v.attributeId);
-    out[v.attributeId] = a?.kind === "sino" ? true : v.id;
+    out.set(v.attributeId, [...(out.get(v.attributeId) ?? []), v.id]);
+  }
+  return out;
+}
+
+/** Variante que corresponde a una selección: en cada atributo de la variante, el valor elegido es uno de los suyos. La más específica primero. */
+export function matchVariant(c: RulesCatalog, sel: Selection) {
+  const chosen = new Set(selectedValueIds(c, sel));
+  return variantsFor(c, sel.modelId) // el campo material de la variante ya no se usa
+    .map((v) => ({ v, groups: [...variantGroups(c, v).values()] }))
+    .filter(({ groups }) => groups.every((g) => g.some((id) => chosen.has(id))))
+    .sort((a, b) => b.groups.length - a.groups.length || a.groups.reduce((n, g) => n + g.length, 0) - b.groups.reduce((n, g) => n + g.length, 0))[0]?.v;
+}
+
+/** Atributos que la variante fija (un solo valor). */
+export function variantFixed(c: RulesCatalog, variant: ProductVariant): Values {
+  const out: Values = {};
+  for (const [a, g] of variantGroups(c, variant)) if (g.length === 1) out[a] = c.attributes.find((x) => x.id === a)?.kind === "sino" ? true : g[0];
+  return out;
+}
+
+/** Valores al elegir una variante: los fijos, y en los acotados el primero de su lista (el cliente puede cambiarlo). */
+export function variantValues(c: RulesCatalog, variant: ProductVariant, current: Values = {}): Values {
+  const out: Values = {};
+  for (const [a, g] of variantGroups(c, variant)) {
+    const kind = c.attributes.find((x) => x.id === a)?.kind;
+    out[a] = kind === "sino" ? true : g.includes(current[a] as number) ? (current[a] as number) : g[0];
   }
   return out;
 }

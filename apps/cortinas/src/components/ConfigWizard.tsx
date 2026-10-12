@@ -9,7 +9,7 @@ import { useState } from "react";
 import { addFromWizard } from "@/app/actions/project";
 import { GuidePanel } from "./GuidePanel";
 import type { CatalogData } from "@/lib/line-price";
-import { MATERIAL_ATTR, evaluate, matchVariant, productMaterials, variantValues, variantsFor, type Values } from "@/lib/rules";
+import { MATERIAL_ATTR, evaluate, matchVariant, productMaterials, variantFixed, variantGroups, variantValues, variantsFor, type Values } from "@/lib/rules";
 
 type Step = { key: string; title: string };
 interface Props {
@@ -39,11 +39,11 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
 
   const model = catalog.models.find((m) => m.id === modelId);
   const w = Number(dims.width) || null, h = Number(dims.height) || null;
-  const ev = model ? evaluate(catalog, { modelId: model.id, values, width: w, height: h }) : null;
+  const ev = model ? evaluate(catalog, { modelId: model.id, values, width: w, height: h, variantId: variantId ?? null }) : null;
   const fields = ev?.fields ?? [];
   const variants = model ? variantsFor(catalog, model.id) : [];
   const chosenVariant = variants.find((v) => v.id === variantId);
-  const locked = chosenVariant ? Object.keys(variantValues(catalog, chosenVariant)).map(Number) : [];
+  const locked = chosenVariant ? Object.keys(variantFixed(catalog, chosenVariant)).map(Number) : [];
   const steps: Step[] = [
     { key: "categoria", title: "¿Qué tipo de cortina busca?" },
     { key: "producto", title: "Elija el producto" },
@@ -158,7 +158,7 @@ export function ConfigWizard({ catalog, projects, loggedIn, initial }: Props) {
         {step.key === "variante" && (
           <>
             {variants.map((v) => {
-              const fixed = Object.values(variantValues(catalog, v)).map((x) => (typeof x === "number" ? catalog.values.find((y) => y.id === x)?.name : x === true ? "Sí" : null)).filter(Boolean).join(" · ");
+              const fixed = [...variantGroups(catalog, v).values()].map((g) => g.map((x) => catalog.values.find((y) => y.id === x)?.name).filter(Boolean).join(" o ")).filter(Boolean).join(" · ");
               return (
                 <button key={v.id} className={big(variantId === v.id)} data-testid="wizard-variant" onClick={() => { setVariantId(v.id); setValues({ ...values, ...variantValues(catalog, v) }); go(1); }}>
                   <span className="block"><span className="font-mono text-sm">{v.code}</span> · {v.name}</span>

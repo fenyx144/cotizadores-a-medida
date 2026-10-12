@@ -1,7 +1,7 @@
 /** Plantilla de la planilla de líneas: CSV (por defecto) o Excel (?formato=xlsx). Columnas según los atributos del catálogo. */
 import { buildXlsx } from "@portafolio/core/xlsx";
 import { getCatalog } from "@/lib/catalog";
-import { evaluate, gridAttributes, productMaterials, variantValues, withDefaults } from "@/lib/rules";
+import { evaluate, gridAttributes, productMaterials, variantGroups, withDefaults } from "@/lib/rules";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +40,7 @@ export async function GET(req: Request) {
         rows: catalog.models.map((m) => ({ p: m.name, c: m.slug, f: fam(m.familyId), m: productMaterials(catalog, m).map((x) => x.name).join(" + ") })) },
       { name: "Variantes", columns: [{ header: "código", key: "c", width: 18 }, { header: "variante", key: "n", width: 28 }, { header: "producto", key: "p", width: 28 }, { header: "valores fijos", key: "v", width: 50 }],
         rows: (catalog.variants ?? []).map((v) => ({ c: v.code, n: v.name, p: catalog.models.find((m) => m.id === v.modelId)?.name ?? "",
-          v: Object.entries(variantValues(catalog, v)).map(([a, x]) => `${attrName(Number(a))}: ${typeof x === "number" ? valName(x) : "sí"}`).join(" · ") })) },
+          v: [...variantGroups(catalog, v)].map(([a, g]) => `${attrName(a)}: ${g.map(valName).join(" o ")}`).join(" · ") })) },
       { name: "Valores", columns: [{ header: "producto", key: "p", width: 28 }, { header: "columna", key: "a", width: 20 }, { header: "valores válidos", key: "v", width: 70 }],
         rows: catalog.models.flatMap((m) => evaluate(catalog, { modelId: m.id }).fields.map((f) => ({ p: m.name, a: f.attribute.name.toLowerCase(),
           v: f.kind === "sino" ? "sí / no" : f.kind === "numero" ? `número${f.attribute.unit ? ` (${f.attribute.unit})` : ""}` : f.choices.map((x) => x.label).join(" | ") }))) },
