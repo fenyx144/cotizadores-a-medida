@@ -27,11 +27,15 @@ describe("motor de reglas (atributos genéricos)", () => {
     expect(evaluate(c, { modelId: 2, values: { [TELA]: 5, [PERFIL]: 13, [ACC]: 17 }, width: 280, height: 150 }).errors.width).toBeUndefined();
   });
   it("categoría sin perfil y con valores permitidos", () => {
-    const v = evaluate(c, { modelId: 4, values: { [TELA]: 8, [ACC]: 18 }, width: 200, height: 200 });
+    // Los valores los acota el producto (la categoría solo dice qué atributos).
+    const cp = { ...c, models: c.models.map((m) => (m.id === 4 ? { ...m, attributes: [{ attributeId: ACC, required: false, valueIds: [16, 17] }] } : m)) };
+    const v = evaluate(cp, { modelId: 4, values: { [TELA]: 8, [ACC]: 18 }, width: 200, height: 200 });
     expect(f(v, PERFIL)).toBeUndefined();
     expect(f(v, ACC)!.choices.map((x) => x.value)).toEqual([16, 17]);
     expect(v.errors[`a${ACC}`]).toBeTruthy();
-    expect(evaluate(c, { modelId: 4, values: { [TELA]: 8 } }).errors[`a${ACC}`]).toMatch(/Elija/);
+    expect(evaluate(cp, { modelId: 4, values: { [TELA]: 8 } }).errors[`a${ACC}`]).toMatch(/Elija/);
+    // Sin acotar en el producto: todos los valores (lo que guardara la categoría ya no limita).
+    expect(f(evaluate(c, { modelId: 4, values: {} }), ACC)!.choices.length).toBeGreaterThan(2);
   });
   it("completa valores por defecto y descarta atributos ajenos", () => {
     const v = withDefaults(c, { modelId: 4, values: { [PERFIL]: 13 } });
@@ -242,5 +246,25 @@ describe("asistente tras la guía", () => {
     expect(asked).not.toContain(ids[1]);
     if (Object.keys(pre).length) expect(asked).not.toContain(ids[0]);
     expect(asked.length).toBeLessThan(ids.length);
+  });
+});
+
+describe("permisos por (material, atributo) en el producto", () => {
+  it("cada material acota por separado; el producto une sus materiales", async () => {
+    const { productAttribute } = await import("./rules");
+    const m = { ...c.models[0], materials: "screen,tubo-aluminio", attributes: [
+      { attributeId: 99, required: false, valueIds: [1, 2], material: "screen" },
+      { attributeId: 99, required: false, valueIds: [3], material: "tubo-aluminio" },
+      { attributeId: 98, required: false, valueIds: [-1], material: "screen" },
+    ] };
+    expect(productAttribute(m, 99)!.valueIds.sort()).toEqual([1, 2, 3]);
+    expect(productAttribute({ ...m, materials: "screen" }, 99)!.valueIds).toEqual([1, 2]);
+    expect(productAttribute(m, 98)!.valueIds).toEqual([-1]);
+    expect(productAttribute(m, 97)).toBeUndefined();
+  });
+  it("categoría por material: solo atributos y obligatoriedad", async () => {
+    const { effectiveFamilyConf } = await import("./rules");
+    const conf = effectiveFamilyConf([{ attributeId: 5, required: true, valueIds: [1], material: "screen" }, { attributeId: 5, required: false, valueIds: [2], material: "blackout" }, { attributeId: 6, required: false, valueIds: [3] }], ["blackout"]);
+    expect(conf).toEqual([{ attributeId: 5, required: false, valueIds: [] }, { attributeId: 6, required: false, valueIds: [] }]);
   });
 });

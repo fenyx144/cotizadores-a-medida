@@ -250,3 +250,84 @@ export function ensureDemoRestore() {
   })().catch((e) => { restoreP = null; restoreInfo.error = String(e); fail("restaurar-demo", e); });
   return restoreP;
 }
+
+/**
+ * Permisos de categoría por (material, atributo): los "según material" guardados una sola vez se copian
+ * a cada material de la categoría que activa el atributo (no destructivo: mismos valores y obligatoriedad).
+ */
+let permsP: Promise<void> | null = null;
+export function ensureMaterialPerms() {
+  permsP ??= (async () => {
+    const db = getDb();
+    const scoped = new Set((await db.select().from(schema.attributes)).filter((a) => a.scope === "material").map((a) => a.id));
+    const mats = await db.select().from(schema.materials);
+    const fams = await db.select().from(schema.productFamilies);
+    const todo = fams.filter((f) => (f.attributes ?? []).some((e) => scoped.has(e.attributeId) && !e.material));
+    if (!todo.length) return;
+    await db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(771127)`);
+      for (const f0 of todo) {
+        const [f] = await tx.select().from(schema.productFamilies).where(sql`id = ${f0.id}`);
+        if (!f) continue;
+        const famMats = f.materials.split(",").filter(Boolean);
+        const pool = mats.filter((m) => !famMats.length || famMats.includes(m.slug));
+        const next: typeof f.attributes = [];
+        for (const e of f.attributes ?? []) {
+          if (!scoped.has(e.attributeId) || e.material) { next.push(e); continue; }
+          const on = pool.filter((m) => (m.attributes ?? []).some((x) => x.attributeId === e.attributeId && x.valueIds[0] !== -1));
+          if (!on.length) { next.push(e); continue; }
+          for (const m of on) if (!next.some((x) => x.attributeId === e.attributeId && x.material === m.slug)) next.push({ ...e, material: m.slug });
+        }
+        await tx.update(schema.productFamilies).set({ attributes: next }).where(sql`id = ${f.id}`);
+      }
+    });
+  })().catch((e) => { permsP = null; fail("permisos-material", e); });
+  return permsP;
+}
+
+/**
+ * Los valores ya no se eligen en la categoría sino en el producto. Una sola vez (marca en cota_migrations):
+ * copia a cada producto los valores que permitía su categoría (genéricos y por material), intersectando con lo
+ * que el producto ya acotaba, para que el configurador ofrezca lo mismo que antes. No borra nada de la categoría.
+ */
+let prodPermsP: Promise<void> | null = null;
+export function ensureProductPerms() {
+  prodPermsP ??= (async () => {
+    const db = getDb();
+    await db.execute(sql`create table if not exists cota_migrations (name text primary key, at timestamptz not null default now(), data jsonb)`);
+    const rowsOf = (r: unknown) => ((r as { rows?: unknown[] }).rows ?? (r as unknown[]));
+    if (rowsOf(await db.execute(sql`select 1 from cota_migrations where name = 'permisos-producto'`)).length) return;
+    await db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(771128)`);
+      if (rowsOf(await tx.execute(sql`select 1 from cota_migrations where name = 'permisos-producto'`)).length) return;
+      const fams = await tx.select().from(schema.productFamilies);
+      const models = await tx.select().from(schema.productModels);
+      const inter = (a: number[], b: number[]) => { const x = a.filter((v) => b.includes(v)); return x.length ? x : a; };
+      const before: Record<number, unknown> = {};
+      for (const p of models) {
+        const f = fams.find((x) => x.id === p.familyId);
+        if (!f?.attributes?.length) continue;
+        const slugs = (p.materials || p.material).split(",").filter(Boolean);
+        const list: NonNullable<typeof p.attributes> = JSON.parse(JSON.stringify(p.attributes ?? []));
+        let changed = false;
+        for (const e of f.attributes) {
+          if (!e.valueIds.length || e.valueIds[0] === -1) continue;
+          const g = list.find((x) => x.attributeId === e.attributeId && !x.material);
+          if (e.material) {
+            if (!slugs.includes(e.material) || list.some((x) => x.attributeId === e.attributeId && x.material === e.material)) continue;
+            if (g?.valueIds[0] === -1) continue;
+            list.push({ attributeId: e.attributeId, required: false, valueIds: g?.valueIds.length ? inter(e.valueIds, g.valueIds) : e.valueIds, material: e.material });
+            changed = true;
+          } else if (!g) { list.push({ attributeId: e.attributeId, required: false, valueIds: e.valueIds }); changed = true; }
+          else if (g.valueIds[0] !== -1) {
+            const v = g.valueIds.length ? inter(e.valueIds, g.valueIds) : e.valueIds;
+            if (v.join() !== g.valueIds.join()) { g.valueIds = v; changed = true; }
+          }
+        }
+        if (changed) { before[p.id] = p.attributes; await tx.update(schema.productModels).set({ attributes: list }).where(sql`id = ${p.id}`); }
+      }
+      await tx.execute(sql`insert into cota_migrations (name, data) values ('permisos-producto', ${JSON.stringify(before)}::jsonb)`);
+    });
+  })().catch((e) => { prodPermsP = null; fail("permisos-producto", e); });
+  return prodPermsP;
+}

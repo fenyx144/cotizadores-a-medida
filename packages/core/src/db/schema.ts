@@ -75,7 +75,8 @@ export const attributeValues = pgTable("attribute_values", {
 });
 
 /** Atributo que pide una familia: obligatorio o no, y valores permitidos (vacío = todos). */
-export interface FamilyAttribute { attributeId: number; required: boolean; valueIds: number[] }
+/** material: permiso por (material, atributo) en categorías; sin material = genérico. */
+export interface FamilyAttribute { attributeId: number; required: boolean; valueIds: number[]; material?: string }
 
 /** Plantilla / familia de productos: parámetros requeridos, medidas por defecto y opciones permitidas. */
 export const productFamilies = pgTable("product_families", {

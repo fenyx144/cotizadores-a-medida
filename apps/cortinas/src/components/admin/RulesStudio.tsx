@@ -9,7 +9,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ConstraintRule, RuleCondition } from "@portafolio/core/db/schema";
 import type { CatalogData } from "@/lib/line-price";
-import { MATERIAL_ATTR, RULE_EFFECTS, evaluate, familyAttributes, findConflicts, productMaterials, ruleSentence, selModel, valuesFor, type RuleEffect, type Values } from "@/lib/rules";
+import { MATERIAL_ATTR, RULE_EFFECTS, effectiveFamilyConf, evaluate, familyAttributes, findConflicts, productMaterials, ruleSentence, selModel, valuesFor, type RuleEffect, type Values } from "@/lib/rules";
 
 type Draft = {
   id?: number; name: string; scope: "todas" | "familia" | "producto"; familyId: number | null; modelId: number | null;
@@ -216,7 +216,7 @@ function Matrix({ catalog, rules, onSaved }: { catalog: CatalogData; rules: Cons
   const families = catalog.families ?? [];
   const [familyId, setFamilyId] = useState(families[0]?.id ?? 0);
   const family = families.find((f) => f.id === familyId);
-  const fas = (family?.attributes ?? []).map((fa) => ({ ...fa, attribute: catalog.attributes.find((a) => a.id === fa.attributeId)! })).filter((x) => x.attribute && x.attribute.kind === "lista");
+  const fas = effectiveFamilyConf(family?.attributes ?? [], [...new Set((family?.attributes ?? []).map((e) => e.material).filter((x): x is string => !!x))]).map((fa) => ({ ...fa, attribute: catalog.attributes.find((a) => a.id === fa.attributeId)! })).filter((x) => x.attribute && x.attribute.kind === "lista");
   const [aId, setA] = useState<number>(fas[0]?.attributeId ?? 0);
   const [bId, setB] = useState<number>(fas[1]?.attributeId ?? 0);
   const fa = fas.find((x) => x.attributeId === aId), fb = fas.find((x) => x.attributeId === bId);
@@ -268,7 +268,7 @@ function Matrix({ catalog, rules, onSaved }: { catalog: CatalogData; rules: Cons
       <h2 className="border-b border-line pb-3 font-serif text-2xl">Matriz de compatibilidad</h2>
       <p className="mt-2 text-sm text-muted">Desmarque las combinaciones que no se fabrican.</p>
       <div className="mt-4 flex flex-wrap items-end gap-4 text-sm">
-        <select className={sel} value={familyId} onChange={(e) => { const id = Number(e.target.value); setFamilyId(id); const f = families.find((x) => x.id === id); setA(f?.attributes[0]?.attributeId ?? 0); setB(f?.attributes[1]?.attributeId ?? 0); }} aria-label="Categoría de la matriz">
+        <select className={sel} value={familyId} onChange={(e) => { const id = Number(e.target.value); setFamilyId(id); const f = families.find((x) => x.id === id); const u = [...new Set((f?.attributes ?? []).map((x) => x.attributeId))]; setA(u[0] ?? 0); setB(u[1] ?? 0); }} aria-label="Categoría de la matriz">
           {families.map((f) => <option key={f.id} value={f.id}>{f.name}</option>)}
         </select>
         <select className={sel} value={aId} onChange={(e) => setA(Number(e.target.value))} aria-label="Filas">{fas.map((x) => <option key={x.attributeId} value={x.attributeId}>{x.attribute.name}</option>)}</select>

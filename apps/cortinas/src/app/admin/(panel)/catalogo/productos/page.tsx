@@ -6,21 +6,19 @@ import { attributeData } from "@/lib/admin-catalog";
 
 export default async function Page() {
   const db = getDb();
-  const [rows, families, materials, { attrOptions }] = await Promise.all([
+  const [rows, families, materials, { attrOptions, attributes }] = await Promise.all([
     db.select().from(schema.productModels).orderBy(asc(schema.productModels.id)),
     db.select().from(schema.productFamilies).orderBy(asc(schema.productFamilies.sortOrder)),
     db.select().from(schema.materials).orderBy(asc(schema.materials.sortOrder)),
     attributeData(),
   ]);
-  // Por categoría: sus atributos y valores permitidos; el producto puede acotarlos más.
+  // Por categoría: los atributos que activa (genéricos y por material). Los valores los elige el producto.
   const attrsBy = { field: "familyId", map: Object.fromEntries(families.map((f) => {
-    const conf = f.attributes?.length ? f.attributes.filter((e) => e.valueIds[0] !== -1) : attrOptions.map((a) => ({ attributeId: a.id, required: false, valueIds: [] as number[] }));
-    return [String(f.id), conf.map((e) => attrOptions.find((a) => a.id === e.attributeId)).filter((a) => !!a).map((a) => {
-      const allowed = conf.find((e) => e.attributeId === a!.id)!.valueIds;
-      return { id: a!.id, name: a!.name, defaultOn: true, values: allowed.length ? a!.values.filter((v) => allowed.includes(v.id)) : a!.values };
-    })];
+    const ids = f.attributes?.length ? [...new Set(f.attributes.filter((e) => e.valueIds[0] !== -1).map((e) => e.attributeId))] : attrOptions.map((a) => a.id);
+    return [String(f.id), attrOptions.filter((a) => ids.includes(a.id)).map((a) => ({ id: a.id, name: a.name, defaultOn: true, values: a.values }))];
   })) };
+  const materialLinks = { field: "materials", scoped: attributes.filter((a) => a.scope === "material").map((a) => a.id), materials: materials.map((m) => ({ slug: m.slug, name: m.name, attrs: m.attributes })) };
   const fields = productFields(families.map((f) => ({ value: String(f.id), label: f.name })), materials.map((m) => ({ value: m.slug, label: m.name })),
-    Object.fromEntries(families.map((f) => [String(f.id), f.materials.split(",").filter(Boolean)])), attrsBy);
+    Object.fromEntries(families.map((f) => [String(f.id), f.materials.split(",").filter(Boolean)])), attrsBy, materialLinks);
   return <CrudManager resource="products" title="4 · Productos" fields={fields} initialRows={rows} newLabel="Añadir producto" />;
 }

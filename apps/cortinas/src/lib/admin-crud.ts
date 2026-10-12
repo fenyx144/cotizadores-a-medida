@@ -16,7 +16,7 @@ const idList = z.string().regex(/^[\w,]*$/);
 const cmOpt = z.number().int().min(10).max(2000).nullable();
 
 const slugify = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "material";
-const attrConf = z.array(z.object({ attributeId: z.number().int(), required: z.boolean(), valueIds: z.array(z.number().int()) }));
+const attrConf = z.array(z.object({ attributeId: z.number().int(), required: z.boolean(), valueIds: z.array(z.number().int()), material: z.string().max(60).optional() }));
 const valueRow = z.object({ id: z.number().int().optional().nullable(), name: z.string().trim().min(1, "Indique el nombre").max(80), hex: hexOpt.nullable().transform((v) => v ?? ""), image: z.string().max(500).default("") });
 
 /** Slug único a partir del nombre ("roller-blackout", "roller-blackout-2"…). */
@@ -131,7 +131,7 @@ const resources: Record<string, CrudResource> = {
     orderBy: schema.productFamilies.sortOrder,
     schema: z.object({
       name: z.string().min(2), description: z.string(), materials: z.string().regex(/^[a-z0-9,-]*$/).default(""),
-      attributes: z.array(z.object({ attributeId: z.number().int(), required: z.boolean(), valueIds: z.array(z.number().int()) })).default([]),
+      attributes: z.array(z.object({ attributeId: z.number().int(), required: z.boolean(), valueIds: z.array(z.number().int()), material: z.string().max(60).optional() })).default([]),
       minWidth: cm, maxWidth: cm, minHeight: cm, maxHeight: cm, sortOrder: z.number().int().min(1, "Desde 1").nullable().default(null),
     }),
   },

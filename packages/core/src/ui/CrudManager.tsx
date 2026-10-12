@@ -16,7 +16,7 @@ export type FieldType = "text" | "textarea" | "number" | "color" | "boolean" | "
 
 /** Para "attrs": atributos disponibles con sus valores. */
 export interface AttrOption { id: number; name: string; values: { id: number; name: string }[]; defaultOn?: boolean; note?: string }
-type AttrConf = { attributeId: number; required: boolean; valueIds: number[] };
+type AttrConf = { attributeId: number; required: boolean; valueIds: number[]; material?: string };
 
 import { suggestCode, type AutoCode } from "../autocode";
 export { suggestCode, type AutoCode };
@@ -44,6 +44,8 @@ export interface CrudField {
   filterBy?: { field: string; map: Record<string, string[]> };
   /** En "attrs": ocultar "Obligatorio" (materiales). Los atributos con defaultOn vienen marcados salvo que se desmarquen (valueIds [-1]). */
   noRequired?: boolean;
+  /** En "attrs": sin casillas de valores (solo qué atributos y si son obligatorios). */
+  noValues?: boolean;
   /** Mostrar en la tabla. */
   column?: boolean;
   /** Texto sugerido a partir de otros campos (p. ej. SKU = código de producto + códigos de valores). Se rellena mientras no se edite a mano. */
@@ -172,7 +174,8 @@ export function CrudManager({
     if (f.type === "gallery") return Array.isArray(value) && value.length ? `${value.length} fotos` : "—";
     if (f.type === "attrs") {
       const list = ((value as AttrConf[] | undefined) ?? []).filter((a) => a.valueIds[0] !== -1);
-      return list.length ? <span className="block leading-snug">{list.map((a) => <span key={a.attributeId} className="block">{f.attrOptions?.find((o) => o.id === a.attributeId)?.name ?? a.attributeId}</span>)}</span> : "—";
+      const uniq = list.filter((a, i) => list.findIndex((b) => b.attributeId === a.attributeId) === i);
+      return uniq.length ? <span className="block leading-snug">{uniq.map((a) => <span key={a.attributeId} className="block">{f.attrOptions?.find((o) => o.id === a.attributeId)?.name ?? a.attributeId}</span>)}</span> : "—";
     }
     if (f.type === "values") return Array.isArray(value) && value.length ? `${value.length} valores` : "—";
     if (f.type === "specs") return Array.isArray(value) && value.length ? `${value.length} filas` : "—";
@@ -408,19 +411,29 @@ function sourcesFor(field: CrudField, linked: string, attributeId: number) {
   return (field.materialLinks?.materials ?? []).filter((m) => !sel.length || sel.includes(m.slug)).map((m) => ({ m, e: m.attrs.find((x) => x.attributeId === attributeId) })).filter((x) => x.e && x.e.valueIds[0] !== -1);
 }
 /** Añade los atributos que activan los materiales elegidos y quita los que ya no activa ninguno. */
+/** Los "según material" van por (material, atributo): uno por cada material elegido que lo activa. Los antiguos sin material se copian a cada uno. */
 function syncAttrs(field: CrudField, linked: string, value: AttrConf[]): AttrConf[] {
   const scoped = field.materialLinks?.scoped ?? [];
-  let next = value.filter((v) => !scoped.includes(v.attributeId) || sourcesFor(field, linked, v.attributeId).length > 0);
-  for (const id of scoped) if (!next.some((v) => v.attributeId === id) && sourcesFor(field, linked, id).length) next = [...next, { attributeId: id, required: true, valueIds: [] }];
+  if (!field.materialLinks) return value;
+  const next = value.filter((v) => !scoped.includes(v.attributeId));
+  for (const id of scoped) {
+    const legacy = value.find((v) => v.attributeId === id && !v.material);
+    for (const { m } of sourcesFor(field, linked, id)) {
+      const cur = value.find((v) => v.attributeId === id && v.material === m.slug);
+      next.push(cur ?? (legacy ? { ...legacy, material: m.slug } : { attributeId: id, required: true, valueIds: [], material: m.slug }));
+    }
+  }
   return next;
 }
 
 function AttrsEditor({ field, value, error, onChange, linked = "" }: { field: CrudField; value: AttrConf[]; error?: string; onChange: (v: AttrConf[]) => void; linked?: string }) {
-  const find = (id: number) => value.find((v) => v.attributeId === id);
-  const set = (id: number, patch: Partial<AttrConf> | null) => {
-    const cur = find(id);
-    if (patch === null) return onChange(value.filter((v) => v.attributeId !== id));
-    onChange(cur ? value.map((v) => (v.attributeId === id ? { ...v, ...patch } : v)) : [...value, { attributeId: id, required: true, valueIds: [], ...patch }]);
+  // Clave (atributo, material): cada bloque de material tiene su propio permiso.
+  const same = (v: AttrConf, id: number, mat?: string) => v.attributeId === id && (v.material ?? "") === (mat ?? "");
+  const find = (id: number, mat?: string) => value.find((v) => same(v, id, mat));
+  const set = (id: number, patch: Partial<AttrConf> | null, mat?: string) => {
+    const cur = find(id, mat);
+    if (patch === null) return onChange(value.filter((v) => !same(v, id, mat)));
+    onChange(cur ? value.map((v) => (same(v, id, mat) ? { ...v, ...patch } : v)) : [...value, { attributeId: id, required: true, valueIds: [], ...(mat ? { material: mat } : {}), ...patch }]);
   };
   return (
     <div className="block text-sm" data-testid="attrs-editor">
@@ -429,43 +442,44 @@ function AttrsEditor({ field, value, error, onChange, linked = "" }: { field: Cr
         {(() => {
           const opts = (field.attrOptions ?? []).filter((a) => !field.materialLinks?.scoped.includes(a.id) || sourcesFor(field, linked, a.id).length);
           const ml = field.materialLinks;
-          if (!ml) return [{ title: "", list: opts }];
+          if (!ml) return [{ title: "", slug: undefined as string | undefined, list: opts }];
           const sel = linked.split(",").filter(Boolean);
           return [
-            { title: "Genéricos", list: opts.filter((a) => !ml.scoped.includes(a.id)) },
-            ...ml.materials.filter((m) => !sel.length || sel.includes(m.slug)).map((m) => ({ title: m.name, list: opts.filter((a) => ml.scoped.includes(a.id) && m.attrs.some((e) => e.attributeId === a.id && e.valueIds[0] !== -1)) })),
+            { title: "Genéricos", slug: undefined as string | undefined, list: opts.filter((a) => !ml.scoped.includes(a.id)) },
+            ...ml.materials.filter((m) => !sel.length || sel.includes(m.slug)).map((m) => ({ title: m.name, slug: m.slug as string | undefined, list: opts.filter((a) => ml.scoped.includes(a.id) && m.attrs.some((e) => e.attributeId === a.id && e.valueIds[0] !== -1)) })),
           ].filter((g) => g.list.length);
         })().map((g) => (
           <div key={g.title || "all"} className="divide-y divide-line" data-testid={g.title ? "attr-group" : undefined}>
             {g.title && <p className="pt-3 font-mono text-[11px] uppercase tracking-wide text-muted">{g.title}</p>}
             {g.list.map((a) => {
-          const src = field.materialLinks?.scoped.includes(a.id) ? sourcesFor(field, linked, a.id) : [];
+          const mat = g.slug;
+          const src = field.materialLinks?.scoped.includes(a.id) ? sourcesFor(field, linked, a.id).filter((x) => !mat || x.m.slug === mat) : [];
           const srcValues = src.some((x) => !x.e!.valueIds.length) ? [] : [...new Set(src.flatMap((x) => x.e!.valueIds))];
           a = srcValues.length ? { ...a, values: a.values.filter((v) => srcValues.includes(v.id)) } : a;
-          const raw = find(a.id);
+          const raw = find(a.id, mat) ?? (mat ? find(a.id) : undefined);
           const off = raw?.valueIds[0] === -1;
           const cur = a.defaultOn ? (off ? undefined : raw ?? { attributeId: a.id, required: false, valueIds: [] }) : raw;
           return (
             <div key={a.id} className="py-2">
               <div className="flex items-center justify-between gap-3">
                 <label className="inline-flex items-center gap-2">
-                  <input type="checkbox" className="accent-ink" checked={!!cur} onChange={(e) => (a.defaultOn ? set(a.id, e.target.checked ? null : { valueIds: [-1] }) : set(a.id, e.target.checked ? {} : null))} aria-label={`Pedir ${a.name}`} />
+                  <input type="checkbox" className="accent-ink" checked={!!cur} onChange={(e) => (a.defaultOn ? set(a.id, e.target.checked ? null : { valueIds: [-1] }, mat) : set(a.id, e.target.checked ? { valueIds: raw?.valueIds ?? [], required: raw?.required ?? true } : null, mat))} aria-label={`Pedir ${a.name}${mat ? ` (${g.title})` : ""}`} />
                   <span className={cur ? "" : "text-muted"}>{a.name}</span>
                   {a.note && !field.materialLinks && <span className="text-xs text-muted">{a.note}</span>}
                 </label>
                 {cur && !field.noRequired && (
                   <label className="inline-flex items-center gap-1.5 text-xs text-muted">
-                    <input type="checkbox" className="accent-ink" checked={cur.required} onChange={(e) => set(a.id, { required: e.target.checked })} aria-label={`${a.name} obligatorio`} />
+                    <input type="checkbox" className="accent-ink" checked={cur.required} onChange={(e) => set(a.id, { ...cur, required: e.target.checked }, mat)} aria-label={`${a.name} obligatorio`} />
                     Obligatorio
                   </label>
                 )}
               </div>
-              {cur && a.values.length > 0 && (
+              {cur && a.values.length > 0 && !field.noValues && (
                 <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 pl-6 text-xs">
                   {/* "Todos": lista vacía = todos los valores, también los que se creen después. */}
                   <label className="inline-flex items-center gap-1 font-medium">
                     <input type="checkbox" className="accent-ink" checked={!cur.valueIds.length} aria-label={`${a.name}: todos los valores`}
-                      onChange={(e) => set(a.id, { valueIds: e.target.checked ? [] : [NONE_ID] })} />
+                      onChange={(e) => set(a.id, { ...cur, valueIds: e.target.checked ? [] : [NONE_ID] }, mat)} />
                     <span>Todos</span>
                   </label>
                   {a.values.map((v) => {
@@ -475,7 +489,7 @@ function AttrsEditor({ field, value, error, onChange, linked = "" }: { field: Cr
                     return (
                       <label key={v.id} className={`inline-flex items-center gap-1 ${all ? "text-muted" : ""}`}>
                         <input type="checkbox" className="accent-ink" checked={on} disabled={all}
-                          onChange={() => { const next = on ? picked.filter((x) => x !== v.id) : [...picked, v.id]; set(a.id, { valueIds: next.length ? next : [NONE_ID] }); }} />
+                          onChange={() => { const next = on ? picked.filter((x) => x !== v.id) : [...picked, v.id]; set(a.id, { ...cur, valueIds: next.length ? next : [NONE_ID] }, mat); }} />
                         <span>{v.name}</span>
                       </label>
                     );

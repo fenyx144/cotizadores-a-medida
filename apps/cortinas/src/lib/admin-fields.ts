@@ -10,7 +10,7 @@ const opts = (o: Record<string, string>) => Object.entries(o).map(([value, label
 type Opt = { value: string; label: string };
 
 /** Campos de producto; la familia se elige de las familias existentes. */
-export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_LABELS), familyMaterials: Record<string, string[]> = {}, attrsBy?: CrudField["attrsBy"]): CrudField[] => [
+export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_LABELS), familyMaterials: Record<string, string[]> = {}, attrsBy?: CrudField["attrsBy"], materialLinks?: CrudField["materialLinks"]): CrudField[] => [
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "image", label: "Foto principal", type: "image", uploadUrl: UPLOAD, column: true },
   { name: "familyId", label: "Categoría", type: "select", nullable: true, options: families, column: true },
@@ -29,7 +29,7 @@ export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_
   { name: "maxProjection", label: "Alto máximo (cm)", type: "number", column: true },
   { name: "basePrice", label: "Precio base (S/)", type: "number", hidden: true },
   { name: "pricePerM2", label: "Precio por m² (S/)", type: "number", hidden: true },
-  { name: "attributes", label: "Atributos y valores del producto", type: "attrs", attrOptions: [], attrsBy, noRequired: true },
+  { name: "attributes", label: "Atributos y valores del producto", type: "attrs", attrOptions: [], attrsBy, materialLinks, noRequired: true },
   { name: "active", label: "Visible en la web", type: "boolean", column: true },
 ];
 export const PRODUCT_FIELDS = productFields([]);
@@ -69,7 +69,7 @@ export const familyFields = (attrOptions: AttrOption[], materials: Opt[] = [], m
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "materials", label: "Materiales permitidos", type: "multiselect", options: materials, allLabel: "Todos", column: true },
   { name: "description", label: "Descripción", type: "textarea" },
-  { name: "attributes", label: "Atributos resultantes", type: "attrs", attrOptions, materialLinks, column: true },
+  { name: "attributes", label: "Atributos resultantes", type: "attrs", attrOptions, materialLinks, noValues: true, column: true },
   { name: "minWidth", label: "Ancho mínimo por defecto (cm)", type: "number" },
   { name: "maxWidth", label: "Ancho máximo por defecto (cm)", type: "number" },
   { name: "minHeight", label: "Alto mínimo por defecto (cm)", type: "number" },

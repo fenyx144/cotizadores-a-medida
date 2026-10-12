@@ -66,11 +66,32 @@ const byOrder = <T extends { sortOrder: number; id: number }>(a: T, b: T) => a.s
 /** Atributos que pide la familia del producto, en el orden de los atributos. */
 export function familyAttributes(c: RulesCatalog, model: ProductModel): (FamilyAttribute & { attribute: Attribute })[] {
   const family = model.familyId ? c.families?.find((f) => f.id === model.familyId) : undefined;
-  const conf: FamilyAttribute[] = family?.attributes?.length ? family.attributes : c.attributes.map((a) => ({ attributeId: a.id, required: false, valueIds: [] }));
+  const raw: FamilyAttribute[] = family?.attributes?.length ? family.attributes : c.attributes.map((a) => ({ attributeId: a.id, required: false, valueIds: [] }));
+  const conf = effectiveFamilyConf(raw, productMaterialSlugs(model));
   return conf
     .map((fa) => ({ ...fa, attribute: c.attributes.find((a) => a.id === fa.attributeId)! }))
     .filter((x) => x.attribute && materialAllows(c, model, x.attributeId) && productAttribute(model, x.attributeId)?.valueIds[0] !== -1)
     .sort((a, b) => byOrder(a.attribute, b.attribute));
+}
+
+/**
+ * Permisos de la categoría para un producto: los genéricos tal cual; los que van por (material, atributo)
+ * se combinan entre los materiales del producto (unión de valores; "Todos" si alguno lo es; obligatorio si alguno lo es).
+ * Un atributo con permisos por material que no incluyen ningún material del producto no se pide.
+ */
+export function effectiveFamilyConf(raw: FamilyAttribute[], slugs: string[]): FamilyAttribute[] {
+  const out: FamilyAttribute[] = [];
+  for (const id of [...new Set(raw.map((e) => e.attributeId))]) {
+    const entries = raw.filter((e) => e.attributeId === id);
+    const perMat = entries.filter((e) => e.material);
+    const generic = entries.find((e) => !e.material);
+    if (!perMat.length) { if (generic) out.push(generic); continue; }
+    const mine = perMat.filter((e) => slugs.includes(e.material!) && e.valueIds[0] !== -1);
+    if (!mine.length) { if (generic && !slugs.length) out.push(generic); continue; }
+    out.push({ attributeId: id, required: mine.some((e) => e.required), valueIds: [] });
+  }
+  // La categoría ya no acota valores (los elige el producto): solo qué atributos y si son obligatorios.
+  return out.map((e) => (e.valueIds[0] === -1 ? e : { ...e, valueIds: [] }));
 }
 
 /**
@@ -124,8 +145,18 @@ export function selModel(c: RulesCatalog, sel: Selection): ProductModel | undefi
 }
 
 /** Ajuste del producto sobre un atributo de su categoría (subconjunto de valores, o [-1] = no lo pide). */
-export const productAttribute = (model: ProductModel, attributeId: number) =>
-  ((model as ProductModel & { attributes?: FamilyAttribute[] }).attributes ?? []).find((a) => a.attributeId === attributeId);
+export function productAttribute(model: ProductModel, attributeId: number): FamilyAttribute | undefined {
+  const all = ((model as ProductModel & { attributes?: FamilyAttribute[] }).attributes ?? []).filter((a) => a.attributeId === attributeId);
+  const slugs = productMaterialSlugs(model);
+  // Por (material, atributo): unión entre los materiales del producto; "Todos" si alguno no acota; [-1] si todos lo quitan.
+  const perMat = all.filter((a) => a.material && slugs.includes(a.material));
+  const generic = all.find((a) => !a.material);
+  if (!perMat.length) return generic;
+  const on = perMat.filter((a) => a.valueIds[0] !== -1);
+  if (!on.length) return { attributeId, required: false, valueIds: [-1] };
+  if (on.some((a) => !a.valueIds.length)) return { attributeId, required: false, valueIds: [] };
+  return { attributeId, required: false, valueIds: [...new Set(on.flatMap((a) => a.valueIds))] };
+}
 
 /** Valores activos de un atributo que sirven para el producto y la familia. */
 export function valuesFor(c: RulesCatalog, attributeId: number, model?: ProductModel, allowed: number[] = []) {

@@ -20,7 +20,8 @@ export function drawingType(
 /** Dibujo por defecto de un producto: el único Accionamiento que permite su categoría, o su tipo antiguo. */
 export function modelDrawing(c: Cat, model: { familyId: number | null; type?: string | null } | null, fallback?: string | null): string {
   const attr = accAttr(c);
-  const fa = model && attr ? c.families?.find((f) => f.id === model.familyId)?.attributes?.find((a) => a.attributeId === attr.id) : undefined;
+  const pa = model && attr ? (model as { attributes?: { attributeId: number; valueIds: number[]; material?: string }[] }).attributes?.find((a) => a.attributeId === attr.id && !a.material && a.valueIds.length === 1) : undefined;
+  const fa = pa ?? (model && attr ? c.families?.find((f) => f.id === model.familyId)?.attributes?.find((a) => a.attributeId === attr.id) : undefined);
   const code = fa?.valueIds.length === 1 ? c.values.find((v) => v.id === fa.valueIds[0])?.code : undefined;
   return known(code) ?? known(model?.type) ?? known(fallback) ?? "enrollable";
 }
