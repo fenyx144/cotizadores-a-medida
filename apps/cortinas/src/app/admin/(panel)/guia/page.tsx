@@ -3,11 +3,11 @@ import Link from "next/link";
 export const metadata = { title: "Guía del catálogo — Cota" };
 
 const STEPS = [
-  { n: 1, title: "Atributos", href: "/admin/catalogo/atributos", text: "Cree las opciones y sus valores: genéricas (p. ej. Accionamiento: enrollable, vertical…) o según material." },
-  { n: 2, title: "Materiales", href: "/admin/catalogo/materiales", text: "Marque qué atributos y valores admite cada material." },
+  { n: 1, title: "Atributos", href: "/admin/catalogo/atributos", text: "Cree cada atributo con sus valores en el mismo formulario: genéricos (accionamiento, mando…) o según material (tela, perfil)." },
+  { n: 2, title: "Materiales", href: "/admin/catalogo/materiales", text: "Marque qué atributos del material (tipo y color de tela, color del perfil) y valores admite." },
   { n: 3, title: "Categorías", href: "/admin/catalogo/familias", text: "Elija sus materiales permitidos, qué atributos pide y qué valores admite (p. ej. solo Accionamiento Enrollable)." },
-  { n: 4, title: "Productos", href: "/admin/catalogo/productos", text: "Dé a cada producto su categoría y los materiales que usa a la vez (p. ej. tela Screen + tubo de aluminio)." },
-  { n: 5, title: "Variantes", href: "/admin/catalogo/variantes", text: "Marque un valor (fijo) o varios (el cliente elige entre ellos) de los atributos del producto. El SKU se sugiere solo." },
+  { n: 4, title: "Productos", href: "/admin/catalogo/productos", text: "Dé a cada producto su categoría, los materiales que usa a la vez y, si hace falta, acote los valores de la categoría." },
+  { n: 5, title: "Variantes", href: "/admin/catalogo/variantes", text: "Marque un valor (fijo) o varios (el cliente elige entre ellos) de los atributos del producto. El SKU se genera solo." },
   { n: 6, title: "Reglas", href: "/admin/catalogo/reglas", text: "Bloquee combinaciones y limite medidas, para todo, una categoría o un producto." },
   { n: 7, title: "El cliente configura", href: "/catalogo", text: "Con la ficha o el asistente paso a paso, ve solo lo permitido." },
 ];

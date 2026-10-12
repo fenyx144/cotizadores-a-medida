@@ -98,3 +98,38 @@ export function ensureMaterialNames() {
   })().catch((e) => { names = null; fail("nombres", e); });
   return names;
 }
+
+/** Columna nueva (no destructiva): atributos acotados por producto. Debe ir antes de cualquier lectura de productos. */
+let schemaP: Promise<void> | null = null;
+export function ensureSchema() {
+  schemaP ??= getDb().execute(sql`alter table product_models add column if not exists attributes jsonb not null default '[]'::jsonb`).then(() => undefined)
+    .catch((e) => { schemaP = null; fail("esquema", e); });
+  return schemaP;
+}
+
+/**
+ * Los materiales solo llevan atributos propios del material (tipo/color de tela, color del perfil…).
+ * "Color del perfil" pasa a "según material": cada material que no lo desactivaba lo admite con todos sus valores (mismo resultado).
+ * Los atributos funcionales (genéricos: mando, lado, accionamiento…) se quitan de los materiales.
+ */
+let scopes: Promise<void> | null = null;
+export function ensureMaterialScopes() {
+  scopes ??= (async () => {
+    const db = getDb();
+    const [perfil] = await db.select().from(schema.attributes).where(sql`${schema.attributes.name} = 'Color del perfil' and ${schema.attributes.scope} = 'generico'`);
+    if (!perfil) return;
+    await db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(771124)`);
+      const [again] = await tx.select().from(schema.attributes).where(sql`${schema.attributes.id} = ${perfil.id} and ${schema.attributes.scope} = 'generico'`);
+      if (!again) return;
+      const generic = new Set((await tx.select().from(schema.attributes)).filter((a) => a.scope !== "material" && a.id !== perfil.id).map((a) => a.id));
+      for (const m of await tx.select().from(schema.materials)) {
+        let list = (m.attributes ?? []).filter((e) => !generic.has(e.attributeId));
+        if (!list.some((e) => e.attributeId === perfil.id)) list = [...list, { attributeId: perfil.id, required: false, valueIds: [] }];
+        await tx.update(schema.materials).set({ attributes: list }).where(sql`${schema.materials.id} = ${m.id}`);
+      }
+      await tx.update(schema.attributes).set({ scope: "material" }).where(sql`${schema.attributes.id} = ${perfil.id}`);
+    });
+  })().catch((e) => { scopes = null; fail("ámbitos", e); });
+  return scopes;
+}

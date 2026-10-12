@@ -42,7 +42,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ p
         ))}
       </nav>
       <CrudManager key={modelId ?? 0} resource="variants" title="5 · Variantes" newLabel="Añadir variante"
-        description="Código propio (SKU) para una combinación de valores."
         fields={fields} initialRows={rows} />
     </div>
   );

@@ -157,6 +157,8 @@ export const productModels = pgTable("product_models", {
   pricePerM2: integer("price_per_m2").notNull(),
   active: boolean("active").notNull().default(true),
   sortOrder: integer("sort_order").notNull().default(0),
+  /** Acota los atributos de la categoría para este producto: valueIds subconjunto; [-1] = no lo pide. Vacío = hereda la categoría. */
+  attributes: jsonb("attributes").$type<FamilyAttribute[]>().notNull().default([]),
 });
 
 export const fabrics = pgTable("fabrics", {

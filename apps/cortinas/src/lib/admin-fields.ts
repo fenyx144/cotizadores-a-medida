@@ -10,7 +10,7 @@ const opts = (o: Record<string, string>) => Object.entries(o).map(([value, label
 type Opt = { value: string; label: string };
 
 /** Campos de producto; la familia se elige de las familias existentes. */
-export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_LABELS), familyMaterials: Record<string, string[]> = {}): CrudField[] => [
+export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_LABELS), familyMaterials: Record<string, string[]> = {}, attrsBy?: CrudField["attrsBy"]): CrudField[] => [
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "image", label: "Foto principal", type: "image", uploadUrl: UPLOAD, column: true },
   { name: "familyId", label: "Categoría", type: "select", nullable: true, options: families, column: true },
@@ -27,8 +27,9 @@ export const productFields = (families: Opt[], materials: Opt[] = opts(MATERIAL_
   { name: "maxWidth", label: "Ancho máximo (cm)", type: "number", column: true },
   { name: "minProjection", label: "Alto mínimo (cm)", type: "number" },
   { name: "maxProjection", label: "Alto máximo (cm)", type: "number", column: true },
-  { name: "basePrice", label: "Precio base (S/)", type: "number", column: true },
-  { name: "pricePerM2", label: "Precio por m² (S/)", type: "number", column: true },
+  { name: "basePrice", label: "Precio base (S/)", type: "number", hidden: true },
+  { name: "pricePerM2", label: "Precio por m² (S/)", type: "number", hidden: true },
+  { name: "attributes", label: "Atributos y valores del producto", type: "attrs", attrOptions: [], attrsBy, noRequired: true },
   { name: "active", label: "Visible en la web", type: "boolean", column: true },
 ];
 export const PRODUCT_FIELDS = productFields([]);
@@ -39,6 +40,7 @@ export const ATTRIBUTE_FIELDS: CrudField[] = [
   { name: "scope", label: "Aplica a", type: "select", options: [{ value: "generico", label: "Genérico (todos los materiales)" }, { value: "material", label: "Según material" }], column: true },
   { name: "unit", label: "Unidad", type: "text" },
   { name: "sortOrder", label: "Orden en el configurador", type: "number", nullable: true, column: true },
+  { name: "values", label: "Valores", type: "values", uploadUrl: UPLOAD },
 ];
 
 export const valueFields = (attrs: Opt[]): CrudField[] => [
@@ -70,9 +72,11 @@ export const familyFields = (attrOptions: AttrOption[], materials: Opt[] = [], m
   { name: "description", label: "Descripción", type: "textarea" },
   { name: "attributes", label: "Atributos resultantes", type: "attrs", attrOptions, materialLinks, column: true },
   { name: "minWidth", label: "Ancho mínimo por defecto (cm)", type: "number" },
-  { name: "maxWidth", label: "Ancho máximo por defecto (cm)", type: "number", column: true },
+  { name: "maxWidth", label: "Ancho máximo por defecto (cm)", type: "number" },
   { name: "minHeight", label: "Alto mínimo por defecto (cm)", type: "number" },
-  { name: "maxHeight", label: "Alto máximo por defecto (cm)", type: "number", column: true },
+  { name: "maxHeight", label: "Alto máximo por defecto (cm)", type: "number" },
+  { name: "anchoRango", label: "Ancho (cm)", type: "text", column: true, readOnly: true, rangeOf: ["minWidth", "maxWidth"] },
+  { name: "altoRango", label: "Alto (cm)", type: "text", column: true, readOnly: true, rangeOf: ["minHeight", "maxHeight"] },
 ];
 
 
@@ -82,7 +86,7 @@ export const materialFields = (attrOptions: AttrOption[]): CrudField[] => [...MA
 
 export const MATERIAL_FIELDS: CrudField[] = [
   { name: "name", label: "Nombre", type: "text", column: true },
-  { name: "slug", label: "Código", type: "text", column: true },
+  { name: "slug", label: "Código", type: "text", hidden: true },
   { name: "description", label: "Descripción", type: "textarea", column: true },
   { name: "active", label: "Visible", type: "boolean", column: true },
 ];
@@ -97,11 +101,11 @@ export const skuPart = (v: { name: string; code: string }) => {
 
 export const variantFields = (models: Opt[], values: Opt[], _materials: Opt[] = [], autoCode?: CrudField["autoCode"], combo?: CrudField["combo"]): CrudField[] => [
   { name: "modelId", label: "Producto", type: "select", options: models, column: true },
-  { name: "code", label: "Código (SKU)", type: "text", column: true, autoCode },
+  { name: "code", label: "Código (SKU)", type: "text", column: true, readOnly: true, autoCode },
   { name: "name", label: "Nombre", type: "text", column: true },
   { name: "material", label: "Material (antiguo)", type: "select", nullable: true, options: [], hidden: true },
   { name: "valueIds", label: "Combinación", type: "combo", options: values, column: true, combo },
   { name: "attributes", label: "Otros datos", type: "text" },
-  { name: "priceAdjustment", label: "Ajuste de precio (S/ por unidad)", type: "number", column: true },
+  { name: "priceAdjustment", label: "Ajuste de precio (S/ por unidad)", type: "number", hidden: true },
   { name: "active", label: "Activa", type: "boolean", column: true },
 ];

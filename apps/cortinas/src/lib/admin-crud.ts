@@ -2,7 +2,9 @@
 import "server-only";
 import { z } from "zod";
 import { createCrudHandlers, type CrudResource } from "@portafolio/core/crud";
+import { and, eq, inArray, notInArray } from "drizzle-orm";
 import { getDb, schema } from "./db";
+import { skuPart, skuPrefix } from "./admin-fields";
 import { getSession } from "./session";
 
 const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Color en formato #RRGGBB");
@@ -12,6 +14,10 @@ const optionRef = z.string().regex(/^(v|material|producto|familia):[\w-]+$/, "Op
 const hexOpt = z.string().regex(/^(#[0-9a-fA-F]{6})?$/, "Color en formato #RRGGBB");
 const idList = z.string().regex(/^[\w,]*$/);
 const cmOpt = z.number().int().min(10).max(2000).nullable();
+
+const slugify = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "material";
+const attrConf = z.array(z.object({ attributeId: z.number().int(), required: z.boolean(), valueIds: z.array(z.number().int()) }));
+const valueRow = z.object({ id: z.number().int().optional().nullable(), name: z.string().trim().min(1, "Indique el nombre").max(80), hex: hexOpt.nullable().transform((v) => v ?? ""), image: z.string().max(500).default("") });
 
 const resources: Record<string, CrudResource> = {
   products: {
@@ -23,6 +29,7 @@ const resources: Record<string, CrudResource> = {
       uses: z.string().regex(/^[a-z,]*$/, "Ej: educacion,oficinas"), tagline: z.string(), description: z.string(), image: z.string().min(1, "Suba una foto principal"), gallery: z.array(z.string()).max(6, "Máximo 6 fotos").default([]),
       minWidth: cm, maxWidth: cm, minProjection: cm, maxProjection: cm, basePrice: money, pricePerM2: money, sortOrder: z.number().int().min(1, "Desde 1").nullable().default(null), active: z.boolean(), familyId: z.coerce.number().int().nullable().catch(null),
       specs: z.array(z.object({ label: z.string().min(1).max(60), value: z.string().min(1).max(200) })).max(30).default([]),
+      attributes: attrConf.default([]),
     }),
   },
   fabrics: {
@@ -38,7 +45,25 @@ const resources: Record<string, CrudResource> = {
   attributes: {
     table: schema.attributes,
     orderBy: schema.attributes.sortOrder,
-    schema: z.object({ name: z.string().trim().min(2, "Indique el nombre").max(60), kind: z.enum(["lista", "numero", "sino"]), scope: z.enum(["generico", "material"]).default("generico"), unit: z.string().max(10).default(""), sortOrder: z.number().int().min(1, "Desde 1").nullable().default(null) }),
+    schema: z.object({ name: z.string().trim().min(2, "Indique el nombre").max(60), kind: z.enum(["lista", "numero", "sino"]), scope: z.enum(["generico", "material"]).default("generico"), unit: z.string().max(10).default(""), sortOrder: z.number().int().min(1, "Desde 1").nullable().default(null),
+      values: z.array(valueRow).max(200).optional() }),
+    // Valores editados dentro del atributo: actualiza, crea y borra filas (orden = posición en la lista).
+    beforeSave: async (data) => { const v = data.values; delete data.values; return v; },
+    afterSave: async (row, extra, db) => {
+      const list = extra as z.infer<typeof valueRow>[] | undefined;
+      const attributeId = Number(row.id);
+      if (list) {
+        const keep = list.filter((v) => v.id).map((v) => v.id!) ;
+        await db.delete(schema.attributeValues).where(keep.length ? and(eq(schema.attributeValues.attributeId, attributeId), notInArray(schema.attributeValues.id, keep)) : eq(schema.attributeValues.attributeId, attributeId));
+        for (const [i, v] of list.entries()) {
+          const set = { name: v.name, hex: v.hex, image: v.image, sortOrder: i + 1 };
+          if (v.id) await db.update(schema.attributeValues).set(set).where(and(eq(schema.attributeValues.id, v.id), eq(schema.attributeValues.attributeId, attributeId)));
+          else await db.insert(schema.attributeValues).values({ ...set, attributeId, surcharge: 0, surchargeKind: "fijo" });
+        }
+      }
+      const values = await db.select().from(schema.attributeValues).where(eq(schema.attributeValues.attributeId, attributeId)).orderBy(schema.attributeValues.sortOrder);
+      return { values: values.map((v) => ({ id: v.id, name: v.name, hex: v.hex, image: v.image })) };
+    },
   },
   values: {
     table: schema.attributeValues,
@@ -53,16 +78,42 @@ const resources: Record<string, CrudResource> = {
     table: schema.productVariants,
     orderBy: schema.productVariants.sortOrder,
     schema: z.object({
-      modelId: z.coerce.number().int().min(1, "Elija un producto"), code: z.string().trim().min(2, "Indique el código").max(40), name: z.string().trim().min(2).max(80),
+      modelId: z.coerce.number().int().min(1, "Elija un producto"), code: z.string().trim().max(40).optional(), name: z.string().trim().min(2).max(80),
       valueIds: idList.default(""), material: z.string().nullable().transform((v) => v ?? "").default(""),
-      attributes: z.string().max(200), priceAdjustment: z.number().int().min(-5000).max(5000), sortOrder: z.number().int().min(1, "Desde 1").nullable().default(null), active: z.boolean(),
+      attributes: z.string().max(200).default(""), priceAdjustment: z.number().int().min(-5000).max(5000).default(0), sortOrder: z.number().int().min(1, "Desde 1").nullable().default(null), active: z.boolean(),
     }),
+    // SKU automático si viene vacío: iniciales del producto + valor de cada atributo fijo.
+    beforeSave: async (data, db, id) => {
+      if (data.code) return;
+      if (id && data.modelId === undefined && data.valueIds === undefined) return;
+      const cur = id ? (await db.select().from(schema.productVariants).where(eq(schema.productVariants.id, id)))[0] : undefined;
+      const modelId = Number(data.modelId ?? cur?.modelId);
+      const valueIds = String(data.valueIds ?? cur?.valueIds ?? "").split(",").filter(Boolean).map(Number);
+      const [model] = await db.select().from(schema.productModels).where(eq(schema.productModels.id, modelId));
+      const vals = valueIds.length ? await db.select().from(schema.attributeValues).where(inArray(schema.attributeValues.id, valueIds)) : [];
+      const attrs = await db.select().from(schema.attributes);
+      const per = new Map<number, typeof vals>();
+      for (const v of vals) per.set(v.attributeId, [...(per.get(v.attributeId) ?? []), v]);
+      const order = (a: number) => attrs.find((x) => x.id === a)?.sortOrder ?? 0;
+      const parts = [...per.entries()].filter(([, g]) => g.length === 1).sort((x, y) => order(x[0]) - order(y[0])).map(([, g]) => skuPart(g[0]));
+      data.code = [model ? skuPrefix(model.slug) : "V", ...parts].join("-").slice(0, 40);
+    },
   },
   materials: {
     table: schema.materials,
     orderBy: schema.materials.sortOrder,
-    schema: z.object({ name: z.string().min(2), slug: z.string().regex(/^[a-z0-9-]+$/, "Solo minúsculas, números y guiones"), description: z.string(), sortOrder: z.number().int().min(1, "Desde 1").nullable().default(null), active: z.boolean(),
+    schema: z.object({ name: z.string().min(2), slug: z.string().regex(/^[a-z0-9-]*$/, "Solo minúsculas, números y guiones").default(""), description: z.string().default(""), sortOrder: z.number().int().min(1, "Desde 1").nullable().default(null), active: z.boolean(),
       attributes: z.array(z.object({ attributeId: z.number().int(), required: z.boolean(), valueIds: z.array(z.number().int()) })).default([]) }),
+    // Código interno automático desde el nombre (único).
+    beforeSave: async (data, db, id) => {
+      if (data.slug || (id && data.slug === undefined)) return;
+      if (id) { delete data.slug; return; }
+      const base = slugify(String(data.name ?? ""));
+      const taken = new Set((await db.select({ s: schema.materials.slug }).from(schema.materials)).map((x) => x.s));
+      let slug = base, n = 2;
+      while (taken.has(slug)) slug = `${base}-${n++}`;
+      data.slug = slug;
+    },
   },
   families: {
     table: schema.productFamilies,

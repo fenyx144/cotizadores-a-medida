@@ -69,7 +69,7 @@ export function familyAttributes(c: RulesCatalog, model: ProductModel): (FamilyA
   const conf: FamilyAttribute[] = family?.attributes?.length ? family.attributes : c.attributes.map((a) => ({ attributeId: a.id, required: false, valueIds: [] }));
   return conf
     .map((fa) => ({ ...fa, attribute: c.attributes.find((a) => a.id === fa.attributeId)! }))
-    .filter((x) => x.attribute && materialAllows(c, model, x.attributeId))
+    .filter((x) => x.attribute && materialAllows(c, model, x.attributeId) && productAttribute(model, x.attributeId)?.valueIds[0] !== -1)
     .sort((a, b) => byOrder(a.attribute, b.attribute));
 }
 
@@ -121,12 +121,17 @@ export function selModel(c: RulesCatalog, sel: Selection): ProductModel | undefi
   return model; // los materiales se combinan; ya no se elige uno (MATERIAL_ATTR se ignora en líneas antiguas)
 }
 
+/** Ajuste del producto sobre un atributo de su categoría (subconjunto de valores, o [-1] = no lo pide). */
+export const productAttribute = (model: ProductModel, attributeId: number) =>
+  ((model as ProductModel & { attributes?: FamilyAttribute[] }).attributes ?? []).find((a) => a.attributeId === attributeId);
+
 /** Valores activos de un atributo que sirven para el producto y la familia. */
 export function valuesFor(c: RulesCatalog, attributeId: number, model?: ProductModel, allowed: number[] = []) {
   return c.values
     .filter((v) => v.active && v.attributeId === attributeId)
     .filter((v) => { const m = model && materialAttribute(c, model, attributeId); return !m || !m.valueIds.length || m.valueIds.includes(v.id); })
     .filter((v) => !allowed.length || allowed.includes(v.id))
+    .filter((v) => { const p = model && productAttribute(model, attributeId); return !p || !p.valueIds.length || p.valueIds.includes(v.id); })
     .sort(byOrder);
 }
 

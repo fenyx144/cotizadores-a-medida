@@ -197,3 +197,15 @@ describe("variantes que acotan valores", () => {
     expect(matchVariant(cc, { modelId: 2, values: { [TELA]: 6, [PERFIL]: 15 } })).toBeUndefined();
   });
 });
+
+describe("el producto acota la categoría", () => {
+  it("solo ofrece los valores del producto y puede quitar un atributo", () => {
+    const cc = { ...c, models: c.models.map((m) => (m.id === 2 ? { ...m, attributes: [{ attributeId: PERFIL, required: false, valueIds: [13] }, { attributeId: LADO, required: false, valueIds: [-1] }] } : m)) };
+    const ev = evaluate(cc, { modelId: 2 });
+    expect(f(ev, PERFIL)!.choices.map((x) => x.value)).toEqual([13]);
+    expect(f(ev, LADO)).toBeUndefined();
+    expect(evaluate(cc, { modelId: 2, values: { [PERFIL]: 15 } }).errors[`a${PERFIL}`]).toBeTruthy();
+    expect(withDefaults(cc, { modelId: 2 })[PERFIL]).toBe(13);
+    expect(f(evaluate(cc, { modelId: 1 }), PERFIL)!.choices.length).toBeGreaterThan(1);
+  });
+});

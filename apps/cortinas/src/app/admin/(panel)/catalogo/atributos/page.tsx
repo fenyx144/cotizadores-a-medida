@@ -1,31 +1,12 @@
-import { SHOW_SURCHARGES } from "@/lib/flags";
-import Link from "next/link";
 import { CrudManager } from "@portafolio/core/ui/CrudManager";
-import { ATTRIBUTE_FIELDS, valueFields } from "@/lib/admin-fields";
+import { ATTRIBUTE_FIELDS } from "@/lib/admin-fields";
 import { attributeData } from "@/lib/admin-catalog";
 
-export default async function Page({ searchParams }: { searchParams: Promise<{ atributo?: string }> }) {
-  const { atributo } = await searchParams;
+export default async function Page() {
   const { attributes, values } = await attributeData();
-  const current = attributes.find((a) => a.id === Number(atributo)) ?? attributes[0];
-  const rows = values.filter((v) => v.attributeId === current?.id);
-  const tab = (on: boolean) => (on ? "text-ink underline decoration-accent underline-offset-4" : "text-muted hover:text-ink");
+  // Cada atributo con sus valores, que se editan dentro del mismo formulario.
+  const rows = attributes.map((a) => ({ ...a, values: values.filter((v) => v.attributeId === a.id).map((v) => ({ id: v.id, name: v.name, hex: v.hex, image: v.image })) }));
   return (
-    <div className="space-y-14">
-      <CrudManager resource="attributes" title="1 · Atributos" newLabel="Añadir atributo"
-        description="Genéricos para todos, o según material. Cada uno con sus valores."
-        fields={ATTRIBUTE_FIELDS} initialRows={attributes} />
-      {current && (
-        <div data-testid="attribute-values">
-          <nav className="mb-4 flex flex-wrap gap-x-5 gap-y-2 text-sm" aria-label="Atributo">
-            {attributes.map((a) => <Link key={a.id} href={`/admin/catalogo/atributos?atributo=${a.id}`} className={tab(a.id === current.id)}>{a.name}</Link>)}
-          </nav>
-          <CrudManager key={current.id} resource="values" title={`Valores de “${current.name}”`} newLabel="Añadir valor"
-            description={current.kind === "sino" ? (SHOW_SURCHARGES ? "Un solo valor (“Sí”) con su recargo." : "Un solo valor (“Sí”).") : current.kind === "numero" ? "El cliente escribe un número; no lleva valores." : (SHOW_SURCHARGES ? "Cada valor: código, muestra de color o imagen, y recargo." : "Cada valor: código, muestra de color o imagen.")}
-            fields={valueFields(attributes.map((a) => ({ value: String(a.id), label: a.name }))).map((f) => (f.name === "attributeId" ? { ...f, options: [{ value: String(current.id), label: current.name }, ...(f.options ?? []).filter((o) => o.value !== String(current.id))] } : f))}
-            initialRows={rows} />
-        </div>
-      )}
-    </div>
+    <CrudManager resource="attributes" title="1 · Atributos" newLabel="Añadir atributo" fields={ATTRIBUTE_FIELDS} initialRows={rows} />
   );
 }

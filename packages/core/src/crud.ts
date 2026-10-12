@@ -19,6 +19,10 @@ export interface CrudResource {
   table: PgTable & { id: PgColumn };
   schema: ZodType<Record<string, unknown>>;
   orderBy?: PgColumn;
+  /** Antes de guardar: puede completar datos (códigos) y sacar campos que no son columnas; lo que devuelve llega a afterSave. */
+  beforeSave?: (data: Record<string, unknown>, db: Db, id?: number) => Promise<unknown>;
+  /** Después de guardar (p. ej. filas hijas); lo que devuelve se añade a la respuesta. */
+  afterSave?: (row: Record<string, unknown>, extra: unknown, db: Db) => Promise<Record<string, unknown> | void>;
 }
 
 type Ctx = { params: Promise<{ resource: string; id?: string }> };
@@ -84,8 +88,10 @@ export function createCrudHandlers(opts: {
           const data = await parse(g.res, req, false);
           await fillOrder(g.res, data);
           const db = opts.getDb();
+          const extra = g.res.beforeSave ? await g.res.beforeSave(data, db) : undefined;
           const [row] = await db.insert(g.res.table).values(data).returning();
-          return json(row, 201);
+          const more = g.res.afterSave ? await g.res.afterSave(row as Record<string, unknown>, extra, db) : undefined;
+          return json({ ...row, ...(more ?? {}) }, 201);
         } catch (e) {
           return handleError(e);
         }
@@ -99,8 +105,11 @@ export function createCrudHandlers(opts: {
           const data = await parse(g.res, req, true);
           await fillOrder(g.res, data, g.id);
           const db = opts.getDb();
-          const [row] = await db.update(g.res.table).set(data).where(eq(g.res.table.id, g.id!)).returning();
-          return row ? json(row) : json({ error: "No encontrado" }, 404);
+          const extra = g.res.beforeSave ? await g.res.beforeSave(data, db, g.id) : undefined;
+          const [row] = Object.keys(data).length ? await db.update(g.res.table).set(data).where(eq(g.res.table.id, g.id!)).returning() : await db.select().from(g.res.table as PgTable).where(eq(g.res.table.id, g.id!));
+          if (!row) return json({ error: "No encontrado" }, 404);
+          const more = g.res.afterSave ? await g.res.afterSave(row as Record<string, unknown>, extra, db) : undefined;
+          return json({ ...row, ...(more ?? {}) });
         } catch (e) {
           return handleError(e);
         }

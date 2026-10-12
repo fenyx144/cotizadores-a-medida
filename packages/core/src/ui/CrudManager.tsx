@@ -7,7 +7,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export type FieldType = "text" | "textarea" | "number" | "color" | "boolean" | "select" | "specs" | "multiselect" | "image" | "gallery" | "attrs" | "combo";
+export type FieldType = "text" | "textarea" | "number" | "color" | "boolean" | "select" | "specs" | "multiselect" | "image" | "gallery" | "attrs" | "combo" | "values";
 
 /** Para "attrs": atributos disponibles con sus valores. */
 export interface AttrOption { id: number; name: string; values: { id: number; name: string }[]; defaultOn?: boolean; note?: string }
@@ -43,6 +43,10 @@ export interface CrudField {
   column?: boolean;
   /** Texto sugerido a partir de otros campos (p. ej. SKU = código de producto + códigos de valores). Se rellena mientras no se edite a mano. */
   autoCode?: AutoCode;
+  /** En "attrs": atributos ofrecidos según otro campo (p. ej. los de la categoría del producto). */
+  attrsBy?: { field: string; map: Record<string, AttrOption[]> };
+  /** En la tabla: muestra "mín–máx" de dos campos. */
+  rangeOf?: [string, string];
   /** En "combo": atributos y valores permitidos según otro campo (p. ej. producto). Varios valores de un atributo = el cliente elige entre ellos; uno = fijo. */
   combo?: { field: string; map: Record<string, AttrOption[]> };
   /** Mínimo del número. En "sortOrder" por defecto 1 (orden visible desde 1; un registro nuevo va al final). */
@@ -87,7 +91,7 @@ export function CrudManager({
 
   function emptyRow(): Partial<Row> {
     const r: Record<string, unknown> = {};
-    for (const f of fields) r[f.name] = f.type === "specs" || f.type === "gallery" || f.type === "attrs" ? [] : f.type === "multiselect" || f.type === "combo" ? "" : f.type === "boolean" ? true : f.type === "number" ? (f.nullable ? null : 0) : f.type === "color" ? (f.nullable ? "" : "#cccccc") : f.nullable ? null : (f.options?.[0]?.value ?? "");
+    for (const f of fields) r[f.name] = f.type === "specs" || f.type === "gallery" || f.type === "attrs" || f.type === "values" ? [] : f.type === "multiselect" || f.type === "combo" ? "" : f.type === "boolean" ? true : f.type === "number" ? (f.nullable ? null : 0) : f.type === "color" ? (f.nullable ? "" : "#cccccc") : f.nullable ? null : (f.options?.[0]?.value ?? "");
     return r;
   }
 
@@ -99,6 +103,7 @@ export function CrudManager({
       let v = row[f.name];
       if (f.type === "number") v = v === "" || v === null || v === undefined ? (f.nullable ? null : 0) : Number(v);
       else if (f.type === "gallery" || f.type === "attrs") v = Array.isArray(v) ? v : [];
+      else if (f.type === "values") v = ((v as ValueRow[]) ?? []).filter((x) => x.name.trim()).map((x) => ({ id: x.id ?? null, name: x.name.trim(), hex: x.hex || "", image: x.image || "" }));
       else if (f.type === "specs") v = ((v as { label: string; value: string }[]) ?? []).map((r) => ({ label: r.label.trim(), value: r.value.trim() })).filter((r) => r.label && r.value);
       else if (f.type !== "boolean" && f.nullable && (v === "" || v === undefined)) v = null;
       out[f.name] = v;
@@ -150,9 +155,10 @@ export function CrudManager({
     if (f.type === "image") return value ? <img src={String(value)} alt="" className="h-10 w-14 border border-line object-cover" /> : "—";
     if (f.type === "gallery") return Array.isArray(value) && value.length ? `${value.length} fotos` : "—";
     if (f.type === "attrs") {
-      const list = (value as AttrConf[] | undefined) ?? [];
-      return list.length ? list.map((a) => `${f.attrOptions?.find((o) => o.id === a.attributeId)?.name ?? a.attributeId}${a.required ? "" : " (opc.)"}`).join(", ") : "—";
+      const list = ((value as AttrConf[] | undefined) ?? []).filter((a) => a.valueIds[0] !== -1);
+      return list.length ? <span className="block leading-snug">{list.map((a) => <span key={a.attributeId} className="block">{f.attrOptions?.find((o) => o.id === a.attributeId)?.name ?? a.attributeId}</span>)}</span> : "—";
     }
+    if (f.type === "values") return Array.isArray(value) && value.length ? `${value.length} valores` : "—";
     if (f.type === "specs") return Array.isArray(value) && value.length ? `${value.length} filas` : "—";
     if (f.type === "multiselect" || f.type === "combo") {
       const v = String(value ?? "").split(",").filter(Boolean);
@@ -189,7 +195,7 @@ export function CrudManager({
               {rows.map((row) => (
                 <tr key={row.id} className={`border-b border-line/70 ${editing?.id === row.id ? "bg-ink/[0.03]" : ""}`}>
                   {columns.map((c) => (
-                    <td key={c.name} className="py-3 pr-4">{display(c, row[c.name])}</td>
+                    <td key={c.name} className="py-3 pr-4 align-top">{c.rangeOf ? <span className="whitespace-nowrap font-mono text-xs">{String(row[c.rangeOf[0]] ?? "—")}–{String(row[c.rangeOf[1]] ?? "—")}</span> : display(c, row[c.name])}</td>
                   ))}
                   <td className="whitespace-nowrap py-3 text-right">
                     <button onClick={() => { setErrors({}); open({ ...row }); }} className="text-ink underline underline-offset-4">Editar</button>
@@ -213,8 +219,10 @@ export function CrudManager({
             {fields.filter((f) => !f.readOnly && !f.hidden).map((f) => f.type === "image" || f.type === "gallery" ? (
               <PhotoField key={f.name} field={f} value={editing[f.name]} error={errors[f.name]} onChange={(v) => setEditing({ ...editing, [f.name]: v })} />
             ) : f.type === "attrs" ? (
-              <AttrsEditor key={f.name} field={f} error={errors[f.name]} value={(editing[f.name] as AttrConf[] | undefined) ?? []} linked={f.materialLinks ? String(editing[f.materialLinks.field] ?? "") : ""}
+              <AttrsEditor key={f.name} field={f.attrsBy ? { ...f, attrOptions: f.attrsBy.map[String(editing[f.attrsBy.field] ?? "")] ?? [] } : f} error={errors[f.name]} value={(editing[f.name] as AttrConf[] | undefined) ?? []} linked={f.materialLinks ? String(editing[f.materialLinks.field] ?? "") : ""}
                 onChange={(v) => setEditing({ ...editing, [f.name]: v })} />
+            ) : f.type === "values" ? (
+              <ValuesEditor key={f.name} field={f} error={errors[f.name]} value={(editing[f.name] as ValueRow[] | undefined) ?? []} onChange={(v) => setEditing({ ...editing, [f.name]: v })} />
             ) : f.type === "combo" ? (
               <ComboEditor key={f.name} field={f} error={errors[f.name]} value={String(editing[f.name] ?? "")} attrs={f.combo?.map[String(editing[f.combo.field] ?? "")] ?? []}
                 onChange={(v) => setEditing({ ...editing, [f.name]: v })} />
@@ -428,7 +436,6 @@ function AttrsEditor({ field, value, error, onChange, linked = "" }: { field: Cr
                   <input type="checkbox" className="accent-ink" checked={!!cur} onChange={(e) => (a.defaultOn ? set(a.id, e.target.checked ? null : { valueIds: [-1] }) : set(a.id, e.target.checked ? {} : null))} aria-label={`Pedir ${a.name}`} />
                   <span className={cur ? "" : "text-muted"}>{a.name}</span>
                   {a.note && !field.materialLinks && <span className="text-xs text-muted">{a.note}</span>}
-                  {src.length > 0 && <span className="text-xs text-accent" data-testid="attr-source">desde material {src.map((x) => x.m.name).join(", ")}</span>}
                 </label>
                 {cur && !field.noRequired && (
                   <label className="inline-flex items-center gap-1.5 text-xs text-muted">
@@ -491,6 +498,55 @@ function ComboEditor({ field, value, attrs, error, onChange }: { field: CrudFiel
           </span>
         </div>
       ))}
+      {error && <p className="text-danger">{error}</p>}
+    </div>
+  );
+}
+
+type ValueRow = { id?: number | null; name: string; hex: string; image: string };
+
+/** Valores de un atributo editados en línea: nombre, color opcional (casilla "Tiene color") e imagen opcional. */
+function ValuesEditor({ field, value, error, onChange }: { field: CrudField; value: ValueRow[]; error?: string; onChange: (v: ValueRow[]) => void }) {
+  const set = (i: number, patch: Partial<ValueRow>) => onChange(value.map((r, k) => (k === i ? { ...r, ...patch } : r)));
+  const move = (i: number, d: number) => { const j = i + d; if (j < 0 || j >= value.length) return; const n = [...value]; [n[i], n[j]] = [n[j], n[i]]; onChange(n); };
+  const [busy, setBusy] = useState<number | null>(null);
+  async function upload(i: number, file?: File) {
+    if (!file || !field.uploadUrl) return;
+    setBusy(i);
+    const fd = new FormData(); fd.append("file", file);
+    const res = await fetch(field.uploadUrl, { method: "POST", body: fd });
+    const data = await res.json().catch(() => ({}));
+    setBusy(null);
+    if (res.ok && data.url) set(i, { image: data.url });
+  }
+  return (
+    <div className="block text-sm" data-testid="values-editor">
+      <span className="text-muted">{field.label}</span>
+      <div className="mt-1 divide-y divide-line border-y border-line">
+        {value.map((r, i) => (
+          <div key={r.id ?? `n${i}`} className="flex flex-wrap items-center gap-3 py-2" data-testid="value-row">
+            <input aria-label="Nombre del valor" value={r.name} onChange={(e) => set(i, { name: e.target.value })} className="min-w-0 flex-1 border-b border-line bg-transparent py-1" />
+            <label className="inline-flex items-center gap-1.5 text-xs">
+              <input type="checkbox" className="accent-ink" checked={!!r.hex} onChange={(e) => set(i, { hex: e.target.checked ? r.hex || "#cccccc" : "" })} aria-label={`${r.name || "Valor"}: tiene color`} />
+              Tiene color
+            </label>
+            {r.hex && <input type="color" value={r.hex} onChange={(e) => set(i, { hex: e.target.value })} className="h-7 w-9 border border-line bg-transparent" aria-label={`${r.name || "Valor"}: color`} />}
+            {field.uploadUrl && (
+              <label className="inline-flex cursor-pointer items-center gap-1.5 text-xs">
+                {r.image ? <img src={r.image} alt="" className="size-7 border border-line object-cover" /> : <span className="text-muted underline">{busy === i ? "Subiendo…" : "Imagen"}</span>}
+                <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(e) => { upload(i, e.target.files?.[0]); e.target.value = ""; }} />
+              </label>
+            )}
+            {r.image && <button type="button" className="text-xs text-muted hover:text-danger" onClick={() => set(i, { image: "" })} aria-label="Quitar imagen">✕ img</button>}
+            <span className="flex gap-1 text-xs text-muted">
+              <button type="button" onClick={() => move(i, -1)} aria-label="Subir">↑</button>
+              <button type="button" onClick={() => move(i, 1)} aria-label="Bajar">↓</button>
+            </span>
+            <button type="button" className="text-xs text-muted hover:text-danger" onClick={() => onChange(value.filter((_, k) => k !== i))} aria-label={`Eliminar ${r.name}`}>Eliminar</button>
+          </div>
+        ))}
+      </div>
+      <button type="button" className="mt-2 text-sm underline underline-offset-4" onClick={() => onChange([...value, { name: "", hex: "", image: "" }])} data-testid="add-value">Añadir valor</button>
       {error && <p className="text-danger">{error}</p>}
     </div>
   );
