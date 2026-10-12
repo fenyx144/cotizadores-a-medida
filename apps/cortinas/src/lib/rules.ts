@@ -92,7 +92,9 @@ export function materialAttribute(c: RulesCatalog, model: ProductModel, attribut
 
 /** Material al que pertenece un atributo en un producto (para agrupar): el primero que lo configura; si no, null (general). */
 export function attributeMaterial(c: RulesCatalog, model: ProductModel, attributeId: number): Material | null {
-  return productMaterials(c, model).find((m) => (m.attributes ?? []).some((a) => a.attributeId === attributeId && a.valueIds[0] !== -1)) ?? null;
+  // Si varios lo configuran, el más específico (el que configura menos atributos, p. ej. el tubo frente a la tela).
+  const n = (m: Material) => (m.attributes ?? []).filter((a) => a.valueIds[0] !== -1).length;
+  return productMaterials(c, model).filter((m) => (m.attributes ?? []).some((a) => a.attributeId === attributeId && a.valueIds[0] !== -1)).sort((x, y) => n(x) - n(y))[0] ?? null;
 }
 /** ¿El material del producto admite el atributo? */
 export const materialAllows = (c: RulesCatalog, model: ProductModel, attributeId: number) => materialAttribute(c, model, attributeId)?.valueIds[0] !== -1;
