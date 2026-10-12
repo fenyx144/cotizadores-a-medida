@@ -8,6 +8,10 @@ import { ask, notify } from "./Dialog";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+/** "Todos" desmarcado sin ninguno elegido (solo en el formulario; no se guarda). */
+const NONE = "!";
+const NONE_ID = -2;
+
 export type FieldType = "text" | "textarea" | "number" | "color" | "boolean" | "select" | "specs" | "multiselect" | "image" | "gallery" | "attrs" | "combo" | "values";
 
 /** Para "attrs": atributos disponibles con sus valores. */
@@ -114,6 +118,17 @@ export function CrudManager({
 
   async function save() {
     if (!editing) return;
+    // "Todos" desmarcado sin elegir ninguno.
+    const missing: Record<string, string> = {};
+    for (const f of fields) {
+      const v = editing[f.name];
+      if (f.type === "multiselect" && v === NONE) missing[f.name] = "Elija al menos uno.";
+      if (f.type === "attrs" && Array.isArray(v)) {
+        const bad = (v as AttrConf[]).filter((a) => a.valueIds[0] === NONE_ID).map((a) => f.attrOptions?.find((o) => o.id === a.attributeId)?.name ?? a.attributeId);
+        if (bad.length) missing[f.name] = `Elija al menos un valor: ${bad.join(", ")}.`;
+      }
+    }
+    if (Object.keys(missing).length) { setErrors(missing); return; }
     setSaving(true);
     setErrors({});
     const isNew = !editing.id;
@@ -249,23 +264,23 @@ export function CrudManager({
                       };
                       return (
                         <label className="inline-flex items-center gap-1.5 font-medium">
-                          <input type="checkbox" checked={all} className="accent-ink" aria-label={`${f.label}: ${f.allLabel}`} onChange={(e) => apply(e.target.checked ? "" : (f.options ?? []).map((o) => o.value).join(","))} />
+                          <input type="checkbox" checked={all} className="accent-ink" aria-label={`${f.label}: ${f.allLabel}`} onChange={(e) => apply(e.target.checked ? "" : NONE)} />
                           <span>{f.allLabel}</span>
                         </label>
                       );
                     })()}
                     {(f.filterBy && f.filterBy.map[String(editing[f.filterBy.field] ?? "")]?.length ? f.options?.filter((o) => f.filterBy!.map[String(editing[f.filterBy!.field] ?? "")].includes(o.value)) : f.options)?.map((o) => {
                       const all = !!f.allLabel && !String(editing[f.name] ?? "");
-                      const cur = String(editing[f.name] ?? "").split(",").filter(Boolean);
+                      const cur = String(editing[f.name] ?? "").split(",").filter((x) => x && x !== NONE);
                       const on = all || cur.includes(o.value);
                       return (
                         <label key={o.value} className={`inline-flex items-center gap-1.5 ${all ? "text-muted" : ""}`}>
                           <input type="checkbox" checked={on} disabled={all} className="accent-ink" aria-label={o.label}
                             onChange={() => {
                               const nextVal = (on ? cur.filter((x) => x !== o.value) : [...cur, o.value]).join(",");
-                              if (f.allLabel && !nextVal) return;
-                              const next: Partial<Row> = { ...editing, [f.name]: nextVal };
-                              for (const af of fields) if (af.materialLinks?.field === f.name) next[af.name] = syncAttrs(af, nextVal, (editing[af.name] as AttrConf[] | undefined) ?? []);
+                              const val = f.allLabel && !nextVal ? NONE : nextVal;
+                              const next: Partial<Row> = { ...editing, [f.name]: val };
+                              for (const af of fields) if (af.materialLinks?.field === f.name) next[af.name] = syncAttrs(af, val, (editing[af.name] as AttrConf[] | undefined) ?? []);
                               setEditing(next);
                             }} />
                           <span>{o.label}</span>
@@ -450,16 +465,17 @@ function AttrsEditor({ field, value, error, onChange, linked = "" }: { field: Cr
                   {/* "Todos": lista vacía = todos los valores, también los que se creen después. */}
                   <label className="inline-flex items-center gap-1 font-medium">
                     <input type="checkbox" className="accent-ink" checked={!cur.valueIds.length} aria-label={`${a.name}: todos los valores`}
-                      onChange={(e) => set(a.id, { valueIds: e.target.checked ? [] : a.values.map((v) => v.id) })} />
+                      onChange={(e) => set(a.id, { valueIds: e.target.checked ? [] : [NONE_ID] })} />
                     <span>Todos</span>
                   </label>
                   {a.values.map((v) => {
                     const all = !cur.valueIds.length;
-                    const on = all || cur.valueIds.includes(v.id);
+                    const picked = cur.valueIds.filter((x) => x !== NONE_ID);
+                    const on = all || picked.includes(v.id);
                     return (
                       <label key={v.id} className={`inline-flex items-center gap-1 ${all ? "text-muted" : ""}`}>
                         <input type="checkbox" className="accent-ink" checked={on} disabled={all}
-                          onChange={() => { const next = on ? cur.valueIds.filter((x) => x !== v.id) : [...cur.valueIds, v.id]; if (next.length) set(a.id, { valueIds: next }); }} />
+                          onChange={() => { const next = on ? picked.filter((x) => x !== v.id) : [...picked, v.id]; set(a.id, { valueIds: next.length ? next : [NONE_ID] }); }} />
                         <span>{v.name}</span>
                       </label>
                     );
