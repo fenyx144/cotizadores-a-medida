@@ -242,7 +242,7 @@ export function CrudManager({
             {fields.filter((f) => !f.readOnly && !f.hidden).map((f) => f.type === "image" || f.type === "gallery" ? (
               <PhotoField key={f.name} field={f} value={editing[f.name]} error={errors[f.name]} onChange={(v) => setEditing({ ...editing, [f.name]: v })} />
             ) : f.type === "attrs" ? (
-              <AttrsEditor key={f.name} field={f.attrsBy ? { ...f, attrOptions: f.attrsBy.map[String(editing[f.attrsBy.field] ?? "")] ?? [] } : f} error={errors[f.name]} value={(editing[f.name] as AttrConf[] | undefined) ?? []} linked={f.materialLinks ? String(editing[f.materialLinks.field] ?? "") : ""}
+              <AttrsEditor key={f.name} field={f.attrsBy ? { ...f, attrOptions: f.attrsBy.map[String(editing[f.attrsBy.field] ?? "")] ?? f.attrsBy.map["*"] ?? [] } : f} error={errors[f.name]} value={(editing[f.name] as AttrConf[] | undefined) ?? []} linked={f.materialLinks ? String(editing[f.materialLinks.field] || (f.attrsBy ? editing.material : "") || "") : ""}
                 onChange={(v) => setEditing({ ...editing, [f.name]: v })} />
             ) : f.type === "values" ? (
               <ValuesEditor key={f.name} field={f} error={errors[f.name]} value={(editing[f.name] as ValueRow[] | undefined) ?? []} onChange={(v) => setEditing({ ...editing, [f.name]: v })} />
@@ -448,6 +448,8 @@ function AttrsEditor({ field, value, error, onChange, linked = "" }: { field: Cr
           const ml = field.materialLinks;
           if (!ml) return [{ title: "", slug: undefined as string | undefined, list: opts }];
           const sel = linked.split(",").filter(Boolean);
+          // Producto sin materiales: solo los genéricos (los de material aparecen al elegirlos).
+          if (field.attrsBy && !sel.length) return [{ title: "Genéricos", slug: undefined as string | undefined, list: opts.filter((a) => !ml.scoped.includes(a.id)) }].filter((g) => g.list.length);
           return [
             { title: "Genéricos", slug: undefined as string | undefined, list: opts.filter((a) => !ml.scoped.includes(a.id)) },
             ...ml.materials.filter((m) => !sel.length || sel.includes(m.slug)).map((m) => ({ title: m.name, slug: m.slug as string | undefined, list: opts.filter((a) => ml.scoped.includes(a.id) && m.attrs.some((e) => e.attributeId === a.id && e.valueIds[0] !== -1)) })),
@@ -506,6 +508,8 @@ function AttrsEditor({ field, value, error, onChange, linked = "" }: { field: Cr
           </div>
         ))}
       </div>
+      {field.attrsBy && field.materialLinks && !linked && <span className="mt-2 block text-xs text-accent" data-testid="attrs-pick-materials">Elija los materiales del producto para definir sus valores.</span>}
+      {!(field.attrOptions ?? []).length && <span className="mt-2 block text-xs text-muted">Sin atributos: elija la categoría.</span>}
       {field.hint && <span className="mt-1 block text-xs text-muted">{field.hint}</span>}
       {error && <span className="mt-1 block text-xs text-danger">{error}</span>}
     </div>

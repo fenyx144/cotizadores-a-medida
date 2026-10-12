@@ -13,3 +13,18 @@ export async function attributeData() {
   const valueOptions = attributes.flatMap((a) => values.filter((v) => v.attributeId === a.id).map((v) => ({ value: String(v.id), label: `${a.name} · ${v.name}${v.code && v.code !== v.name ? ` (${v.code})` : ""}` })));
   return { attributes: attributes.map((a) => ({ ...a, sortOrder: a.id })), values: values.map((v) => ({ ...v, sortOrder: v.id })), attrOptions, valueOptions };
 }
+
+/**
+ * Atributos que el formulario de producto ofrece según su categoría (valores completos: el producto los acota).
+ * "*" = todos los atributos, para productos sin categoría o con una categoría que ya no existe.
+ */
+export function attrsByFamily(families: { id: number; attributes: { attributeId: number; valueIds: number[] }[] | null }[], attrOptions: { id: number; name: string; values: { id: number; name: string }[] }[]) {
+  const all = attrOptions.map((a) => ({ id: a.id, name: a.name, defaultOn: true, values: a.values }));
+  const map: Record<string, typeof all> = { "*": all, "": all };
+  for (const f of families) {
+    const list = f.attributes ?? [];
+    const ids = list.length ? new Set(list.filter((e) => e.valueIds[0] !== -1).map((e) => e.attributeId)) : null;
+    map[String(f.id)] = ids ? all.filter((a) => ids.has(a.id)) : all;
+  }
+  return map;
+}
